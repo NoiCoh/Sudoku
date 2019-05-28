@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2018.3.4\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\sud.dir/objects.a
+C:\MinGW\bin\ar.exe cr CMakeFiles\sud.dir/objects.a @CMakeFiles\sud.dir\objects1.rsp
+C:\MinGW\bin\gcc.exe -g   -Wl,--whole-archive CMakeFiles\sud.dir/objects.a -Wl,--no-whole-archive  -o sud.exe -Wl,--out-implib,libsud.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\sud.dir\linklibs.rsp
