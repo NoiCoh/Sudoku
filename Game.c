@@ -1,6 +1,5 @@
 #include "Game.h"
-#define SIZE_OF_ROW_COL 9
-#define SIZE_OF_BORAD 81
+
 
 /**
  * initialize board values and params to zero.
@@ -47,14 +46,15 @@ Board* initialize(){
  */
 Board* makeUserBoard(Board* solvedBoard,int hint){
     int count, x, y;
+    Board* userBoard;
     count =0;
-    Board* userBoard= initialize();
+    userBoard = initialize();
     while(count<hint){
         x= rand()%9;
         y= rand()%9;
-        if(userBoard->cells[x][y].fixed==false){
-            userBoard->cells[x][y].value=solvedBoard->cells[x][y].value;
-            userBoard->cells[x][y].fixed=true;
+        if(userBoard->cells[y][x].fixed==false){
+            userBoard->cells[y][x].value=solvedBoard->cells[y][x].value;
+            userBoard->cells[y][x].fixed=true;
             count++;
         }
     }
@@ -71,28 +71,27 @@ void setCommand(Board* userBoard, char* x, char* y, char* z){
     int row, col, val;
     index ind;
     /**convert string to int**/
-    row= atoi(x)-1;
-    col= atoi(y)-1;
+    col= atoi(x)-1;
+    row= atoi(y)-1;
     val= atoi(z);
     ind.col=col;
     ind.row=row;
     if(userBoard->cells[row][col].fixed==true){
         printf("Error: cell is fixed\n");
-    }else if(!isValidSet(userBoard,ind,val)){
-        printf("Error: value is invalid\n");
     }else if(val==0){
         userBoard->cells[row][col].value=val;
         userBoard->cells[row][col].userInput=false;
         printBoard(userBoard);
-    }
-    else{
+    }else if(!isValidSet(userBoard,ind,val)){
+        printf("Error: value is invalid\n");
+    }else{
         userBoard->cells[row][col].value=val;
-        if(!IsThereEmptyCell(userBoard)){
+        userBoard->cells[row][col].userInput=true;
+        printBoard(userBoard);
+  	if(!IsThereEmptyCell(userBoard)){
             printf("Puzzle solved successfully\n");
             userBoard->solved=true;
         }
-        userBoard->cells[row][col].userInput=true;
-        printBoard(userBoard);
     }
 }
 /**
@@ -101,8 +100,12 @@ void setCommand(Board* userBoard, char* x, char* y, char* z){
  * if the value is valid returns true, else returns false.
  */
 bool isValidSet(Board* userBoard,index ind, int val){
-    int i;
+    int i,value;
     findOptionsCell(userBoard,ind);
+    value=userBoard->cells[ind.row][ind.col].value;
+    if(value!=0){
+        userBoard->cells[ind.row][ind.col].options[userBoard->cells[ind.row][ind.col].optionsSize]= value;
+    }
     for(i=0;i<9;i++){
       if(userBoard->cells[ind.row][ind.col].options[i]==val){
           return true;
@@ -110,7 +113,6 @@ bool isValidSet(Board* userBoard,index ind, int val){
     }
     return false;
 }
-
 /**
  *
  *gives a hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
@@ -119,8 +121,8 @@ bool isValidSet(Board* userBoard,index ind, int val){
  */
 void hintCommand(Board* solBoard,char* x, char* y){
     int row, col, z;
-    row= atoi(x) -1;
-    col= atoi(y) -1;
+    col= atoi(x) -1;
+    row= atoi(y) -1;
     z= solBoard->cells[row][col].value;
     printf("Hint: set cell to %d\n",z);
 }
@@ -130,7 +132,7 @@ void hintCommand(Board* solBoard,char* x, char* y){
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validate(Board* userBoard){
+void validate(Board* userBoard,Board* solBoard){
     SudokuSolved res;
     Board* checkBoard;
     checkBoard= initialize();
@@ -138,33 +140,45 @@ void validate(Board* userBoard){
     res = deterministicBacktracking(checkBoard);
     if(res == solved){
         printf("Validation passed: board is solvable\n");
+makeCopyBoard(checkBoard,solBoard);
     }else if(res == unsolved){
         printf("Validation failed: board is unsolvable\n");
     }
 }
-/**
- * restart the game by starting over with the initialization procedure.
- */
-void restart(){
-    int num;
-    Board* SolutionBoard;
-    Board* userBoard;
-    SolutionBoard = initialize();
-    num = getUserNum();
-    srand((unsigned int) num*time(0));
-    RandBacktracking(SolutionBoard);
-    printBoard(SolutionBoard);
-    userBoard = makeUserBoard(SolutionBoard,num);
-    printBoard(userBoard);
-    readUser(userBoard,SolutionBoard);
-}
+
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
  */
 void exiting(Board* userBoard,Board* board){
     printf("Exiting...\n");
-    free(userBoard);
-    free(board);
+	freeBoard(board);
+    freeBoard(userBoard);
+   
     exit(0);
+
+}
+
+void freeBoard(Board *currentBoard)
+{
+	int k,l;
+	if(currentBoard){
+		for(k=0;k<SIZE_OF_ROW_COL;k++)
+		{
+			for(l=0;l<SIZE_OF_ROW_COL;l++)
+			{
+				if(currentBoard->cells[k][l].options){
+					free(currentBoard->cells[k][l].options);
+					currentBoard->cells[k][l].options = NULL;
+				}
+			}
+			if(currentBoard->cells[k])
+			{
+				free(currentBoard->cells[k]);
+			}
+		}
+		if(currentBoard->cells)
+			free(currentBoard->cells);
+		free(currentBoard);
+	}
 }
 

@@ -43,17 +43,13 @@ void hintCommand(Board* solBoard,char* x, char* y);
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validate(Board* userBoard);
-
-/**
- * restart the game by starting over with the initialization procedure.
- */
-void restart();
+void validate(Board* userBoard,Board* solBoard);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
  */
 void exiting(Board* userBoard,Board* board);
 
+void freeBoard(Board *currentBoard);
 
 #endif

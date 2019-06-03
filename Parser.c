@@ -8,12 +8,14 @@
 int getNumCells(){
     int num, ok;
     num=0;
-    printf("Please enter the number of cells to fil [0-80]:\n");
+    printf("Please enter the number of cells to fill [0-80]:\n");
     ok =scanf("%d",&num);
     checkEOF();
-    checkVaild(num);
+    num=checkVaild(num);
     if(ok <= 0 ){
-        funcFailed("scanf");
+        printf("Error: not a number\n");
+		printf("Exiting...\n");
+		exit(0);
     }
     return num;
 }
@@ -22,11 +24,12 @@ int getNumCells(){
  * If the user enters an invalid number, the program prints an error message: "Error: invalid
  * number of cells to fill (should be between 0 and 80)", and lets the user try again.
  */
-void checkVaild(int num){
+int checkVaild(int num){
     if(num>80 || num<0){
         printf("Error: invalid number of cells to fill (should be between 0 and 80)\n");
-        getNumCells();
+         return getNumCells();
     }
+return num;
 }
 /**
  * the function wait for the user command.
@@ -41,12 +44,18 @@ void readUser(Board* userBoard,Board* solBoard){
         while (move[i] != NULL) {
             i++;
             move[i] = strtok(NULL, delimiter);
+
+
         }
         checkString(userBoard, solBoard, move);
         fflush(stdin);
         i=0;
+checkEOF();
     }
+checkEOF();
+
 }
+
 /**
  * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
@@ -59,13 +68,28 @@ void checkString(Board* userBoard,Board* solBoard, char* move[]){
         } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && userBoard->solved == false) {
             hintCommand(solBoard, move[1], move[2]);
         } else if ((strcmp(move[0], "validate") == 0) && userBoard->solved == false) {
-            validate(userBoard);
+            validate(userBoard,solBoard);
         } else if ((strcmp(move[0], "restart") == 0)) {
-            restart();
+		            restart();
         } else if (strcmp(move[0], "exit") == 0) {
+			
             exiting(userBoard, solBoard);
         } else {
             printf("Error: invalid command\n");
         }
     }
+}
+/**
+ * restart the game by starting over with the initialization procedure.
+ */
+void restart(){
+    int num;
+    Board* SolutionBoard;
+    Board* userBoard;
+    SolutionBoard = initialize();
+    num = getNumCells();
+    RandBacktracking(SolutionBoard);
+    userBoard = makeUserBoard(SolutionBoard,num);
+    printBoard(userBoard);
+    readUser(userBoard,SolutionBoard);
 }

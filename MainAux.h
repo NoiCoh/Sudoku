@@ -1,6 +1,8 @@
 #ifndef MAINAUX_H
 #define MAINAUX_H
 #include "Solver.h"
+#define SIZE_OF_ROW_COL 9
+#define SIZE_OF_BORAD 81
 
 
 /**
@@ -8,10 +10,6 @@
  */
 void printBoard(Board* board);
 
-/**
- *Auxiliary function in order to pass user's number of hints from parse.c to game.c
- */
-int getUserNum();
 
 /**
  * Make a deep copy of @param board to @param copyBorad.

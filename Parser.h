@@ -19,7 +19,7 @@ int getNumCells();
  * If the user enters an invalid number, the program prints an error message: "Error: invalid
  * number of cells to fill (should be between 0 and 80)", and lets the user try again.
  */
-void checkVaild(int num);
+int checkVaild(int num);
 
 /**
  * the function wait for the user command.
@@ -31,5 +31,11 @@ void readUser(Board* userBoard,Board* solBoard);
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
 void checkString(Board* userBoard,Board* solBoard, char* move[]);
+
+/**
+ * restart the game by starting over with the initialization procedure.
+ */
+void restart();
+
 
 #endif

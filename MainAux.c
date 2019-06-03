@@ -29,13 +29,6 @@ void printBoard(Board* board){
     }
     printf("----------------------------------\n");
 }
-
-/**
- *Auxiliary function in order to pass user's number of hints from parse.c to game.c
- */
-int getUserNum(){
-    return getNumCells();
-}
 /**
  * Make a deep copy of @param board to @param copyBorad.
  */
@@ -68,3 +61,5 @@ void checkEOF(){
         exit(0);
     }
 }
+
+
