@@ -8,13 +8,13 @@ Board* initialize(){
     int i,j;
     Cell **arrayBoard;
     Board* board;
-    arrayBoard = malloc(SIZE_OF_BORAD*sizeof(Cell *));
+    arrayBoard = malloc(SIZE_OF_ROW_COL*sizeof(Cell *));
     if(!arrayBoard){
         funcFailed("malloc");
     }
-    for(i=0;i<SIZE_OF_BORAD;i++)
+    for(i=0;i<SIZE_OF_ROW_COL;i++)
     {
-        arrayBoard[i] = malloc(sizeof(Cell)*SIZE_OF_BORAD);
+        arrayBoard[i] = malloc(sizeof(Cell)*SIZE_OF_ROW_COL);
         if(!arrayBoard[i]){
             funcFailed("malloc");
         }
@@ -31,7 +31,7 @@ Board* initialize(){
             }
         }
     }
-    board = malloc(sizeof(arrayBoard));
+    board = malloc(sizeof(Board));
     if(!board){
         funcFailed("malloc");
     }
@@ -158,15 +158,12 @@ void exiting(Board* userBoard,Board* board){
 
 }
 
-void freeBoard(Board *currentBoard)
-{
+void freeBoard(Board *currentBoard) {
 	int k,l;
 	if(currentBoard){
-		for(k=0;k<SIZE_OF_ROW_COL;k++)
-		{
-			for(l=0;l<SIZE_OF_ROW_COL;l++)
-			{
-				if(currentBoard->cells[k][l].options){
+		for(k=0;k<SIZE_OF_ROW_COL;k++) {
+			for(l=0;l<SIZE_OF_ROW_COL;l++) {
+				if(currentBoard->cells[k][l].options) {
 					free(currentBoard->cells[k][l].options);
 					currentBoard->cells[k][l].options = NULL;
 				}
