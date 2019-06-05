@@ -50,6 +50,9 @@ void validate(Board* userBoard,Board* solBoard);
  */
 void exiting(Board* userBoard,Board* board);
 
+/**
+ * the function frees all memory resources.
+ */
 void freeBoard(Board *currentBoard);
 
 #endif
