@@ -41,12 +41,6 @@ SudokuSolved goBackRand(Board* board, index ind);
  * check if the board is solvable and return solved, else return unsolved.
  */
 SudokuSolved deterministicBacktracking(Board* board);
-/**
- * Auxiliary function for random backtracking algorithm.
- * If neither of the 9 digits is allowed in a specific cell, then the algorithm leaves the cell blank
- * and moves back (backtracks) to the previous cell.
- */
-SudokuSolved goBackDetr(Board* board, index ind);
 
 /**
  * choose a random value from option array of a specific cell.

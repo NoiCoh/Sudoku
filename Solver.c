@@ -71,60 +71,18 @@ SudokuSolved deterministicBacktracking(Board* board){
         return solved;
     }else{
         ind = FindEmptyCell(board);
-
     }for(val=1; val<=9;val++){
         if(isValidOption(board,ind,val)) {
             board->cells[ind.row][ind.col].value = val;
             if(deterministicBacktracking(board)==solved){
                 return solved;
-            }else{
-                return unsolved;
             }
-        }
-    }
-    board->cells[ind.row][ind.col].value = 0;
-    if(goBackDetr(board,ind)==solved) {
-        return solved;
-    }else{
-        return unsolved;
-        }
-}
-/**
- * Auxiliary function for random backtracking algorithm.
- * If neither of the 9 digits is allowed in a specific cell, then the algorithm leaves the cell blank
- * and moves back (backtracks) to the previous cell.
- */
-SudokuSolved goBackDetr(Board* board, index ind){
-    int col, row, val;
-    row= ind.row;
-    col= ind.col;
-    while (col+row !=0) {
-        if (col == 0) {
-            row = row - 1;
-            col = 8;
-        } else {
-            col = col - 1;
-        }
-        ind.col = col;
-        ind.row = row;
-        if (board->cells[ind.row][ind.col].fixed == false && board->cells[ind.row][ind.col].userInput == false) {
-            val =board->cells[ind.row][ind.col].value + 1 ;
-            while (!(isValidOption(board,ind,val)) && val<10){
-                val+=1;
-            }if (val < 10) {
-                board->cells[ind.row][ind.col].value = val;
-                if (deterministicBacktracking(board)==solved){
-                    return solved;
-                }else{
-                    return unsolved;
-                }
-            } else {
-                board->cells[ind.row][ind.col].value = 0;
-            }
+            board->cells[ind.row][ind.col].value = 0;
         }
     }
     return unsolved;
 }
+
 /**
  * choose a random value from option array of a specific cell.
  * when only a single legal value remains, the function returns that value.
@@ -162,6 +120,7 @@ void findOptionsCell(Board* board,index ind){
             count++;
         }
     }
+    board->cells[ind.row][ind.col].optionsSize=count;
 }
 /**
  * check if @param value is in the same row ,column and box of the cell in @param index.
