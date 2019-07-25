@@ -4,28 +4,30 @@
 /**
  * initialize board values and params to zero.
  */
-Board* initialize(){
-    int i,j;
+Board* initialize(blocksize block){
+    int i,j,sizeOfRow;
     Cell **arrayBoard;
     Board* board;
-    arrayBoard = malloc(SIZE_OF_ROW_COL*sizeof(Cell *));
+    sizeOfRow = block.n*block.m;
+    arrayBoard = malloc(sizeOfRow*sizeof(Cell *));
     if(!arrayBoard){
         funcFailed("malloc");
     }
-    for(i=0;i<SIZE_OF_ROW_COL;i++)
+    for(i=0;i<sizeOfRow;i++)
     {
-        arrayBoard[i] = malloc(sizeof(Cell)*SIZE_OF_ROW_COL);
+        arrayBoard[i] = malloc(sizeof(Cell)*sizeOfRow);
         if(!arrayBoard[i]){
             funcFailed("malloc");
         }
     }
-    for(i=0;i<SIZE_OF_ROW_COL;i++){
-        for(j=0;j<SIZE_OF_ROW_COL;j++){
+    for(i=0;i<sizeOfRow;i++){
+        for(j=0;j<sizeOfRow;j++){
             arrayBoard[i][j].value = 0;
             arrayBoard[i][j].fixed = false;
+            arrayBoard[i][j].error = false;
             arrayBoard[i][j].userInput = false;
             arrayBoard[i][j].optionsSize = 0;
-            arrayBoard[i][j].options = calloc(SIZE_OF_ROW_COL, sizeof(int));
+            arrayBoard[i][j].options = calloc(sizeOfRow, sizeof(int));
             if(!arrayBoard[i][j].options){
                 funcFailed("malloc");
             }
@@ -37,6 +39,8 @@ Board* initialize(){
     }
     board->cells = arrayBoard;
     board->solved=false;
+    board->blocksize.m=block.m;
+    board->blocksize.n=block.n;
     return board;
 }
 
@@ -44,11 +48,11 @@ Board* initialize(){
  * the function returns user board with random fixed cells from the solution board and empty cells.
  * the number of fixed cell is according to the user's input (@param hint).
  */
-Board* makeUserBoard(Board* solvedBoard,int hint){
+Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block){
     int count, x, y;
     Board* userBoard;
     count =0;
-    userBoard = initialize();
+    userBoard = initialize(block);
     while(count<hint){
         x= rand()%9;
         y= rand()%9;
@@ -132,10 +136,10 @@ void hintCommand(Board* solBoard,char* x, char* y){
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validate(Board* userBoard,Board* solBoard){
+void validate(Board* userBoard,Board* solBoard, blocksize block){
     SudokuSolved res;
     Board* checkBoard;
-    checkBoard= initialize();
+    checkBoard= initialize(block);
     makeCopyBoard(userBoard,checkBoard);
     res = deterministicBacktracking(checkBoard);
     if(res == solved){
@@ -179,3 +183,44 @@ void freeBoard(Board *currentBoard) {
 	}
 }
 
+void openGame(char* path) {
+    int j, i=0, k = 0;
+    blocksize block;
+    FILE *ptr;
+    Board *board;
+    char *delim = " \n";
+    ptr = fopen(path, "r");
+    if (ptr == NULL) {
+        printf("Error: File cannot be opened\n");
+    } else {
+        block.m = fgetc(ptr) - '0';
+        fgetc(ptr);
+        block.n = fgetc(ptr) - '0';
+        const int boardSize = block.n * block.m;
+        board = initialize(block);
+            char *input[boardSize];
+            char row[4*boardSize];
+            fgets(row,4*boardSize, ptr);
+            while (fgets(row, 4*boardSize, ptr) != NULL) {
+                input[k] = strtok(row, delim);
+                while (input[k] != NULL) {
+                    k++;
+                    input[k] = strtok(NULL, delim);
+                }
+                for (j = 0; j < boardSize; j++) {
+                    if (strlen(input[j]) == 1) {
+                        int x = atoi(input[j]);
+                        board->cells[i][j].value = x;
+                    } else {
+                        input[j][1] = '\0';
+                        int x = atoi(input[j]);
+                        board->cells[i][j].value = x;
+                        board->cells[i][j].fixed = true;
+                    }
+                }
+                i++;
+                k = 0;
+            }
+        }
+    printBoard(board);
+}

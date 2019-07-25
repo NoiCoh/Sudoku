@@ -10,6 +10,7 @@
  */
 void printBoard(Board* board);
 
+void printNTimes(int n);
 
 /**
  * Make a deep copy of @param board to @param copyBorad.

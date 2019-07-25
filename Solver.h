@@ -7,9 +7,17 @@
 
 typedef enum {solved,unsolved} SudokuSolved;
 
+typedef struct {
+    int n;
+    int m;
+}blocksize;
+
+enum modes {edit, solve, init};
+
 typedef struct cell{
     int value;
     bool fixed;
+    bool error;
     bool userInput;
     int *options;
     int optionsSize;
@@ -18,12 +26,18 @@ typedef struct cell{
 typedef struct Board{
     bool solved;
     Cell **cells;
+    blocksize blocksize;
 } Board;
 
 typedef struct {
     int col;
     int row;
 }index;
+
+typedef struct Game{
+    enum modes mode;
+    Board board;
+};
 
 /**
  * the random recursive algorithm to solve a sudoku board.

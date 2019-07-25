@@ -1,17 +1,18 @@
 #ifndef GAME_H
 #define GAME_H
 #include "MainAux.h"
+#include "Parser.h"
 
 /**
  * initialize board values and params to zero.
  */
-Board* initialize();
+Board* initialize(blocksize block);
 
 /**
  * the function returns user board with random fixed cells from the solution board and empty cells.
  * the number of fixed cell is according to the user's input (@param hint).
  */
-Board* makeUserBoard(Board* solvedBoard,int hint);
+Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block);
 
 /**
  * set the value z in cell <x,y> (x is the column and y is the row) according to user's command.
@@ -43,7 +44,7 @@ void hintCommand(Board* solBoard,char* x, char* y);
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validate(Board* userBoard,Board* solBoard);
+void validate(Board* userBoard,Board* solBoard, blocksize block);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
@@ -51,5 +52,7 @@ void validate(Board* userBoard,Board* solBoard);
 void exiting(Board* userBoard,Board* board);
 
 void freeBoard(Board *currentBoard);
+
+void openGame(char* path);
 
 #endif
