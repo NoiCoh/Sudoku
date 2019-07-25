@@ -161,7 +161,9 @@ void exiting(Board* userBoard,Board* board){
     exit(0);
 
 }
-
+/**
+ * the function frees all memory resources.
+ */
 void freeBoard(Board *currentBoard) {
 	int k,l;
 	if(currentBoard){

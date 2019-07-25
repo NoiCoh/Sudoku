@@ -51,6 +51,9 @@ void validate(Board* userBoard,Board* solBoard, blocksize block);
  */
 void exiting(Board* userBoard,Board* board);
 
+/**
+ * the function frees all memory resources.
+ */
 void freeBoard(Board *currentBoard);
 
 void openGame(char* path);
