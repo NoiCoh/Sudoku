@@ -161,9 +161,7 @@ void exiting(Board* userBoard,Board* board){
     exit(0);
 
 }
-/**
- * the function frees all memory resources.
- */
+
 void freeBoard(Board *currentBoard) {
 	int k,l;
 	if(currentBoard){
@@ -200,9 +198,9 @@ void openGame(char* path) {
         block.n = fgetc(ptr) - '0';
         const int boardSize = block.n * block.m;
         board = initialize(block);
-            char *input[boardSize];
-            char row[4*boardSize];
-            fgets(row,4*boardSize, ptr);
+		char **input = calloc(boardSize ,sizeof(char*));
+        char row=calloc(4*boardSize, sizeof(char));
+        fgets(row,4*boardSize, ptr);
             while (fgets(row, 4*boardSize, ptr) != NULL) {
                 input[k] = strtok(row, delim);
                 while (input[k] != NULL) {

@@ -13,6 +13,8 @@ C:/Users/Noi/CLionProjects/sud/Game.h
 C:/Users/Noi/CLionProjects/sud/Game.h
 MainAux.h
 C:/Users/Noi/CLionProjects/sud/MainAux.h
+Parser.h
+C:/Users/Noi/CLionProjects/sud/Parser.h
 
 C:/Users/Noi/CLionProjects/sud/MainAux.c
 MainAux.h
@@ -43,15 +45,15 @@ C:/Users/Noi/CLionProjects/sud/Game.h
 C:/Users/Noi/CLionProjects/sud/Solver.c
 Solver.h
 C:/Users/Noi/CLionProjects/sud/Solver.h
-stdio.h
--
-stdlib.h
--
 
 C:/Users/Noi/CLionProjects/sud/Solver.h
 stdbool.h
 -
 time.h
+-
+stdio.h
+-
+stdlib.h
 -
 
 C:/Users/Noi/CLionProjects/sud/main.c
