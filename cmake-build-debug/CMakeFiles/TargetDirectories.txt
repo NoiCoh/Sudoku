@@ -1,3 +1,3 @@
-C:/Users/Noi/CLionProjects/sud/cmake-build-debug/CMakeFiles/sud.dir
-C:/Users/Noi/CLionProjects/sud/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Noi/CLionProjects/sud/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/inbal/Desktop/Sudoku/cmake-build-debug/CMakeFiles/sud.dir
+C:/Users/inbal/Desktop/Sudoku/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/inbal/Desktop/Sudoku/cmake-build-debug/CMakeFiles/rebuild_cache.dir

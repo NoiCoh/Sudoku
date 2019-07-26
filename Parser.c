@@ -1,5 +1,24 @@
 #include "Parser.h"
 
+blocksize getBoardSize(){
+    int n,m, ok;
+    n=0;
+    m=0;
+    printf("Please enter the block's size:\n");
+    ok =scanf("%2d",&n,&m);
+    checkEOF();
+    if(ok <= 2 ){
+        printf("Error: not a number\n");
+        printf("Exiting...\n");
+        exit(0);
+    }
+    blocksize block;
+    block.m=m;
+    block.n=n;
+    return block;
+}
+
+
 /**
  * The game starts by asking the user to enter the number of cells to fill.
  * The user then enters a number between [0-80]. This is the number of "fixed" cells, cells with
@@ -34,7 +53,7 @@ return num;
 /**
  * the function wait for the user command.
  */
-void readUser(Board* userBoard,Board* solBoard){
+void readUser(Board* userBoard,Board* solBoard,blocksize block){
     char input[1024], *move[1024], delimiter[]=" \t\r\n";
     int i;
     i=0;
@@ -44,10 +63,8 @@ void readUser(Board* userBoard,Board* solBoard){
         while (move[i] != NULL) {
             i++;
             move[i] = strtok(NULL, delimiter);
-
-
         }
-        checkString(userBoard, solBoard, move);
+        checkString(userBoard, solBoard, move,block);
         fflush(stdin);
         i=0;
 checkEOF();
@@ -60,7 +77,7 @@ checkEOF();
  * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
-void checkString(Board* userBoard,Board* solBoard, char* move[]){
+void checkString(Board* userBoard,Board* solBoard, char* move[], blocksize block){
     if(move[0]!=NULL) {
         if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
             userBoard->solved == false) {
@@ -68,7 +85,7 @@ void checkString(Board* userBoard,Board* solBoard, char* move[]){
         } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && userBoard->solved == false) {
             hintCommand(solBoard, move[1], move[2]);
         } else if ((strcmp(move[0], "validate") == 0) && userBoard->solved == false) {
-            validate(userBoard,solBoard);
+            validate(userBoard,solBoard, block);
         } else if ((strcmp(move[0], "restart") == 0)) {
 		            restart();
         } else if (strcmp(move[0], "exit") == 0) {
@@ -86,10 +103,11 @@ void restart(){
     int num;
     Board* SolutionBoard;
     Board* userBoard;
-    SolutionBoard = initialize();
+    blocksize block = getBoardSize();
+    SolutionBoard = initialize(block);
     num = getNumCells();
     RandBacktracking(SolutionBoard);
-    userBoard = makeUserBoard(SolutionBoard,num);
+    userBoard = makeUserBoard(SolutionBoard,num,block);
     printBoard(userBoard);
-    readUser(userBoard,SolutionBoard);
+    readUser(userBoard,SolutionBoard, block);
 }

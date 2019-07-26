@@ -8,6 +8,7 @@
 #include "Game.h"
 
 
+
 /**
  * The game starts by asking the user to enter the number of cells to fill.
  * The user then enters a number between [0-80]. This is the number of "fixed" cells, cells with
@@ -24,13 +25,13 @@ int checkVaild(int num);
 /**
  * the function wait for the user command.
  */
-void readUser(Board* userBoard,Board* solBoard);
+void readUser(Board* userBoard,Board* solBoard,blocksize block);
 
 /**
  * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
-void checkString(Board* userBoard,Board* solBoard, char* move[]);
+void checkString(Board* userBoard,Board* solBoard, char* move[], blocksize block);
 
 /**
  * restart the game by starting over with the initialization procedure.

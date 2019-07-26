@@ -3,7 +3,7 @@ file(REMOVE_RECURSE
   "sud.pdb"
   "sud.exe"
   "sud.exe.manifest"
-  "libsud.dll.a"
+  "sud.lib"
 )
 
 # Per-language clean rules from dependency scanning.
