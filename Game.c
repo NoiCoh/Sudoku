@@ -71,38 +71,57 @@ Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block){
  * the function prints -"Error: value is invalid"
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
-void setCommand(Board* userBoard, char* x, char* y, char* z){
-    int row, col, val;
+int setCommand(Game *game, char* x, char* y, char* z) {
+    int row, col, val, oldVal;
     index ind;
     /**convert string to int**/
-    col= atoi(x)-1;
-    row= atoi(y)-1;
-    val= atoi(z);
-    ind.col=col;
-    ind.row=row;
-    if(userBoard->cells[row][col].fixed==true){
-        printf("Error: cell is fixed\n");
-    }else if(val==0){
-        userBoard->cells[row][col].value=val;
-        userBoard->cells[row][col].userInput=false;
-        printBoard(userBoard);
-    }else if(!isValidSet(userBoard,ind,val)){
-        printf("Error: value is invalid\n");
-    }else{
-        userBoard->cells[row][col].value=val;
-        userBoard->cells[row][col].userInput=true;
-        printBoard(userBoard);
-  	if(!IsThereEmptyCell(userBoard)){
-            printf("Puzzle solved successfully\n");
-            userBoard->solved=true;
+    col = atoi(x) - 1;
+    row = atoi(y) - 1;
+    val = atoi(z);
+    ind.col = col;
+    ind.row = row;
+    if (game->mode == solve) {
+        if (game->board->cells[row][col].fixed == true) {
+            printf("Error: cell is fixed\n");
+            return 0;
+        }
+    } else if (val == 0) {
+        oldVal = game->board->cells[row][col].value;
+        if(game->board->cells[row][col].error==true){
+            game->board->cells[row][col].error=false;
+            isValidOption(game, ind, oldVal,false);
+            game->board->erroneous=isBoardErroneous(game->board);
+        }
+        game->board->cells[row][col].value = val;
+        game->board->cells[row][col].userInput = false;
+        printBoard(game->board);
+    } else if (!isValidOption(game, ind, val,true)) {
+        game->board->cells[row][col].error = true;
+        game->board->erroneous=true;
+    }
+    game->board->cells[row][col].value = val;
+    game->board->cells[row][col].userInput = true;
+    printBoard(game->board);
+    if(game->mode==solve) {
+        if (!IsThereEmptyCell(game->board)) {
+            if (game->board->erroneous == true) {
+                printf("Error: The solution is erroneous");
+            } else {
+                printf("Puzzle solved successfully\n");
+                game->board->solved = true;
+                game->mode=init;
+            }
         }
     }
+    return 1;
 }
+
 /**
  * check the user value during setCommand.
  * check if the value is invalid (if the value is already in the same box, row or column).
  * if the value is valid returns true, else returns false.
  */
+ /**
 bool isValidSet(Board* userBoard,index ind, int val){
     int i,value;
     findOptionsCell(userBoard,ind);
@@ -116,22 +135,69 @@ bool isValidSet(Board* userBoard,index ind, int val){
       }
     }
     return false;
-}
+}**/
+
 /**
  *
  *gives a hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
  *hint is given according to the solved board, and it is given even if it is incorrect for the current state of the board.
  *
  */
-void hintCommand(Board* solBoard,char* x, char* y){
-    int row, col, z;
-    col= atoi(x) -1;
-    row= atoi(y) -1;
-    z= solBoard->cells[row][col].value;
-    printf("Hint: set cell to %d\n",z);
+void hintCommand(Game* game,char* x, char* y) {
+    int row, col, z, check;
+    col = atoi(x) - 1;
+    row = atoi(y) - 1;
+    if (game->board->erroneous == true) {
+        printf("Error: board is erroneous\n");
+    } else if(game->board->cells[row][col].fixed == true) {
+        printf("Error: cell is fixed\n");
+    } else if (game->board->cells[row][col].value != 0) {
+        printf("Error: cell contain a value\n");
+    } else {
+        check = ILPsolver(game);
+        if (check == 0) {
+            printf("Error: board is unsolvable\n");
+        } else {
+            z = game->solBoard->cells[row][col].value;
+            printf("Hint: set cell to %d\n", z);
+        }
+    }
 }
+
 /**
- * validates that thr current state of the board is solvable.
+ *
+ *gives a guess hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
+ *hint is given according to the scores Matrix calculate with LP Solver
+ *
+ */
+void guessHintCommand(Game* game,char* x, char* y) {
+    int row, col, z, check,i,m,n;
+    col = atoi(x) - 1;
+    row = atoi(y) - 1;
+    m=game->board->blocksize.m;
+    n=game->board->blocksize.n;
+    if (game->board->erroneous == true) {
+        printf("Error: board is erroneous\n");
+    } else if(game->board->cells[row][col].fixed == true) {
+        printf("Error: cell is fixed\n");
+    } else if (game->board->cells[row][col].value != 0) {
+        printf("Error: cell contain a value\n");
+    } else {
+        check = LPsolver(game);
+        if (check == 0) {
+            printf("Error: board is unsolvable\n");
+        } else {
+            for(i=0;i<n*m;i++){
+                if(game->scores[col][row][i]!=0){
+                    printf("value:%d , score:%f \n",i,game->scores[col][row][i]);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * validates that the current state of the board is solvable.
  * solved the generated board with deterministic backtracking.
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
@@ -163,10 +229,12 @@ void exiting(Board* userBoard,Board* board){
 }
 
 void freeBoard(Board *currentBoard) {
-	int k,l;
+	int k,l,m,n;
+	m=currentBoard->blocksize.m;
+	n=currentBoard->blocksize.n;
 	if(currentBoard){
-		for(k=0;k<SIZE_OF_ROW_COL;k++) {
-			for(l=0;l<SIZE_OF_ROW_COL;l++) {
+		for(k=0;k<n;k++) {
+			for(l=0;l<m;l++) {
 				if(currentBoard->cells[k][l].options) {
 					free(currentBoard->cells[k][l].options);
 					currentBoard->cells[k][l].options = NULL;
@@ -199,9 +267,9 @@ void openGame(char* path) {
         const int boardSize = block.n * block.m;
         board = initialize(block);
 		char **input = calloc(boardSize ,sizeof(char*));
-        char row=calloc(4*boardSize, sizeof(char));
-        fgets(row,4*boardSize, ptr);
-            while (fgets(row, 4*boardSize, ptr) != NULL) {
+        char row=calloc(4096, sizeof(char));
+        fgets(row,4096, ptr);
+            while (fgets(row, 4096, ptr) != NULL) {
                 input[k] = strtok(row, delim);
                 while (input[k] != NULL) {
                     k++;

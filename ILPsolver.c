@@ -1,5 +1,5 @@
 #include "ILPsolver.h"
-int LPsolver(Board* board, Board* solBoard) {
+int LPsolver(Game* game) {
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	double *val = NULL;
@@ -8,8 +8,8 @@ int LPsolver(Board* board, Board* solBoard) {
 	int	error, *optimstatus;
 	char* vType = NULL;
 	int m, n, N;
-	m = board->blocksize.m;
-	n = board->blocksize.n;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
 	N = n * m;
 	error = 0;
 	initVtype(N, vType);
@@ -44,9 +44,20 @@ int LPsolver(Board* board, Board* solBoard) {
 		freeSolved(env, model, vType, sol);
 		return 0;
 	}
-
+	makeScores(game,sol,N);
 	freeSolved(env, model, vType, sol);
 	return 1;
+}
+void makeScores(Game* game, double* sol, int N){
+	int i, j, k, ind;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			for (k = 0; k < N; k++) {
+				ind = calculateIndex(i, j, k, N);
+				game->scores[i][j][k] = sol[ind];
+			}
+		}
+	}
 }
 
 int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
@@ -83,15 +94,15 @@ int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
 	}
 	return 0;
 }
-int ILPsolver(Board* board, Board* solBoard) {
+int ILPsolver(Game* game) {
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	double*	sol=NULL;
 	int	error,*optimstatus;
 	char* vType=NULL;
 	int m, n, N;
-	m = board->blocksize.m;
-	n = board->blocksize.n;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
 	N = n * m;
 	error = 0;
 	initVtype(N, vType);
@@ -106,7 +117,7 @@ int ILPsolver(Board* board, Board* solBoard) {
 		freeSolved(env, model, vType, sol);
 		return 0;
 	}
-	error = allConstraints(env, model, board, n, m);
+	error = allConstraints(env, model, game->board, n, m);
 	if (error) {
 		freeSolved(env, model, vType, sol);
 		return 0;
@@ -126,7 +137,7 @@ int ILPsolver(Board* board, Board* solBoard) {
 		freeSolved(env, model, vType, sol);
 		return 0;
 	}
-	updateBoard(solBoard, sol, N);
+	updateBoard(game->solBoard, sol, N);
 	freeSolved(env, model, vType, sol);
 	return 1;
 }
@@ -396,7 +407,8 @@ int optimizeStatus(GRBenv *env, GRBmodel *model,int *optimstatus) {
 }
 
 
-/* get the solution - the assignment to each variable */
+/* get the solution - the assignment to each variable
+ * sol is 3D matrix that includes the cell's score*/
 int getSol(GRBenv *env, GRBmodel *model, int *optimstatus,int N, double *sol) {
 	int error;
 	if ((*optimstatus) == GRB_OPTIMAL) {

@@ -111,25 +111,28 @@ int getRandValue(Board* board,index ind){
 /**
  * create an array of valid options for a specific cell.
  */
-void findOptionsCell(Board* board,index ind){
-    int val,count;
+void findOptionsCell(Game* game,index ind){
+    int val,count,m,n;
     count=0;
-    for(val=1;val<=9;val++){
-        if(isValidOption(board,ind,val)){
-            board->cells[ind.row][ind.col].options[count]=val;
+    m=game->board->blocksize.m;
+    n=game->board->blocksize.n;
+    for(val=1;val<=n*m;val++){
+        if(isValidOption(game->board,ind,val)){
+            game->board->cells[ind.row][ind.col].options[count]=val;
             count++;
         }
     }
-    board->cells[ind.row][ind.col].optionsSize=count;
+    game->board->cells[ind.row][ind.col].optionsSize=count;
 }
 /**
  * check if @param value is in the same row ,column and box of the cell in @param index.
  * if so return false. else, return true.
+ * if mark=true we mark erroneous cells, and if mark=false we unmark erroneous cells (for example, set cell to zero).
  */
-bool isValidOption(Board* board,index ind,int value){
+bool isValidOption(Game* game,index ind,int value, bool mark){
     index box;
-    box= findBoxIndex(ind);
-    if (checkInRowAndCol(board,ind,value) && checkInBox(board,box,value)){
+    box= findBoxIndex(game, ind);
+    if (checkInRowAndCol(game,ind,value,mark) && checkInBox(game,box,value, mark)){
         return true;
     }
     return false;
@@ -137,44 +140,58 @@ bool isValidOption(Board* board,index ind,int value){
 /**
  * find the starting cell index of the the box that @param index is belong to.
  */
-index findBoxIndex(index ind){
+index findBoxIndex(Game* game,index ind){
+    int m,n;
     index boxIndex;
-    boxIndex.col= ind.col - ind.col%3;
-    boxIndex.row= ind.row - ind.row%3;
+    m=game->board->blocksize.m;
+    n=game->board->blocksize.n;
+    boxIndex.col= ind.col - ind.col%m;
+    boxIndex.row= ind.row - ind.row%n;
     return boxIndex;
 }
 /**
  * check if the @param value is in the box starting at @param index box.
  */
-bool checkInBox(Board* board,index box,int value){
-    int i,j,valBox;
-    for (i= 0; i < 3; i++) {
-        for (j = 0; j < 3; j++) {
-            valBox= board->cells[box.row + i][ box.col + j].value;
-            if ( valBox==value){
-                return false;
+bool checkInBox(Game* game,index box,int value, bool mark){
+    int i,j,valBox, m,n;
+    bool res;
+    res=true;
+    m=game->board->blocksize.m;
+    n=game->board->blocksize.n;
+    for (i= 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            valBox= game->board->cells[box.row + i][ box.col + j].value;
+            if ( valBox==value) {
+                res = false;
+                game->board->cells[box.row + i][ box.col + j].error=mark;
             }
         }
     }
-    return true;
+    return res;
 }
 /**
  * check if @param value is in the same row and column.
  *  if so return false. else, return true.
  */
-bool checkInRowAndCol(Board* board,index index, int value){
-    int valRow, valCol, i;
-    for(i=0; i<9; i++){
-        valCol=board->cells[i][index.col].value;
-        valRow=board->cells[index.row][i].value;
+bool checkInRowAndCol(Game* game,index index, int value,bool mark){
+    int valRow, valCol, i, n,m;
+    bool res;
+    res=true;
+    m=game->board->blocksize.m;
+    n=game->board->blocksize.n;
+    for(i=0; i<n*m; i++){
+        valCol=game->board->cells[i][index.col].value;
+        valRow=game->board->cells[index.row][i].value;
         if(valRow==value){
-            return false;
+            res= false;
+            game->board->cells[index.row][i].error=mark;
         }
         if(valCol==value){
-            return false;
+            res= false;
+            game->board->cells[i][index.col].error=mark;
         }
     }
-    return true;
+    return res;
 }
 /**
  * check size of option array for a specific cell.

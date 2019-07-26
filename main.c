@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include "Parser.h"
-#include "Game.h"
-#include "Solver.h"
-#include "MainAux.h"
-#include "ILPsolver.h"
+#include "Parser.c"
+#include "Game.c"
+#include "Solver.c"
+#include "MainAux.c"
+#include "ILPsolver.c"
 
 
 int main(int argc, char *argv[]) {

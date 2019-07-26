@@ -47,10 +47,11 @@ void printNTimes(int n){
  * Make a deep copy of @param board to @param copyBorad.
  */
 void makeCopyBoard(Board* board, Board* copyBorad) {
-
-    int i, j;
-    for (i = 0; i < SIZE_OF_ROW_COL; i++) {
-        for (j = 0; j < SIZE_OF_ROW_COL; j++) {
+    int i, j, m ,n;
+    n= board->blocksize.n;
+    m= board->blocksize.m;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
             copyBorad->cells[i][j].value = board->cells[i][j].value;
             copyBorad->cells[i][j].fixed = board->cells[i][j].fixed;
             copyBorad->cells[i][j].userInput = board->cells[i][j].userInput;
@@ -64,6 +65,22 @@ void makeCopyBoard(Board* board, Board* copyBorad) {
 void funcFailed(char* str){
     printf("Error: %s has failed\n", str);
     exit(0);
+}
+/**
+ *check if board has cell that mark as erroneous
+ */
+bool isBoardErroneous(Board* board){
+    int n,m,i,j;
+    m=board->blocksize.m;
+    n=board->blocksize.n;
+    for(i = 0; i < n; i++){
+        for (j = 0; j < m ; j++) {
+            if(board->cells[i][j].error==true){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**

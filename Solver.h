@@ -26,6 +26,7 @@ typedef struct cell{
 typedef struct Board{
     bool solved;
     Cell **cells;
+    bool erroneous;
     blocksize blocksize;
 } Board;
 
@@ -36,8 +37,10 @@ typedef struct {
 
 typedef struct Game{
     enum modes mode;
-    Board board;
-};
+    Board* board;
+    Board* solBoard;
+    double ***scores;
+}Game;
 
 /**
  * the random recursive algorithm to solve a sudoku board.
@@ -66,29 +69,30 @@ int getRandValue(Board* board,index ind);
 /**
  * create an array of valid options for a specific cell.
  */
-void findOptionsCell(Board* board,index ind);
+void findOptionsCell(Game* game,index ind);
 
 /**
  * check if @param value is in the same row ,column and box of the cell in @param index.
  * if so return false. else, return true.
+ * if mark=true we mark erroneous cells, and if mark=false we unmark erroneous cells (for example, set cell to zero).
  */
-bool isValidOption(Board* board,index ind,int value);
+bool isValidOption(Game* game,index ind,int value,bool mark);
 
 /**
  * find the starting cell index of the the box that @param index is belong to.
  */
-index findBoxIndex(index index);
+index findBoxIndex(Game* game, index index);
 
 /**
  * check if the @param value is in the box starting at @param index box.
  */
-bool checkInBox(Board* board,index box,int value);
+bool checkInBox(Game* game,index box,int value,bool mark);
 
 /**
  * check if @param value is in the same row and column.
  *  if so return false. else, return true.
  */
-bool checkInRowAndCol(Board* board,index index, int value);
+bool checkInRowAndCol(Game* game,index index, int value,bool mark);
 
 /**
  * check size of option array for a specific cell.

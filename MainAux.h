@@ -1,9 +1,6 @@
 #ifndef MAINAUX_H
 #define MAINAUX_H
 #include "Solver.h"
-#define SIZE_OF_ROW_COL 9
-#define SIZE_OF_BORAD 81
-
 
 /**
  * Prints the current state of @param board
@@ -22,6 +19,11 @@ void makeCopyBoard(Board* borad, Board* copyBorad);
  * the program prints "Error: <function-name> has failed" and exits.
  */
 void funcFailed(char* str);
+
+/**
+ *check if board has cell that mark as erroneous
+ */
+bool isBoardErroneous(Board* board);
 
 /**
  *  If we reach EOF, the program prints "Exiting…" and terminates.
