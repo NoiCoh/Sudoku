@@ -4,6 +4,15 @@
 #include "Parser.h"
 #include "ILPsolver.h"
 
+Board* createDefaultBoard();
+
+Game* initializeGame(userBoard, init, N, SolutionBoard);
+void UpdateGame(Game* game, Board *userBoard, enum modes mode);
+void printCommand(Game * game);
+void markErrorsCommand(int x, Game * game);
+void EditCommand(char* path, Game* game);
+Board* getUserBoard(char* path);
+void solveCommand(char* path, Game* game);
 /**
  * initialize board values and params to zero.
  */
@@ -53,7 +62,7 @@ void guessHintCommand(Game* game,char* x, char* y);
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validate(Board* userBoard,Board* solBoard, blocksize block);
+void validateCommand(Game* game);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
@@ -62,6 +71,6 @@ void exiting(Board* userBoard,Board* board);
 
 void freeBoard(Board *currentBoard);
 
-void openGame(char* path);
+
 
 #endif

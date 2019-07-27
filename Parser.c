@@ -1,13 +1,15 @@
 #include "Parser.h"
 
+
+
 blocksize getBoardSize(){
     int n,m, ok;
     n=0;
     m=0;
     printf("Please enter the block's size:\n");
-    ok =scanf("%2d",&n,&m);
+    ok =scanf("%d %d",&n,&m);
     checkEOF();
-    if(ok <= 2 ){
+    if(ok <2 ){
         printf("Error: not a number\n");
         printf("Exiting...\n");
         exit(0);
@@ -24,13 +26,16 @@ blocksize getBoardSize(){
  * The user then enters a number between [0-80]. This is the number of "fixed" cells, cells with
  * values that never change throughout the game.
  */
-int getNumCells(){
-    int num, ok;
+int getNumCells(blocksize block){
+    int num, ok,m,n,N;
     num=0;
-    printf("Please enter the number of cells to fill [0-80]:\n");
+	n = block.n;
+	m = block.m;
+	N = n * m;
+    printf("Please enter the number of cells to fill [0-%d]:\n",(N*N)-1);
     ok =scanf("%d",&num);
     checkEOF();
-    num=checkVaild(num);
+    num=checkVaild(num,N,block);
     if(ok <= 0 ){
         printf("Error: not a number\n");
 		printf("Exiting...\n");
@@ -43,17 +48,17 @@ int getNumCells(){
  * If the user enters an invalid number, the program prints an error message: "Error: invalid
  * number of cells to fill (should be between 0 and 80)", and lets the user try again.
  */
-int checkVaild(int num){
-    if(num>80 || num<0){
-        printf("Error: invalid number of cells to fill (should be between 0 and 80)\n");
-         return getNumCells();
+int checkVaild(int num,int N, blocksize block){
+    if(num>N || num<0){
+        printf("Error: invalid number of cells to fill (should be between 0 and %d)\n",N);
+         return getNumCells(block);
     }
 return num;
 }
 /**
  * the function wait for the user command.
  */
-void readUser(Board* userBoard,Board* solBoard,blocksize block){
+void readUser(Game * game){
     char input[1024], *move[1024], delimiter[]=" \t\r\n";
     int i;
     i=0;
@@ -64,7 +69,7 @@ void readUser(Board* userBoard,Board* solBoard,blocksize block){
             i++;
             move[i] = strtok(NULL, delimiter);
         }
-        checkString(userBoard, solBoard, move,block);
+        checkString(game, move);
         fflush(stdin);
         i=0;
 checkEOF();
@@ -77,20 +82,20 @@ checkEOF();
  * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
-void checkString(Board* userBoard,Board* solBoard, char* move[], blocksize block){
+void checkString(Game * game,char* move[]){
     if(move[0]!=NULL) {
         if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
-            userBoard->solved == false) {
-            setCommand(userBoard, move[1], move[2], move[3]);
-        } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && userBoard->solved == false) {
-            hintCommand(solBoard, move[1], move[2]);
-        } else if ((strcmp(move[0], "validate") == 0) && userBoard->solved == false) {
-            validate(userBoard,solBoard, block);
+            game->board->solved == false) {
+            setCommand(game->board, move[1], move[2], move[3]);
+        } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && game->board->solved == false) {
+            hintCommand(game->solBoard, move[1], move[2]);
+        } else if ((strcmp(move[0], "validate") == 0) && game->board->solved == false) {
+            validateCommand(game->board,game->solBoard, game->board->blocksize);
         } else if ((strcmp(move[0], "restart") == 0)) {
 		            restart();
         } else if (strcmp(move[0], "exit") == 0) {
 			
-            exiting(userBoard, solBoard);
+            exiting(game->board, game->solBoard);
         } else {
             printf("Error: invalid command\n");
         }
@@ -100,14 +105,18 @@ void checkString(Board* userBoard,Board* solBoard, char* move[], blocksize block
  * restart the game by starting over with the initialization procedure.
  */
 void restart(){
-    int num;
+	Game *game;
+	printWelcome();
+	game=initializeGame();
+    /*int num;
     Board* SolutionBoard;
     Board* userBoard;
     blocksize block = getBoardSize();
     SolutionBoard = initialize(block);
-    num = getNumCells();
+    num = getNumCells(block);
     RandBacktracking(SolutionBoard);
     userBoard = makeUserBoard(SolutionBoard,num,block);
     printBoard(userBoard);
-    readUser(userBoard,SolutionBoard, block);
+	*/
+    readUser(game);
 }

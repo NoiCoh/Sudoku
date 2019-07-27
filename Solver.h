@@ -46,7 +46,7 @@ typedef struct Game{
  * the random recursive algorithm to solve a sudoku board.
  * check if the board is solvable and return solved, else return unsolved.
  */
-SudokuSolved RandBacktracking(Board* board);
+SudokuSolved RandBacktracking(Game* game);
 /**
  * Auxiliary function for random backtracking algorithm.
  * if there is no valid options for a specific cell, then the algorithm leaves the cell blank

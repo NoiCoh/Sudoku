@@ -4,25 +4,25 @@
  * the random recursive algorithm to solve a sudoku board.
  * check if the board is solvable and return solved, else return unsolved.
  */
-SudokuSolved RandBacktracking(Board* board){
+SudokuSolved RandBacktracking(Game* game){
     int val;
     index ind;
-    if(!IsThereEmptyCell(board)){
+    if(!IsThereEmptyCell(game->board)){
         return solved;
     }else{
-        ind = FindEmptyCell(board);
+        ind = FindEmptyCell(game->board);
     }
-    findOptionsCell(board,ind);
-    val=getRandValue(board,ind);
+    findOptionsCell(game,ind);
+    val=getRandValue(game->board,ind);
     if (val!=0){
-        board->cells[ind.row][ind.col].value=val;
-        if(RandBacktracking(board)==solved){
+        game->board->cells[ind.row][ind.col].value=val;
+        if(RandBacktracking(game->board)==solved){
             return solved;
         }else{
             return unsolved;
         }
     }else {
-        if(goBackRand(board, ind)==solved){
+        if(goBackRand(game->board, ind)==solved){
             return solved;
         }else{
             return unsolved;
@@ -72,7 +72,7 @@ SudokuSolved deterministicBacktracking(Board* board){
     }else{
         ind = FindEmptyCell(board);
     }for(val=1; val<=9;val++){
-        if(isValidOption(board,ind,val)) {
+        if(isValidOption(board,ind,val,false)) {
             board->cells[ind.row][ind.col].value = val;
             if(deterministicBacktracking(board)==solved){
                 return solved;
@@ -117,7 +117,7 @@ void findOptionsCell(Game* game,index ind){
     m=game->board->blocksize.m;
     n=game->board->blocksize.n;
     for(val=1;val<=n*m;val++){
-        if(isValidOption(game->board,ind,val)){
+        if(isValidOption(game,ind,val,false)){
             game->board->cells[ind.row][ind.col].options[count]=val;
             count++;
         }
@@ -129,7 +129,7 @@ void findOptionsCell(Game* game,index ind){
  * if so return false. else, return true.
  * if mark=true we mark erroneous cells, and if mark=false we unmark erroneous cells (for example, set cell to zero).
  */
-bool isValidOption(Game* game,index ind,int value, bool mark){
+bool isValidOption(Game* game,index ind,int value, bool mark ){
     index box;
     box= findBoxIndex(game, ind);
     if (checkInRowAndCol(game,ind,value,mark) && checkInBox(game,box,value, mark)){

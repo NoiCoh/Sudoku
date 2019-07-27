@@ -2,10 +2,12 @@
 #define MAINAUX_H
 #include "Solver.h"
 
+void printErrorMode();
+void printWelcome();
 /**
  * Prints the current state of @param board
  */
-void printBoard(Board* board);
+void printBoard(Board* board,bool markErrors);
 
 void printNTimes(int n);
 

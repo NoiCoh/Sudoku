@@ -1,9 +1,16 @@
 #include "MainAux.h"
 
+void printErrorMode() {
+	printf("Error: The command is not available ");
+}
+
+void printWelcome() {
+	printf("Welcome to Sudoku Game!/n ");
+}
 /**
  * Prints the current state of @param board
  */
-void printBoard(Board* board) {
+void printBoard(Board* board,bool markErrors) {
     int i, j, val, size, m, n;
     n = board->blocksize.n;
     m = board->blocksize.m;
@@ -23,7 +30,7 @@ void printBoard(Board* board) {
                 printf(" %2d", val);
                 if (board->cells[i][j].fixed == true) {
                     printf(".");
-                } else if (board->cells[i][j].error == true) {
+                } else if ((board->cells[i][j].error == true)&&(markErrors==true)) {
                     printf("*");
                 } else {
                     printf(" ");

@@ -1,4 +1,5 @@
 #include "ILPsolver.h"
+#include "Solver.h"
 int LPsolver(Game* game) {
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
