@@ -5,13 +5,12 @@
 #include "ILPsolver.h"
 
 Board* createDefaultBoard();
-
-Game* initializeGame(userBoard, init, N, SolutionBoard);
+Game* initializeGame();
 void UpdateGame(Game* game, Board *userBoard, enum modes mode);
 void printCommand(Game * game);
 void markErrorsCommand(int x, Game * game);
-void EditCommand(char* path, Game* game);
-Board* getUserBoard(char* path);
+void editCommand(char* path, Game* game);
+Board* getUserBoard(Game* game,char* path);
 void solveCommand(char* path, Game* game);
 /**
  * initialize board values and params to zero.

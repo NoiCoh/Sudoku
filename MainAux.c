@@ -5,15 +5,15 @@ void printErrorMode() {
 }
 
 void printWelcome() {
-	printf("Welcome to Sudoku Game!/n ");
+	printf("Welcome to Sudoku Game!\n ");
 }
 /**
  * Prints the current state of @param board
  */
-void printBoard(Board* board,bool markErrors) {
+void printBoard(Game* game) {
     int i, j, val, size, m, n;
-    n = board->blocksize.n;
-    m = board->blocksize.m;
+    n = game->board->blocksize.n;
+    m = game->board->blocksize.m;
     size = n * m;
     for (i = 0; i < size; i++) {
         if (i % n == 0) {
@@ -23,14 +23,14 @@ void printBoard(Board* board,bool markErrors) {
             if (j % m == 0) {
                 printf("|");
             }
-            val = board->cells[i][j].value;
+            val = game->board->cells[i][j].value;
             if (val == 0) {
                 printf("    ");
             } else {
                 printf(" %2d", val);
-                if (board->cells[i][j].fixed == true) {
+                if (game->board->cells[i][j].fixed == true) {
                     printf(".");
-                } else if ((board->cells[i][j].error == true)&&(markErrors==true)) {
+                } else if ((game->board->cells[i][j].error == true)&&((game->markErrors==true)||(game->mode==edit ))){
                     printf("*");
                 } else {
                     printf(" ");

@@ -6,12 +6,21 @@
 #include "ILPsolver.h"
 
 
-int main(int argc, char *argv[]) {
-if (argc>1){
+int main() {
+/**if (argc>1){
 srand(atoi(argv[1]));
 }else{
 srand(0);
 }
     restart();
-    return (argc);
+    return (argc);*/
+	Game* game;
+	Game* game1;
+	game = initializeGame();
+	game1 = initializeGame();
+	game->board=getUserBoard(game,"C:\\Users\\inbal\\Desktop\\game.txt");
+	printBoard(game);
+	ILPsolver(game);
+	game1->board = game->solBoard;
+	printBoard(game1);
 }

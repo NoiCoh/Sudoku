@@ -8,6 +8,12 @@
 typedef enum {solved,unsolved} SudokuSolved;
 
 typedef struct {
+	bool solvable;
+	Board* solBoard;
+}ILPsol;
+
+
+typedef struct {
     int n;
     int m;
 }blocksize;
@@ -37,6 +43,7 @@ typedef struct {
 
 typedef struct Game{
     enum modes mode;
+	bool markErrors;
     Board* board;
     Board* solBoard;
     double ***scores;

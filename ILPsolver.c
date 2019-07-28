@@ -95,52 +95,61 @@ int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
 	}
 	return 0;
 }
-int ILPsolver(Game* game) {
+
+void initilizeILPSolve(ILPsol solve, Game* game) {
+	solve.solBoard = initialize(game->board->blocksize);
+	solve.solBoard = false;
+}
+
+ILPsol ILPsolver(Game* game) {
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	double*	sol=NULL;
 	int	error,*optimstatus;
 	char* vType=NULL;
+	ILPsol solve;
 	int m, n, N;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
+	initilizeILPSolve(solve, game);
 	error = 0;
 	initVtype(N, vType);
 	initSol(N, sol);
 	error = creaetEnv(env, model);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
 	error=initVars(env, model, N, vType);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
 	error = allConstraints(env, model, game->board, n, m);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
 	error=optimize(env, model);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
 	error = optimizeStatus(env, model,optimizeStatus);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
 	error = getSol(env, model, optimizeStatus, N, sol);
 	if (error) {
 		freeSolved(env, model, vType, sol);
-		return 0;
+		return solve;
 	}
-	updateBoard(game->solBoard, sol, N);
+	updateBoard(solve.solBoard, sol, N);
 	freeSolved(env, model, vType, sol);
-	return 1;
+	solve.solvable = true;
+	return solve;
 }
 
 void freeSolved(GRBenv *env, GRBmodel *model, char* vType, double * sol) {

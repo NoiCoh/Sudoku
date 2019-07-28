@@ -84,7 +84,15 @@ checkEOF();
  */
 void checkString(Game * game,char* move[]){
     if(move[0]!=NULL) {
-        if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
+		if ((strcmp(move[0], "solve") == 0) && move[1] != NULL && game->board->solved == false) {
+			solveCommand(game->board, move[1]);
+		}else if ((strcmp(move[0], "edit") == 0) && game->board->solved == false) {
+				editCommand(game->board, move[1]);
+		}else if ((strcmp(move[0], "mark_errors") == 0) && move[1] != NULL && game->board->solved == false) {
+			markErrorsCommand(game->board, move[1]);
+		}else if ((strcmp(move[0], "print_board") == 0)  ) {
+			printCommand(game->board);
+		}else if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
             game->board->solved == false) {
             setCommand(game->board, move[1], move[2], move[3]);
         } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && game->board->solved == false) {
@@ -111,6 +119,7 @@ void restart(){
     /*int num;
     Board* SolutionBoard;
     Board* userBoard;
+
     blocksize block = getBoardSize();
     SolutionBoard = initialize(block);
     num = getNumCells(block);

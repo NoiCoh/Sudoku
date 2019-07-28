@@ -3,11 +3,13 @@
 #define SUD_ILPSOLVER_H
 #include "gurobi_c.h"
 #include "Solver.h"
+
+
 int LPsolver(Game* game);
 void initSol(int N, double* sol);
 int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype);
 int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val);
-int ILPsolver(Game* game);
+ILPsol ILPsolver(Game* game);
 void makeScores(Game* game, double* sol, int N);
 void freeSolved(GRBenv *env, GRBmodel *model, char* vType, double * sol);
 int creaetEnv(GRBenv *env, GRBmodel *model);
@@ -38,4 +40,4 @@ int getSol(GRBenv *env, GRBmodel *model, int *optimstatus, int N, double *sol);
 void updateBoard(Board *solBoard, double *sol, int N);
 void initVals(double *val, int N);
 void initInd(int * ind, int N);
-#endif //SUD_ILPSOLVER_H
+#endif 

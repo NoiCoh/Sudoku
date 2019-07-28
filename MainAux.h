@@ -7,7 +7,7 @@ void printWelcome();
 /**
  * Prints the current state of @param board
  */
-void printBoard(Board* board,bool markErrors);
+void printBoard(Game* game);
 
 void printNTimes(int n);
 
