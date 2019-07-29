@@ -4,9 +4,8 @@
 #include "Parser.h"
 #include "ILPsolver.h"
 
-Board* createDefaultBoard();
-Game* initializeGame();
-void UpdateGame(Game* game, Board *userBoard, enum modes mode);
+int undoCommand(Game * game);
+void autofillCommand(Game* game);
 void printCommand(Game * game);
 void markErrorsCommand(int x, Game * game);
 void editCommand(char* path, Game* game);
@@ -66,10 +65,9 @@ void validateCommand(Game* game);
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
  */
-void exiting(Board* userBoard,Board* board);
+void exiting(Game* game);
 
 void freeBoard(Board *currentBoard);
-
 
 
 #endif

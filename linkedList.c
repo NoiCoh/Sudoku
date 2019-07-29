@@ -1,43 +1,40 @@
+#include "linkedList.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "linkedList.h"
 
-
-node* createNewNode( int row,  int col,  int val, int prevVal) {
-	node *newNode = (node*)calloc(1,sizeof(node));
+node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
+	node *newNode = (node*)malloc(sizeof(node));
 	if (newNode == NULL) {
-		printf("Error: calloc failed\n");
-		exit(1);
+		printf("Error: malloc failed\n");
+		exit(0);
 	}
 	newNode->row = row;
-	newNode->col= col;
-	newNode->val = val;
+	newNode->col = col;
+	newNode->newVal = newVal;
 	newNode->prevVal = prevVal;
 	newNode->next = NULL;
-	newNode->prev = NULL;
 	return newNode;
 }
 
-linkedList* createNewLinkedList() {
+linkedList* initializeLinkedList() {
 	linkedList *newNode = (linkedList*)calloc(1, sizeof(linkedList));
 	if (newNode == NULL) {
 		printf("Error: calloc failed\n");
-		exit(1);
+		exit(0);
 	}
 	return newNode;
 }
+
+
 int isEmpty(linkedList *list) {
-	if (list == NULL) {
+	if (list->size == 0) {
 		return 1;
 	}
-	if (list->size > 0) {
-		return 0;
-	}
-	return 1;
+	return 0;
 }
 
-void addLast(linkedList *list, int row,  int col,  int val,  int prevVal) {
-	node *newNode = createNewNode(row, col, val, prevVal);
+void insertLast(linkedList *list,int row,  int col,  int Newval,  int prevVal) {
+	node *newNode = initializeNode(row, col, Newval, prevVal);
 	node *head = list->head;
 	node *tail = list->tail;
 	node *lastNode;
@@ -50,89 +47,127 @@ void addLast(linkedList *list, int row,  int col,  int val,  int prevVal) {
 			lastNode = head;
 		}
 		lastNode->next = newNode;
-		newNode->prev = lastNode;
 		list->tail = newNode;
 	}
 	list->size++;
-	return;
 }
 
-node* deleteFirst(linkedList* list) {
-	node *prevHead;
+void deleteFirst(linkedList* list) {
 	node *head = list->head;
 	node *next;
-	int col;
-	int row;
-	int val;
-	int prevVal;
 
-	if (isEmpty(list)) {
-		return NULL;
+	if (!isEmpty(list)) {
+		next = head->next;
+		list->head = next;
+		free(head);
+		list->size--;
+		if (list->size <= 1) {
+			list->tail = NULL;
+		}
 	}
-	next = head->next;
-	prevHead->col = list->head->col;
-	prevHead->row = list->head->row;
-	prevHead->val = list->head->val;
-	prevHead->prevVal = list->head->prevVal;
-	list->head = next;
-	free(head);
-	list->size--;	
-	if (list->size <= 1) { 
-		list->tail = NULL;
-	}
-	return prevHead;
 }
-
-void removeLast(linkedList *list) {
-	node *last = getLastNode(list);
-	node *prevNode;
-
-	if (isEmpty(list)) {
-		return;
-	}
-	prevNode = last->prev;
-	list->tail = prevNode;
-	if (prevNode != NULL) {
-		prevNode->next = NULL;
-	}
-	free(last);
-	list->size--;	
-	if (list->size <= 1) {
-		list->tail = NULL;
-	}
-	if (list->size == 0) { 
-		list->head = NULL;
-	}
-	return;
-}
-
 
 void clear(linkedList* list) {
-	while (!isEmpty(list)) {
-		removeLast(list);
+	while (!singly_isEmpty(list)) {
+		singly_removeFirst(list);
+	}
+	free(list);
+}
 
+doublyNode* initializeDoublyNode(linkedList *move) {
+	doublyNode *newNode = (doublyNode*)calloc(1, sizeof(doublyNode));
+	if (newNode == NULL) {
+		printf("Error: calloc failed\n");
+		exit(0);
+	}
+	newNode->move = move;
+	return newNode;
+}
+
+doublyLinkedList* initializeDoublyLinkedList() {
+	doublyLinkedList *newNode = (doublyLinkedList*)calloc(1, sizeof(doublyLinkedList));
+	if (newNode == NULL) {
+		printf("Error: calloc failed\n");
+		exit(0);
+	}
+	return newNode;
+}
+
+int doublyIsEmpty(doublyLinkedList *list) {
+	if (list->size == 0) {
+		return 1;
+	}
+	return 0;
+}
+
+void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
+	doublyNode *newNode = doubly_createNewNode(move);
+	doublyNode *head = list->head;
+	doublyNode *tail = list->tail;
+	doublyNode *prevNode;
+	if (doublyIsEmpty(list)) {
+		list->head = newNode;
+	}
+	else {
+		prevNode = tail;
+		if (tail == NULL) { 
+			prevNode = head;
+		}
+		prevNode->next = newNode;
+		newNode->prev = prevNode;
+		list->tail = newNode;
+	}
+	list->size++;
+}
+
+void doublyDeleteAfter(doublyLinkedList* list, doublyNode *node) {
+	doublyNode *tmp = doublyGetLastNode(list);
+	if (tmp != NULL) {
+		while (tmp != node) {
+			doublyDeleteLast(list);
+			tmp = doublyGetLastNode(list);
+		}
+	}
+}
+
+doublyNode* doublyGetLast(doublyLinkedList* list) {
+	if (doublyIsEmpty(list)) {
+		return NULL;
+	}
+	if (list->tail == NULL) {
+		return list->head;
+	}
+	return list->tail;
+}
+
+void doublyDeleteLast(doublyLinkedList *list) {
+	doublyNode *last = doublyGetLastNode(list);
+	doublyNode *prev;
+
+	if (!doublyIsEmpty(list)) {
+		prev = last->prev;
+		list->tail = prev;
+		if (prev != NULL) { 
+			prev->next = NULL;
+		}
+		singly_clear(last->move);
+		free(last);
+
+		list->size--;
+		if (list->size <= 1) {
+			list->tail = NULL;
+		}
+		if (list->size == 0) {
+			list->head = NULL;
+		}
+	}
+}
+
+void doublyClear(doublyLinkedList* list) {
+	while (!doublyIsEmpty(list)) {
+		doublyDeleteLast(list);
 	}
 	if (list != NULL) {
 		free(list);
-	}
-}
-
-node* getLastNode(linkedList* list) {
-	if (isEmpty(list)) { 
-		return NULL;
-	}
-	if (list->tail == NULL) { 
-		return list->head;
-	}
-	return list->tail; 
-}
-
-void removeAfter(linkedList* list, node *thisNode) {
-	node* tmp = getLastNode(list);
-	if (tmp != NULL) {
-		while (tmp != thisNode) {
-			removeLast(list);
-			tmp = getLastNode(list);
-		}
 	}
 }

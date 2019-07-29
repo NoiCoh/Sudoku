@@ -103,7 +103,7 @@ void checkString(Game * game,char* move[]){
 		            restart();
         } else if (strcmp(move[0], "exit") == 0) {
 			
-            exiting(game->board, game->solBoard);
+            exiting(game);
         } else {
             printf("Error: invalid command\n");
         }

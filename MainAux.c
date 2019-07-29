@@ -5,8 +5,41 @@ void printErrorMode() {
 }
 
 void printWelcome() {
-	printf("Welcome to Sudoku Game!\n ");
+	printf("Welcome to N&I Sudoku Game!\n ");
 }
+
+void printNTimes(int n) {
+	int i;
+	for (i = 0; i < n; i++) {
+		putchar('-');
+	}
+	putchar('\n');
+}
+
+Board* createDefaultBoard()
+{
+	blocksize block;
+	block.m = 3;
+	block.n = 3;
+	Board* board = initialize(block);
+	return board;
+}
+
+Game* initializeGame() {
+	Game* game = malloc(sizeof(Game));
+	game->userMoves=initializeDoublyLinkedList();
+	game->mode = init;
+	game->markErrors = true;
+	return game;
+}
+
+void UpdateGame(Game* game, Board *userBoard, enum modes mode)
+{
+	game->mode = mode;
+	game->board = userBoard;
+}
+
+
 /**
  * Prints the current state of @param board
  */
@@ -42,13 +75,6 @@ void printBoard(Game* game) {
     printNTimes(4*size+m+1);
 }
 
-void printNTimes(int n){
-    int i;
-    for(i=0;i<n;i++){
-        putchar('-');
-    }
-    putchar('\n');
-}
 
 /**
  * Make a deep copy of @param board to @param copyBorad.
@@ -99,5 +125,6 @@ void checkEOF(){
         exit(0);
     }
 }
+
 
 

@@ -3,13 +3,17 @@
 #include "Solver.h"
 
 void printErrorMode();
+Board* createDefaultBoard();
+Game* initializeGame();
+void UpdateGame(Game* game, Board *userBoard, enum modes mode);
 void printWelcome();
+void printNTimes(int n);
+
 /**
- * Prints the current state of @param board
+ * Prints the current state of @param board. if the markErrors parameter is true-
+ cells that participate in an error should be marked .
  */
 void printBoard(Game* game);
-
-void printNTimes(int n);
 
 /**
  * Make a deep copy of @param board to @param copyBorad.
@@ -23,7 +27,7 @@ void makeCopyBoard(Board* borad, Board* copyBorad);
 void funcFailed(char* str);
 
 /**
- *check if board has cell that mark as erroneous
+ *check if board has a cell that marked as an error.
  */
 bool isBoardErroneous(Board* board);
 

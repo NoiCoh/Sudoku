@@ -1,27 +1,5 @@
 #include "Game.h"
 
-Game* initializeGame() {
-	Game* game = malloc(sizeof(Game));
-	game->mode = init;
-	return game;
-}
-
-Board* createDefaultBoard()
-{
-	blocksize block;
-	block.m = 3;
-	block.n = 3;
-	Board* board = initialize(block);
-	return board;
-}
-
-void UpdateGame(Game* game, Board *userBoard, enum modes mode)
-{
-	game->mode = mode;
-	game->board = userBoard;
-}
-
-
 /**
  * initialize board values and params to zero.
  */
@@ -262,11 +240,10 @@ void validateCommand(Game* game) {
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
  */
-void exiting(Board* userBoard,Board* board){
+void exiting(Game* game){
     printf("Exiting...\n");
-	freeBoard(board);
-    freeBoard(userBoard);
-   
+	freeBoard(game->board);
+	fclose(game->ptr); 
     exit(0);
 
 }
@@ -303,24 +280,23 @@ void solveCommand(char* path,Game* game) {
 Board* getUserBoard(Game* game ,char* path) {
 	int j, i = 0, k = 0;
 	blocksize block;
-	FILE *ptr;
 	char *delim = " \n";
-	ptr = fopen(path, "r");
-	if (ptr == NULL) {
+	game->ptr = fopen(path, "r");
+	if (game->ptr == NULL) {
 		printf("Error: File cannot be opened\n");
 	}
 	else {
-		block.m = fgetc(ptr) - '0';
-		fgetc(ptr);
-		block.n = fgetc(ptr) - '0';
+		block.m = fgetc(game->ptr) - '0';
+		fgetc(game->ptr);
+		block.n = fgetc(game->ptr) - '0';
 		const int boardSize = block.n * block.m;
 		game->board = initialize(block);
 		game->board->blocksize.m = block.m;
 		game->board->blocksize.n = block.n;
 		char **input = calloc(boardSize, sizeof(char*));
 		char *row = calloc(4096, sizeof(char));
-		fgets(row, 4096, ptr);
-		while (fgets(row, 4096, ptr) != EOF && row != NULL && *row!='\n') {
+		fgets(row, 4096, game->ptr);
+		while (fgets(row, 4096, game->ptr) != EOF && row != NULL && *row!='\n') {
 			input[k] = strtok(row, delim);
 			while (input[k] != NULL) {
 				k++;
@@ -381,4 +357,57 @@ void printCommand(Game * game) {
 	else {
 		printErrorMode();
 	}
+}
+void autofillCommand(Game* game) {
+	if (game->mode == solve) {
+		bool errornous = isBoardErroneous(game->board);
+		if (errornous == true) {
+			printf("Error: board is erroneous\n");
+		}
+		int i, j, m, n, N,val;
+		index ind;
+		n = game->board->blocksize.n;
+		m = game->board->blocksize.m;
+		N = n * m;
+		for (i = 0; i < N; i++) {
+			for (j = 0; j < N; j++) {
+				ind.row = i;
+				ind.col = j;
+				findOptionsCell(game, ind);
+			}
+		}
+		for (i = 0; i < N; i++) {
+			for (j = 0; j < N; j++) {
+				ind.row = i;
+				ind.col = j;
+				if ((game->board->cells[i][j].optionsSize == 1) && (game->board->cells[i][j].value == 0)) {
+					val = game->board->cells[i][j].options[0];
+					game->board->cells[i][j].value == val;
+					printf("Cell <%d,%d> autofilled to %d\n", i + 1, j + 1, val);
+					isValidOption(game, ind, game->board->cells[i][j].options[0], true);
+				}
+			}
+		}
+		printBoard(game);
+
+	}
+	else {
+		printErrorMode();
+	}
+}
+
+ int undoCommand(Game * game) {
+	 doublyNode* lastMove;
+	 linkedList* lastMoveData;
+	 lastMove= doublyGetLast(game->userMoves);
+	 lastMoveData = lastMove->move;
+	 game->curMove = lastMove->prev;
+	
+	 if ((game->mode = solve) || (game->mode == edit)) {
+
+	 }
+	 else {
+		 printErrorMode();
+	 }
+	 return 1;
 }

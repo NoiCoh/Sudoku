@@ -1,40 +1,57 @@
-#ifndef LINKEDLIST_H
+#ifndef LINKEDLIST_H_
+#define LINKEDLIST_H_
 
-#define  LINKEDLIST_H
 typedef struct node {
-	int col;
-	int row;
-	int val;
-	int prevVal;
-	struct node *next;
-	struct node *prev;
-}node;
-
+	int	row,col,newVal,prevVal;
+	struct	node *next;
+} node;
 
 typedef struct linkedList {
-	int size;
+	int	size;
 	node *head;
 	node *tail;
-	
 } linkedList;
 
-node* createNewNode(int row, int col, int val, int prevVal);
+typedef struct doublyNode {
+	linkedList *move;
+	struct doublyNode *next;
+	struct doublyNode *prev;
 
-linkedList* createNewLinkedList();
+} doublyNode;
 
-int isEmpty(linkedList *list);
+typedef struct doublyLinkedList {
+	int	size;
+	doublyNode *head;
+	doublyNode *tail;
 
-void addLast(linkedList *list, int row, int col, int val, int prevVal);
+} doublyLinkedList;
 
-node* deleteFirst(linkedList* list);
+node* initializeNode(int row, int col, int val, int prevVal);
 
-void removeLast(linkedList *list);
+linkedList* initializeLinkedList();
+
+int isEmpty(linkedList*);
+
+void insertLast(linkedList*,  int row ,  int col , int val, int prevVal);
+
+void deleteFirst(linkedList*);
 
 void clear(linkedList* list);
 
-node* getLastNode(linkedList* list);
+node* initializeDoublyNode(linkedList *data);
 
-void removeAfter(linkedList* list, node *node);
+doublyLinkedList* initializeDoublyLinkedList();
 
-#endif 
+int doublyIsEmpty(doublyLinkedList*);
 
+void doublyInsertLast(doublyLinkedList*, linkedList*);
+
+void doublyDeleteAfter(doublyLinkedList* list, doublyNode *node);
+
+doublyNode* doublyGetLast(doublyLinkedList* list);
+
+void doublyDeleteLast(doublyLinkedList *list);
+
+void doublyClear(doublyLinkedList*);
+
+#endif
