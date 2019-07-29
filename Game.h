@@ -60,7 +60,7 @@ void guessHintCommand(Game* game,char* x, char* y);
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validateCommand(Game* game);
+int validateCommand(Game* game);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
@@ -69,5 +69,6 @@ void exiting(Game* game);
 
 void freeBoard(Board *currentBoard);
 
+void saveGame(Game* game, char* path);
 
 #endif

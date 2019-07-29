@@ -13,7 +13,7 @@ srand(atoi(argv[1]));
 srand(0);
 }
     restart();
-    return (argc);*/
+    return (argc);
 	Game* game;
 	Game* game1;
 	game = initializeGame();
@@ -22,5 +22,5 @@ srand(0);
 	printBoard(game);
 	ILPsolver(game);
 	game1->board = game->solBoard;
-	printBoard(game1);
+	printBoard(game1);*/
 }

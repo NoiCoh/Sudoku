@@ -221,18 +221,21 @@ void guessHintCommand(Game* game, char* x, char* y) {
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
-void validateCommand(Game* game) {
+int validateCommand(Game* game) {
 	if ((game->mode == solve) || (game->mode == edit)) {
 		ILPsol solve = ILPsolver(game);
 		if (solve.solvable == true) {
 			printf("Validation passed: board is solvable\n");
+			return 1;
 		}
 		else {
 			printf("Validation failed: board is unsolvable\n");
+			return 0;
 		}
 	}
 	else {
 		printErrorMode();
+		return 0;
 	}
 }
 
@@ -296,7 +299,7 @@ Board* getUserBoard(Game* game ,char* path) {
 		char **input = calloc(boardSize, sizeof(char*));
 		char *row = calloc(4096, sizeof(char));
 		fgets(row, 4096, game->ptr);
-		while (fgets(row, 4096, game->ptr) != EOF && row != NULL && *row!='\n') {
+		while (fgets(row, 4096, game->ptr) != EOF && row != NULL && *row!='\n' && i < boardSize) {
 			input[k] = strtok(row, delim);
 			while (input[k] != NULL) {
 				k++;
@@ -317,6 +320,7 @@ Board* getUserBoard(Game* game ,char* path) {
 			i++;
 			k = 0;
 		}
+		game->mode = solve;
 		return game->board;
 	}
 }
@@ -411,3 +415,53 @@ void autofillCommand(Game* game) {
 	 }
 	 return 1;
 }
+
+ void saveGame(Game* game, char * path) {
+	 if (game->mode == init) {
+		 printErrorMode();
+		 return;
+	 }
+	 if (game->mode == edit) {
+		 if (game->board->erroneous) {
+			 printf("Error: The board is erroneous ");
+			 return;
+		 }
+		 if (!validateCommand(game)) return;
+	 }
+	 FILE* fp;
+	 fp = fopen(path, "w");
+	 int m = game->board->blocksize.m;
+	 int n = game->board->blocksize.n;
+	 int value = 0;
+	 const int boardSize = n * m;
+	 fprintf(fp, "%d %d\n", m, n);
+	 char* regCellFormat;
+	 char* lastCellFormat;
+	 if (game->mode == edit) {
+		 regCellFormat  = "%d. ";
+		 lastCellFormat = "%d.\n";
+	 }
+	 else {
+		 regCellFormat  = "%d ";
+		 lastCellFormat = "%d\n";
+	 }
+	 for (int i = 0; i < boardSize; i++) {
+		 for (int j = 0; j < boardSize - 1; j++) {
+			 value = game->board->cells[i][j].value;
+			 if (value == 0) {
+				 fprintf(fp, "0 ");
+			 }
+			 else {
+				fprintf(fp, regCellFormat, value);
+			 }
+		 }
+		 value = game->board->cells[i][boardSize - 1].value;
+		 if (value == 0) {
+			 fprintf(fp, "0\n");
+		 }
+		 else {
+			 fprintf(fp, lastCellFormat, value);
+		 }
+	 }
+	 fclose(fp);
+ }

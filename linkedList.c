@@ -68,8 +68,8 @@ void deleteFirst(linkedList* list) {
 }
 
 void clear(linkedList* list) {
-	while (!singly_isEmpty(list)) {
-		singly_removeFirst(list);
+	while (!isEmpty(list)) {
+		deleteFirst(list);
 	}
 	free(list);
 }
@@ -101,7 +101,7 @@ int doublyIsEmpty(doublyLinkedList *list) {
 }
 
 void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
-	doublyNode *newNode = doubly_createNewNode(move);
+	doublyNode *newNode = initializeDoublyNode(move);
 	doublyNode *head = list->head;
 	doublyNode *tail = list->tail;
 	doublyNode *prevNode;
@@ -121,11 +121,11 @@ void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
 }
 
 void doublyDeleteAfter(doublyLinkedList* list, doublyNode *node) {
-	doublyNode *tmp = doublyGetLastNode(list);
+	doublyNode *tmp = doublyGetLast(list);
 	if (tmp != NULL) {
 		while (tmp != node) {
 			doublyDeleteLast(list);
-			tmp = doublyGetLastNode(list);
+			tmp = doublyGetLast(list);
 		}
 	}
 }
@@ -141,7 +141,7 @@ doublyNode* doublyGetLast(doublyLinkedList* list) {
 }
 
 void doublyDeleteLast(doublyLinkedList *list) {
-	doublyNode *last = doublyGetLastNode(list);
+	doublyNode *last = doublyGetLast(list);
 	doublyNode *prev;
 
 	if (!doublyIsEmpty(list)) {
@@ -150,7 +150,7 @@ void doublyDeleteLast(doublyLinkedList *list) {
 		if (prev != NULL) { 
 			prev->next = NULL;
 		}
-		singly_clear(last->move);
+		clear(last->move);
 		free(last);
 
 		list->size--;

@@ -38,7 +38,7 @@ void deleteFirst(linkedList*);
 
 void clear(linkedList* list);
 
-node* initializeDoublyNode(linkedList *data);
+doublyNode* initializeDoublyNode(linkedList *data);
 
 doublyLinkedList* initializeDoublyLinkedList();
 

@@ -96,9 +96,9 @@ int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
 	return 0;
 }
 
-void initilizeILPSolve(ILPsol solve, Game* game) {
-	solve.solBoard = initialize(game->board->blocksize);
-	solve.solBoard = false;
+void initilizeILPSolve(ILPsol * solve, Game* game) {
+	solve->solBoard = initialize(game->board->blocksize);
+	solve->solBoard = false;
 }
 
 ILPsol ILPsolver(Game* game) {
@@ -112,7 +112,7 @@ ILPsol ILPsolver(Game* game) {
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
-	initilizeILPSolve(solve, game);
+	initilizeILPSolve(&solve, game);
 	error = 0;
 	initVtype(N, vType);
 	initSol(N, sol);
