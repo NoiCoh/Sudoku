@@ -7,13 +7,9 @@
 
 
 int main() {
-/**if (argc>1){
-srand(atoi(argv[1]));
-}else{
-srand(0);
-}
+
     restart();
-    return (argc);
+	/** return (argc);
 	Game* game;
 	Game* game1;
 	game = initializeGame();

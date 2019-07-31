@@ -83,16 +83,17 @@ checkEOF();
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
 void checkString(Game * game,char* move[]){
-	int row, col, val;
+	int row, col, val ,x;
     if(move[0]!=NULL) {
-		if ((strcmp(move[0], "solve") == 0) && move[1] != NULL && game->board->solved == false) {
-			solveCommand(game->board, move[1]);
-		}else if ((strcmp(move[0], "edit") == 0) && game->board->solved == false) {
-				editCommand(game->board, move[1]);
+		if ((strcmp(move[0], "solve") == 0) &&( move[1] != NULL )) {
+			solveCommand( move[1], game);
+		}else if (strcmp(move[0], "edit") == 0) {
+				editCommand( move[1], game );
 		}else if ((strcmp(move[0], "mark_errors") == 0) && move[1] != NULL && game->board->solved == false) {
-			markErrorsCommand(game->board, move[1]);
+			x = atoi(move[1]);
+			markErrorsCommand( x, game);
 		}else if ((strcmp(move[0], "print_board") == 0)  ) {
-			printCommand(game->board);
+			printCommand(game);
 		}else if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
             game->board->solved == false) {
 			/**convert string to int**/
