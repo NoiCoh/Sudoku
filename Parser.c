@@ -85,7 +85,9 @@ checkEOF();
 void checkString(Game * game,char* move[]){
 	int row, col, val ,x;
     if(move[0]!=NULL) {
-		if ((strcmp(move[0], "solve") == 0) &&( move[1] != NULL )) {
+		if (strcmp(move[0], "autofill")==0) {
+			autofillCommand(game);
+		}else if ((strcmp(move[0], "solve") == 0) &&( move[1] != NULL )) {
 			solveCommand( move[1], game);
 		}else if (strcmp(move[0], "edit") == 0) {
 				editCommand( move[1], game );
@@ -97,14 +99,14 @@ void checkString(Game * game,char* move[]){
 		}else if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
             game->board->solved == false) {
 			/**convert string to int**/
-			col = atoi(move[1]) - 1;
-			row = atoi(move[2]) - 1;
+			row = atoi(move[1]) - 1;
+			col = atoi(move[2]) - 1;
 			val = atoi(move[3]);
-            setCommand(game->board, row, col, val);
+            setCommand(game, row, col, val);
         } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && game->board->solved == false) {
-            hintCommand(game->solBoard, move[1], move[2]);
+            hintCommand(game, move[1], move[2]);
         } else if ((strcmp(move[0], "validate") == 0) && game->board->solved == false) {
-            validateCommand(game->board,game->solBoard, game->board->blocksize);
+            validateCommand(game);
         } else if ((strcmp(move[0], "restart") == 0)) {
 		            restart();
         } else if (strcmp(move[0], "exit") == 0) {
