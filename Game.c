@@ -398,7 +398,8 @@ void autofillCommand(Game* game) {
 /**Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
 part of the list is cleared, i.e., all items beyond the current pointer are removed, the new
 move is added to the end of the list and marked as the current move, i.e., the pointer is
-updated to point to it.**/
+updated to point to it.
+**/
 void addMove(Game* game, linkedList* move) {
 	doublyDeleteAllAfter(game->userMoves, game->curMove);
 	doublyInsertLast(game->userMoves, move);
@@ -446,6 +447,79 @@ void addMove(Game* game, linkedList* move) {
 		 printErrorMode();
 	 }
 	 return 1;
+ }
+
+ int generate(Game* game, int x, int y) {
+	 if (game->mode = edit) {
+		 int i, t, m,n, N, val, emptyCells, randCol, randRow;
+		 index ind;
+		 Board* orignalBoard;
+		 ILPsol solve;;
+		 bool succeedSet, generateSolvableBoard;
+		 emptyCells = FindHowMuchEmptyCells(game);
+		 if (x > emptyCells) {
+			 printf("Error: Board does not contain %d empty cells\n", x);
+		 }
+		 makeCopyBoard(game->board, orignalBoard);
+		 m = game->board->blocksize.m;
+		 n =game->board->blocksize.n;
+		 N = n * m;
+		 for (t = 0; t < 1000; t++) {
+			 succeedSet = true;
+			 generateSolvableBoard = false;
+			 for (i = 0; i < x; i++) {
+				 ind.col = rand() % N;
+				 ind.row = rand() % N;
+				 if (game->board->cells[ind.row][ind.col].value != 0) {
+					 i--;
+					 continue;
+				 }
+				 findOptionsCell(game, ind);
+				 val = getRandValue(game->board, ind);
+				 if (val == 0) { /*There is no valid value for this cell*/
+					 makeCopyBoard(orignalBoard, game->board);
+					 succeedSet = false;
+					 break;
+				 }
+				 else {
+					 setValue(game, ind.col, ind.row, val);
+				 }
+			 }
+			 if (succeedSet) {
+				 solve = ILPsolver(game);
+				 if (solve.solvable == true) {
+					 generateSolvableBoard = true;
+					 break;
+				 }
+				 else {
+					 makeCopyBoard(orignalBoard, game->board);
+					 continue;
+				 }
+			 }
+		 }
+		 if (!generateSolvableBoard) {
+			 makeCopyBoard(orignalBoard, game->board);
+			 printf("Error: Can't generate solvable board with parameters %d and %d \n", x, y);
+			 return;
+		 }
+		 Board* newBoard;
+		 newBoard = initialize(game->board->blocksize);
+		 for (i = 0; i < y; i++) {
+			 randCol = rand() % N;
+			 randRow = rand() % N;
+			 if (newBoard->cells[randRow][randCol].value != 0) {
+				 y--;
+				 continue;
+			 }
+			 else {
+				 newBoard->cells[randRow][randCol].value = solve.solBoard->cells[randRow][randCol].value;
+			 }
+		 }
+		 makeCopyBoard(newBoard, game->board);
+	 }
+	 else {
+		 printErrorMode();
+	 }
  }
 
  void saveGame(Game* game, char * path) {

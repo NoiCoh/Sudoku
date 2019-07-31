@@ -35,4 +35,18 @@ bool isBoardErroneous(Board* board);
  *  If we reach EOF, the program prints "Exiting…" and terminates.
  */
 void checkEOF();
+
+
+/*
+* set value in board's game
+*/
+void setValue(Game* game, int col, int row, int value) {
+	game->board->cells[row][col].value = value;
+}
+
+/*
+Count how many empty cells in board's game
+**/
+int FindHowMuchEmptyCells(Game* game);
+
 #endif

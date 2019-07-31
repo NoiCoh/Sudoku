@@ -126,6 +126,30 @@ void checkEOF(){
         exit(0);
     }
 }
+/*
+* set value in board's game
+*/
+void setValue(Game* game, int col, int row, int value) {
+	game->board->cells[row][col].value = value;
+}
+
+/*
+Count how many empty cells in board's game
+**/
+int FindHowMuchEmptyCells(Game* game) {
+	int m, n, i, j, count;
+	count = 0;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < m; j++) {
+			if (game->board->cells[i][j].value == 0) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
 
 
 
