@@ -90,7 +90,7 @@ int setCommand(Game *game, int row, int col, int val) {
 				}
 				else {
 					printf("Puzzle solved successfully\n");
-					printBoard(game, false);
+					printBoard(game);
 					game->board->solved = true;
 					game->mode = init;
 				}
@@ -273,7 +273,8 @@ void freeBoard(Board *currentBoard) {
 void solveCommand(char* path,Game* game) {
 	Board* userBoard;
 	userBoard = getUserBoard(game,path);
-	UpdateGame(game,userBoard, solve, false);
+	UpdateGame(game,userBoard, solve);
+	printBoard(game);
 }
 
 Board* getUserBoard(Game* game ,char* path) {
@@ -316,7 +317,6 @@ Board* getUserBoard(Game* game ,char* path) {
 			i++;
 			k = 0;
 		}
-		game->mode = solve;
 		return game->board;
 	}
 }
@@ -332,6 +332,7 @@ void editCommand(char* path, Game* game) {
 		userBoard = getUserBoard(game,path);
 	}
 	UpdateGame(game, userBoard, edit, true);
+	game->mode = edit;
 	printBoard(game);
 }
 void markErrorsCommand(int x, Game * game) {
@@ -366,6 +367,7 @@ void autofillCommand(Game* game) {
 		}
 		int i, j, m, n, N,val;
 		index ind;
+		bool res;
 		n = game->board->blocksize.n;
 		m = game->board->blocksize.m;
 		N = n * m;
@@ -382,9 +384,13 @@ void autofillCommand(Game* game) {
 				ind.col = j;
 				if ((game->board->cells[i][j].optionsSize == 1) && (game->board->cells[i][j].value == 0)) {
 					val = game->board->cells[i][j].options[0];
-					game->board->cells[i][j].value == val;
+					res=isValidOption(game, ind, val, true);
+					if (res == false) {
+						game->board->cells[i][j].error = true;
+					}
+					game->board->cells[i][j].value = val;
 					printf("Cell <%d,%d> autofilled to %d\n", i + 1, j + 1, val);
-					isValidOption(game, ind, game->board->cells[i][j].options[0], true);
+					
 				}
 			}
 		}
