@@ -28,6 +28,7 @@ Board* createDefaultBoard()
 Game* initializeGame() {
 	Game* game = malloc(sizeof(Game));
 	game->userMoves=initializeDoublyLinkedList();
+	game->curMove = NULL;
 	game->mode = init;
 	game->markErrors = true;
 	return game;

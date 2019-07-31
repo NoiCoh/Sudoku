@@ -83,6 +83,7 @@ checkEOF();
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
 void checkString(Game * game,char* move[]){
+	int row, col, val;
     if(move[0]!=NULL) {
 		if ((strcmp(move[0], "solve") == 0) && move[1] != NULL && game->board->solved == false) {
 			solveCommand(game->board, move[1]);
@@ -94,7 +95,11 @@ void checkString(Game * game,char* move[]){
 			printCommand(game->board);
 		}else if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
             game->board->solved == false) {
-            setCommand(game->board, move[1], move[2], move[3]);
+			/**convert string to int**/
+			col = atoi(move[1]) - 1;
+			row = atoi(move[2]) - 1;
+			val = atoi(move[3]);
+            setCommand(game->board, row, col, val);
         } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && game->board->solved == false) {
             hintCommand(game->solBoard, move[1], move[2]);
         } else if ((strcmp(move[0], "validate") == 0) && game->board->solved == false) {

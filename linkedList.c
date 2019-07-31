@@ -67,7 +67,7 @@ void deleteFirst(linkedList* list) {
 	}
 }
 
-void clear(linkedList* list) {
+void freeList(linkedList* list) {
 	while (!isEmpty(list)) {
 		deleteFirst(list);
 	}
@@ -120,10 +120,10 @@ void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
 	list->size++;
 }
 
-void doublyDeleteAfter(doublyLinkedList* list, doublyNode *node) {
+void doublyDeleteAllAfter(doublyLinkedList* list, doublyNode *curMove) {
 	doublyNode *tmp = doublyGetLast(list);
 	if (tmp != NULL) {
-		while (tmp != node) {
+		while (tmp != curMove) {
 			doublyDeleteLast(list);
 			tmp = doublyGetLast(list);
 		}
@@ -150,7 +150,7 @@ void doublyDeleteLast(doublyLinkedList *list) {
 		if (prev != NULL) { 
 			prev->next = NULL;
 		}
-		clear(last->move);
+		freeList(last->move);
 		free(last);
 
 		list->size--;
@@ -163,7 +163,7 @@ void doublyDeleteLast(doublyLinkedList *list) {
 	}
 }
 
-void doublyClear(doublyLinkedList* list) {
+void doublyFree(doublyLinkedList* list) {
 	while (!doublyIsEmpty(list)) {
 		doublyDeleteLast(list);
 	}

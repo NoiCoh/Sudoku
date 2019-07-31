@@ -65,19 +65,15 @@ Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block){
     return userBoard;
 }
 /**
- * set the value z in cell <x,y> (x is the column and y is the row) according to user's command.
+ * set the value val in cell <row,col> according to user's command.
  * if the user tries to set a fixed cell, the function prints - "Error: cell is fixed"
  * if the user value is invalid (the value is already in the same box, row or column),
  * the function prints -"Error: value is invalid"
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
-int setCommand(Game *game, char* x, char* y, char* z) {
-	int row, col, val, oldVal;
+int setCommand(Game *game, int row, int col, int val) {
+	int oldVal;
 	index ind;
-	/**convert string to int**/
-	col = atoi(x) - 1;
-	row = atoi(y) - 1;
-	val = atoi(z);
 	ind.col = col;
 	ind.row = row;
 	if ((game->mode == solve) || (game->mode == edit)) {
@@ -113,7 +109,7 @@ int setCommand(Game *game, char* x, char* y, char* z) {
 		}
 		else if (!isValidOption(game, ind, val, true)) {
 			game->board->cells[row][col].error = true;
-game->board->erroneous = true;
+			game->board->erroneous = true;
 		}
 		game->board->cells[row][col].value = val;
 		game->board->cells[row][col].userInput = true;
@@ -399,22 +395,58 @@ void autofillCommand(Game* game) {
 		printErrorMode();
 	}
 }
+/**Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
+part of the list is cleared, i.e., all items beyond the current pointer are removed, the new
+move is added to the end of the list and marked as the current move, i.e., the pointer is
+updated to point to it.**/
+void addMove(Game* game, linkedList* move) {
+	doublyDeleteAllAfter(game->userMoves, game->curMove);
+	doublyInsertLast(game->userMoves, move);
+	game->curMove = doublyGetLast(game->userMoves);
+}
 
  int undoCommand(Game * game) {
-	 doublyNode* lastMove;
-	 linkedList* lastMoveData;
-	 lastMove= doublyGetLast(game->userMoves);
-	 lastMoveData = lastMove->move;
-	 game->curMove = lastMove->prev;
-	
 	 if ((game->mode = solve) || (game->mode == edit)) {
-
+		 linkedList* dataToUndo;
+		 node* i;
+		 if( game->curMove == NULL){
+			 printf("Error: No moves to undo");
+			 return 0;
+		 }
+		 dataToUndo = game->curMove->move;
+		 game->curMove = game->curMove->prev;
+		 for (i = dataToUndo->head; i != NULL; i = i->next) {
+			 printf("Undo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->newVal, i->prevVal);
+			 setCommand(&game, i->row, i->col, i->prevVal);
+		 }
 	 }
 	 else {
 		 printErrorMode();
 	 }
 	 return 1;
 }
+
+ int redoCommand(Game * game) {
+	 if ((game->mode = solve) || (game->mode == edit)) {
+		 linkedList* dataToRedo;
+		 node* i;
+		 if ((game->curMove == NULL)||(game->curMove->next==NULL)) {
+			 printf("Error: No moves to redo");
+			 return 0;
+		 }
+		 game->curMove = game->curMove->next;
+		 dataToRedo = game->curMove->move;
+		
+		 for (i = dataToRedo->head; i != NULL; i = i->next) {
+			 printf("Redo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->prevVal, i->newVal);
+			 setCommand(&game, i->row, i->col, i->newVal);
+		 }
+	 }
+	 else {
+		 printErrorMode();
+	 }
+	 return 1;
+ }
 
  void saveGame(Game* game, char * path) {
 	 if (game->mode == init) {

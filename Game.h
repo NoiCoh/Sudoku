@@ -4,6 +4,7 @@
 #include "Parser.h"
 #include "ILPsolver.h"
 
+int redoCommand(Game * game);
 int undoCommand(Game * game);
 void autofillCommand(Game* game);
 void printCommand(Game * game);
@@ -23,13 +24,13 @@ Board* initialize(blocksize block);
 Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block);
 
 /**
- * set the value z in cell <x,y> (x is the column and y is the row) according to user's command.
+ * set the value val in cell <row,col> according to user's command.
  * if the user tries to set a fixed cell, the function prints - "Error: cell is fixed"
  * if the user value is invalid (the value is already in the same box, row or column),
  * the function prints -"Error: value is invalid"
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
-int setCommand(Game *game, char* x, char* y, char* z);
+int setCommand(Game *game, int row, int col, int val);
 
 /**
  * check the user value during setCommand.

@@ -36,7 +36,7 @@ void insertLast(linkedList*,  int row ,  int col , int val, int prevVal);
 
 void deleteFirst(linkedList*);
 
-void clear(linkedList* list);
+void freeList(linkedList* list);
 
 doublyNode* initializeDoublyNode(linkedList *data);
 
@@ -46,12 +46,12 @@ int doublyIsEmpty(doublyLinkedList*);
 
 void doublyInsertLast(doublyLinkedList*, linkedList*);
 
-void doublyDeleteAfter(doublyLinkedList* list, doublyNode *node);
+void doublyDeleteAllAfter(doublyLinkedList* list, doublyNode *curMove);
 
 doublyNode* doublyGetLast(doublyLinkedList* list);
 
 void doublyDeleteLast(doublyLinkedList *list);
 
-void doublyClear(doublyLinkedList*);
+void doublyFree(doublyLinkedList*);
 
 #endif
