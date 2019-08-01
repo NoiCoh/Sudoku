@@ -32,9 +32,10 @@ typedef struct Board{
 } Board;
 
 typedef struct {
-	bool solvable;
+	int solvable;
 	Board* solBoard;
-}ILPsol;
+	double* sol;
+}LPsol;
 
 typedef struct {
     int col;

@@ -1,72 +1,123 @@
 #include "ILPsolver.h"
 #include "Solver.h"
-int LPsolver(Game* game) {
+LPsol* LPsolver(Game* game,bool intSol) {
+	int m, n, N, i,error,varsNum;
 	double* objective=NULL;
+	LPsol* lpSol;
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	double *val = NULL;
-	int *ind=NULL;
-	double*	sol=NULL;
+	int *ind = NULL;
+	double*	sol = NULL;
 	int	error, *optimstatus;
 	char* vType = NULL;
-	int m, n, N, i, N3;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
-	N3 = N * N * N;
-	objective = malloc(N3 * sizeof(double));
-	if (!objective) {
-		printf("Error: malloc failed\n");
-		return 0;
-	}
 	error = 0;
-	initVtype(N, vType);
-	initSol(N, sol);
+	initInd(ind, N);
+	initVals(val, N);
+	lpSol = initLpSol(N);
+	varsNum = getVarsNum(N, game);
+	initVtype(varsNum, vType);
+	initSol(varsNum, sol);
+	initObjective(objective, varsNum,intSol);
 	error = creaetEnv(env, model);
-	for (i = 0; i < N3; i++) {
-		if (objective != NULL) {
-			objective[i] = 1.0 + rand() % 10;
-		}
-	}
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+	if (!error) {
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
-	error = initLpVars(env, model, N, vType,objective);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+	if (intSol = 1) {
+		error = initVars(env, model, N, vType);
+	}
+	else {
+		error = initLpVars(env, model, N, vType, objective);
+	}
+	if (!error) {
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
 	error = LpConstraint(env, model, N, ind, val);
 	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
 	error = optimize(env, model);
 	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
 	error = optimizeStatus(env, model, optimizeStatus);
 	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
 	error = getSol(env, model, optimizeStatus, N, sol);
 	if (error) {
-		freeSolved(env, model, vType, sol);
-		free(objective);
+		freeLpSolver(env, model, vType, sol, objective);
 		return 0;
 	}
 	makeScores(game,sol,N);
-	freeSolved(env, model, vType, sol);
-	free(objective);
+	freeLpSolver(env, model, vType, sol, objective);
 	return 1;
+}
+
+void initObjective(double* objective, int varsNum,bool intSol) {
+	int i ;
+	objective = malloc(varsNum * sizeof(double));
+	if (!objective) {
+		printf("Error: malloc failed");
+		exit(0);
+	}
+	for (i = 0; i < varsNum; i++) {
+		if (intSol == true) {
+			objective[i] = 0;
+		}
+		else {
+			objective[i] = 1.0 + rand() % 10;
+		}
+	}
+	
+}
+int getVarsNum(int N, Game* game) {
+	int i, j, varsNum;
+	index ind;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			ind.row = i;
+			ind.col = j;
+			findOptionsCell(game, ind);
+		}
+	}
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (game->board->cells[i][j].value = 0) {
+				varsNum += game->board->cells[i][j].optionsSize;
+			}
+		}
+	}
+	return varsNum;
+}
+
+
+void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol,double* objective) {
+	GRBfreemodel(model);
+	GRBfreeenv(env);
+	free(sol);
+	free(vType);
+	free(objective);
+}
+
+LPsol* initLpSol(int N) {
+	int i, j;
+	LPsol* lpSol = malloc(sizeof(LPsol));
+	if (!lpSol) {
+		printf("Error: malloc failed");
+		exit(0);
+	}
+	lpSol->solvable = 0;
+	lpSol->sol = NULL;
+	return lpSol;
 }
 
 void makeScores(Game* game, double* sol, int N){
@@ -81,29 +132,24 @@ void makeScores(Game* game, double* sol, int N){
 	}
 }
 
-int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype,double* objective) {
-	int error;
-	int i, j, k, ind;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			for (k = 0; k < N; k++) {
-				ind = calculateIndex(i, j, k, N);
-				vtype[ind] = GRB_CONTINUOUS;
-			}
-		}
+int initLpVars(GRBenv *env, GRBmodel *model, int varsNum, char* vtype,double* objective) {
+	int error,i;
+	for (i = 0; i < varsNum; i++) {
+		vtype[i] = GRB_CONTINUOUS;
 	}
+		
 	/* add variables to model */
-	error = GRBaddvars(model, N*N*N, 0, NULL, NULL, NULL, objective, NULL, NULL, vtype, NULL);
+	error = GRBaddvars(model, varsNum, 0, NULL, NULL, NULL, objective, NULL, NULL, vtype, NULL);
 	if (error) {
 		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
 
 	/* Change objective sense to maximization */
 	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
 	if (error) {
 		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
 
 	/* update the model - to integrate new variables */
@@ -111,9 +157,9 @@ int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype,double* objectiv
 	error = GRBupdatemodel(model);
 	if (error) {
 		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 
@@ -195,34 +241,27 @@ ILPsol ILPsolver(Game* game) {
 	return solve;
 }
 
-void freeSolved(GRBenv *env, GRBmodel *model, char* vType, double * sol) {
-	GRBfreemodel(model);
-	GRBfreeenv(env);
-	free(sol);
-	free(vType);
-}
-
 int creaetEnv(GRBenv *env, GRBmodel *model) {
-	unsigned int error;
-	error = GRBloadenv(&env, "mip1.log");
+	int error;
+	error = GRBloadenv(&env, "sudoku.log");
 	if (error) {
 		printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
 
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
 	if (error) {
 		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
 
-	/* Create an empty model named "mip1" */
-	error = GRBnewmodel(env, &model, "mip1", 0, NULL, NULL, NULL, NULL, NULL);
+	/* Create an empty model named "sudoku" */
+	error = GRBnewmodel(env, &model, "sudoku", 0, NULL, NULL, NULL, NULL, NULL);
 	if (error) {
 		printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 int initVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
@@ -269,11 +308,6 @@ void initVals(double *val, int N) {
 		printf("Error: malloc failed\n");
 		exit(0);
 	}
-	else {
-		for (i = 0; i < N; i++) {
-				val[i] = 1;
-			}
-	}
 }
 void initInd(int * ind, int N) {
 	ind = (int*)malloc(N * sizeof(int));
@@ -305,90 +339,132 @@ void initSol(int N, double* sol) {
 /**
 every cell has one value
 **/
-int firstConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
-	int i, j, k, index, error;
+int firstConstraint(Game* game, GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
+	int i, j, k, index, v,error,varsNum;
+	varsNum = 0;
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
-			for (k = 0; k < N; k++) {
-				index = calculateIndex(i, j, k, N);
-				ind[k] = index;
+			for (k = 0; k < game->board->cells[i][j].optionsSize; k++) {
+				v = game->board->cells[i][j].options[k];
+				index = calculateIndex(i, j, v, N);
+				ind[varsNum] = index;
+				val[varsNum] = 1.0;
+				varsNum++;
 			}
-			error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (varsNum == 0) {
+				printf("Error:No legal value for cell <%d,%d>", i + 1, j + 1);
+				return 0;
+			}
+			error = GRBaddconstr(model, varsNum, ind, val, GRB_EQUAL, 1.0, NULL);
 			if (error) {
-				printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return -1;
+				printf("ERROR %d 1nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+				return 0;
 			}
-
 		}
 	}
-	return 0;
+	return 1;
 }
 /**
 each value appears once in every row 
 **/
-int secConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
-	int i, j, k, index, error;
-	for (k = 0; k < N; k++) {
+int secConstraint(Game* game ,GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
+	int i, j, k, index, error, varsNum;
+	bool found;
+	found = false;
+	for (k = 1; k < N; k++) {
 		for (i = 0; i < N; i++) {
+			varsNum = 0;
 			for (j = 0; j < N; j++) {
-				index = calculateIndex(i, j, k, N);
-				ind[j] = index;
+				if (game->board->cells[i][j].value == k) {
+					found = true;
+					break;
+			
+				}
+				if (found == true) {
+					index = calculateIndex(i, j, k, N);
+					ind[varsNum] = index;
+					val[varsNum] = 1.0;
+					varsNum++;
+				}
 			}
-			error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (found == true) {
+				found = false;
+				break;
+			}
+			error = GRBaddconstr(model, varsNum, ind, val, GRB_EQUAL, 1.0, NULL);
 			if (error) {
 				printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return -1;
+				return 0;
 			}
 			
 		}
 	}
-	return 0;
+	return 1;
 }
 /**
 each value appears once in every column
 **/
-int thirdConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
-	int i, j, k, index, error;
-	for (k = 0; k < N; k++) {
-		for (j = 0; j< N; j++) {
+int thirdConstraint(Game* game,GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
+	int i, j, k, index, error, varsNum;
+	bool found;
+	found = false;
+	for (k = 1; k < N; k++) {
+		for (j = 0; j < N; j++) {
+			varsNum = 0;
 			for (i = 0; i < N; i++) {
-				index = calculateIndex(i, j, k, N);
-				ind[i] = index;
+				if (game->board->cells[i][j].value == k) {
+					found = true;
+					break;
+
+				}
+				if (found == true) {
+					index = calculateIndex(i, j, k, N);
+					ind[varsNum] = index;
+					val[varsNum] = 1.0;
+					varsNum++;
+				}
 			}
-			error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (found == true) {
+				found = false;
+				break;
+			}
+			error = GRBaddconstr(model, varsNum, ind, val, GRB_EQUAL, 1.0, NULL);
 			if (error) {
-				printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return -1;
+				printf("ERROR %d 3nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+				return 0;
 			}
 
 		}
 	}
-	return 0;
+	return 1;
 }
 
 /**
 each value appears once in every block
 **/
 int forthConstraint(GRBenv *env, GRBmodel *model, int N, int n, int m, int* ind, double* val) {
-	int i, j, k, index, error, jrow, jcol;
-	for (jcol = 0; jcol < N; jcol + m) {
-		for (jrow = 0; jrow < N; jrow + n) {
-			for (k = 0; k < N; k++) {
-				for (i = 0; i < m; i++) {
-					for (j = 0; j < n; j++) {
-						index = calculateIndex(i+jcol, j+jrow, k, N);
-						ind[i*n+j] = index;
-					}
-					error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
-					if (error) {
-						printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-						return -1;
+	int r, c, k, i, j, varsNum, index, error;
+	for (r = 0; r < n; r++) {
+		for (c = 0; c < m; c++) {
+			for (k = 1; k <= N; k++) {
+				varsNum = 0;
+				for (i = r * m; i < (r + 1)*m; i++) {
+					for (j = c * n; j < (c + 1)*n; j++) {
+						index = calculateIndex(i, j, k, N);
+						ind[varsNum] = index;
+						val[varsNum] = 1.0;
+						varsNum++;
 					}
 				}
 			}
+			error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (error) {
+				printf("ERROR %d 4nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+				return 0;
+			}
 		}
 	}
-	return 0;
+	return 1;
 }
 /**
 fixed cells are already known
@@ -406,13 +482,13 @@ int fifthConstraint(GRBenv *env, GRBmodel *model, Board *board,int N) {
 				ind[0] = index;
 				error = GRBaddconstr(model, 1, ind, val, GRB_EQUAL, 1.0, NULL);
 				if (error) {
-					printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-					return -1;
+					printf("ERROR %d 5nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
+					return 0;
 				}
 			}
 		}
 	}
-	return 0;
+	return 1;
 }
 
 int allConstraints(GRBenv *env, GRBmodel *model, Board *board, int n, int m) {

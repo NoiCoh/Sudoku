@@ -5,7 +5,7 @@
 #include "Solver.h"
 
 
-int LPsolver(Game* game);
+LPsol LPsolver(Game* game);
 void initSol(int N, double* sol);
 int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype, double* objective);
 int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val);
