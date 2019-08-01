@@ -175,6 +175,7 @@ int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValue
 float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues, int* legalValues) {
 	int i, val;
 	float* scores;
+	scores = malloc(numOflegalValues * sizeof(float));
 	for (i = 0; i < numOflegalValues; i++) {
 		val = legalValues[i];
 		scores[i] = game->scores[row][col][val];
@@ -185,6 +186,8 @@ float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues,
 int getRandIndex(Game* game, int numOflegalValues, float* scores) {
 	int i, random;
 	float sum, accumulative;
+	accumulative = 0;
+	sum = 0;
 	if (numOflegalValues == 1) {
 		return 0;
 	}

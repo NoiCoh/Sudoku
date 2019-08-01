@@ -41,9 +41,7 @@ void checkEOF();
 /*
 * set value in board's game
 */
-void setValue(Game* game, int col, int row, int value) {
-	game->board->cells[row][col].value = value;
-}
+void setValue(Game* game, int col, int row, int value);
 
 /*
 Count how many empty cells in board's game

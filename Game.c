@@ -176,10 +176,14 @@ void printCommand(Game* game) {
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
 int setCommand(Game *game, int row, int col, int val) {
-	int oldVal;
+	int prevVal;
 	index ind;
 	ind.col = col;
 	ind.row = row;
+	prevVal = game->board->cells[row][col].value;
+	linkedList* move;
+	move = initializeLinkedList();
+	insertLast(move, row, col, val, prevVal);
 	if ((game->mode == solve) || (game->mode == edit)) {
 		if (game->mode == solve) {
 			if (game->board->cells[row][col].fixed == true) {
@@ -187,6 +191,18 @@ int setCommand(Game *game, int row, int col, int val) {
 				printBoard(game);
 				return 0;
 			}
+		}
+		if (val == 0) {
+			if (game->board->cells[row][col].error == true) {
+				game->board->cells[row][col].error = false;
+				isValidOption(game, ind, prevVal, false);
+				game->board->erroneous = isBoardErroneous(game->board);
+			}
+			game->board->cells[row][col].value = val;
+			game->board->cells[row][col].userInput = false;
+			printBoard(game);
+		}
+		if (game->mode == solve) {
 			if (!IsThereEmptyCell(game->board)) {
 				if (game->board->erroneous == true) {
 					printErroneousBoardError();
@@ -199,17 +215,6 @@ int setCommand(Game *game, int row, int col, int val) {
 					game->mode = init;
 				}
 			}
-		}
-		if (val == 0) {
-			oldVal = game->board->cells[row][col].value;
-			if (game->board->cells[row][col].error == true) {
-				game->board->cells[row][col].error = false;
-				isValidOption(game, ind, oldVal, false);
-				game->board->erroneous = isBoardErroneous(game->board);
-			}
-			game->board->cells[row][col].value = val;
-			game->board->cells[row][col].userInput = false;
-			printBoard(game);
 		}
 		else if (!isValidOption(game, ind, val, true)) {
 			game->board->cells[row][col].error = true;
@@ -224,6 +229,7 @@ int setCommand(Game *game, int row, int col, int val) {
 	printErrorMode();
 	return 1;
 	}
+	addMove(game, move);
 }
 
 /**
@@ -388,7 +394,8 @@ void addMove(Game* game, linkedList* move) {
 	doublyInsertLast(game->userMoves, move);
 	game->curMove = doublyGetLast(game->userMoves);
 }
-
+/*undo a previous move done by the user. This command is only availble
+in solve and edit modes */
 int undoCommand(Game* game, bool print) {
 	if ((game->mode == solve) || (game->mode == edit)) {
 		linkedList* dataToUndo;
@@ -411,7 +418,8 @@ int undoCommand(Game* game, bool print) {
 	}
 	return 1;
 }
-
+/*redo a move previously undone by the user . This command is only availble
+in solve and edit modes*/
 int redoCommand(Game* game) {
 	if ((game->mode == solve) || (game->mode == edit)) {
 		linkedList* dataToRedo;

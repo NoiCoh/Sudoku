@@ -1,3 +1,4 @@
+
 #ifndef GAME_H
 #define GAME_H
 #include "MainAux.h"
@@ -78,8 +79,12 @@ int generate(Game* game, int x, int y);
 */
 void addMove(Game* game, linkedList* move);
 
+/*undo a previous move done by the user. This command is only availble
+in solve and edit modes */
 int undoCommand(Game* game,bool print);
 
+/*redo a move previously undone by the user . This command is only availble
+in solve and edit modes*/
 int redoCommand(Game * game);
 
 /*
@@ -124,4 +129,5 @@ void freeBoard(Board* currentBoard);
  */
 /**bool isValidSet(Board* userBoard,index ind, int val);
 **/
+
 #endif

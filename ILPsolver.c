@@ -1,6 +1,7 @@
 #include "ILPsolver.h"
 #include "Solver.h"
 int LPsolver(Game* game) {
+	double* objective=NULL;
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
 	double *val = NULL;
@@ -8,45 +9,56 @@ int LPsolver(Game* game) {
 	double*	sol=NULL;
 	int	error, *optimstatus;
 	char* vType = NULL;
-	int m, n, N;
+	int m, n, N,i;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
+	objective = malloc(N * sizeof(double));
 	error = 0;
 	initVtype(N, vType);
 	initSol(N, sol);
 	error = creaetEnv(env, model);
+	for (i = 0; i < N; i++) {
+		objective[i] = 1 + rand() % 10;
+	}
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
-	error = initLpVars(env, model, N, vType);
+	error = initLpVars(env, model, N, vType,objective);
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
 	error = LpConstraint(env, model, N, ind, val);
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
 	error = optimize(env, model);
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
 	error = optimizeStatus(env, model, optimizeStatus);
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
 	error = getSol(env, model, optimizeStatus, N, sol);
 	if (error) {
 		freeSolved(env, model, vType, sol);
+		free(objective);
 		return 0;
 	}
 	makeScores(game,sol,N);
 	freeSolved(env, model, vType, sol);
+	free(objective);
 	return 1;
 }
 
@@ -62,7 +74,7 @@ void makeScores(Game* game, double* sol, int N){
 	}
 }
 
-int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
+int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype,double* objective) {
 	int error;
 	int i, j, k, ind;
 	for (i = 0; i < N; i++) {
@@ -73,7 +85,30 @@ int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
 			}
 		}
 	}
+	/* add variables to model */
+	error = GRBaddvars(model, N*N*N, 0, NULL, NULL, NULL, objective, NULL, NULL, vtype, NULL);
+	if (error) {
+		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+
+	/* Change objective sense to maximization */
+	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
+	if (error) {
+		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+
+	/* update the model - to integrate new variables */
+
+	error = GRBupdatemodel(model);
+	if (error) {
+		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
+		return -1;
+	}
+	return 0;
 }
+
 
 /**
 every cell's vars's sum is 1.0 
@@ -158,8 +193,8 @@ void freeSolved(GRBenv *env, GRBmodel *model, char* vType, double * sol) {
 	GRBfreeenv(env);
 	free(sol);
 	free(vType);
-
 }
+
 int creaetEnv(GRBenv *env, GRBmodel *model) {
 	unsigned int error;
 	error = GRBloadenv(&env, "mip1.log");

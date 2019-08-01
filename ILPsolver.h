@@ -7,7 +7,7 @@
 
 int LPsolver(Game* game);
 void initSol(int N, double* sol);
-int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype);
+int initLpVars(GRBenv *env, GRBmodel *model, int N, char* vtype, double* objective);
 int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val);
 ILPsol ILPsolver(Game* game);
 void makeScores(Game* game, double* sol, int N);
