@@ -8,6 +8,10 @@ void printWelcome() {
 	printf("Welcome to N&I Sudoku Game!\n ");
 }
 
+void printErroneousBoardError() {
+	printf("Error: The board is erroneous\n");
+}
+
 void printNTimes(int n) {
 	int i;
 	for (i = 0; i < n; i++) {
@@ -151,5 +155,58 @@ int FindHowMuchEmptyCells(Game* game) {
 	return count;
 }
 
+int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValues) {
+	int numOflegalValues, N, val;
+	index ind;
+	numOflegalValues = 0;
+	N = game->board->blocksize.m * game->board->blocksize.n;
+	ind.col = col;
+	ind.row = row;
+	for (val = 0; val < N; val++) {
+		if (game->scores[row][col][val] >= threshold) {
+			if (isValidOption(game, ind, val, false)) {
+				legalValues[numOflegalValues++] = val;
+			}
+		}
+	}
+	return numOflegalValues;
+}
+
+float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues, int* legalValues) {
+	int i, val;
+	float* scores;
+	for (i = 0; i < numOflegalValues; i++) {
+		val = legalValues[i];
+		scores[i] = game->scores[row][col][val];
+	}
+	return scores;
+}
+
+int getRandIndex(Game* game, int numOflegalValues, float* scores) {
+	int i, random;
+	float sum, accumulative;
+	if (numOflegalValues == 1) {
+		return 0;
+	}
+	for (i = 0; i < numOflegalValues; i++) {
+		sum += scores[i];
+	}
+	if (sum == 0) { //all scores equal to zero then pick randomly
+		random = rand() % numOflegalValues;
+		return random;
+	}
+	for (i = 0; i < numOflegalValues; i++) {
+		scores[i] = scores[i] / sum;
+	}
+	random = (double)rand() / (float)(RAND_MAX)+1;
+
+	for (i = 0; i < numOflegalValues; i++) { 
+		accumulative += scores[i]; 
+		if (random < accumulative) {
+			return i;
+		}
+	}
+	return 0;
+}
 
 

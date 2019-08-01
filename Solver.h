@@ -130,4 +130,6 @@ bool IsThereEmptyCell(Board* board);
  */
 index FindEmptyCell(Board* board);
 
+int exhaustiveBacktracking();
+
 #endif

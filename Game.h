@@ -56,6 +56,13 @@ int setCommand(Game* game, int row, int col, int val);
  */
 int validateCommand(Game* game);
 
+
+/*
+* the function guesses a solution to the current board using LP with thershold.
+* if the board is erroneous the function prints error and the command is not executed.
+*/
+int guess(Game* game, float threshold);
+
 /*
 * the function response to "generate" command. 
 * the function generate a board by randomly choose x cells to fill and solved to board and then fill only y cells and empty all other cells
@@ -71,7 +78,7 @@ int generate(Game* game, int x, int y);
 */
 void addMove(Game* game, linkedList* move);
 
-int undoCommand(Game* game);
+int undoCommand(Game* game,bool print);
 
 int redoCommand(Game * game);
 
@@ -93,7 +100,15 @@ void hintCommand(Game* game, char* x, char* y);
  */
 void guessHintCommand(Game* game, char* x, char* y);
 
+int numSolution(Game* game);
+
 void autofillCommand(Game* game);
+
+/*
+* the function response to "reset" command in 'edit' or 'solve' mode.
+* the function goes over the entire undo/redo list and revert all moves.
+*/
+void reset(Game* game);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.

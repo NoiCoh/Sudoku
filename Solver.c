@@ -268,3 +268,7 @@ index FindEmptyCell(Board* board){
     return i;
 }
 
+int exhaustiveBacktracking() {
+	return 0;
+}
+

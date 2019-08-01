@@ -49,6 +49,7 @@ int LPsolver(Game* game) {
 	freeSolved(env, model, vType, sol);
 	return 1;
 }
+
 void makeScores(Game* game, double* sol, int N){
 	int i, j, k, ind;
 	for (i = 0; i < N; i++) {

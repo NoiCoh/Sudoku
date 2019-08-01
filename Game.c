@@ -189,7 +189,7 @@ int setCommand(Game *game, int row, int col, int val) {
 			}
 			if (!IsThereEmptyCell(game->board)) {
 				if (game->board->erroneous == true) {
-					printf("Error: The solution is erroneous");
+					printErroneousBoardError();
 					printBoard(game);
 				}
 				else {
@@ -249,6 +249,52 @@ int validateCommand(Game* game) {
 		return 0;
 	}
 }
+/*
+* the function guesses a solution to the current board using LP with thershold.
+* if the board is erroneous the function prints error and the command is not executed.
+*/
+int guess(Game* game, float threshold) {
+	if (game->mode == solve) {
+		if (game->board->erroneous == true) {
+			printErroneousBoardError();
+			return 0;
+		}
+		int check, i, j, N, numOflegalValues, * legalValues, randIndex;
+		float* scores;
+		N = game->board->blocksize.m * game->board->blocksize.n;
+		check =LPsolver(game);
+		if (check == 0) {
+			printf("Error: the board is unsolvable\n");
+			return 0;
+		}
+		legalValues = malloc(N * sizeof(int));
+		for (i = 0; i < N; i++) {
+			for (j = 0; j < N; j++) {
+				if (game->board->cells[i][j].value != 0) {
+					continue;
+				}
+				if (!legalValues) {
+					funcFailed("malloc");
+				}
+				numOflegalValues = getLegalGuess(game, i, j, threshold, legalValues);
+				if (numOflegalValues == 0) {
+					continue;
+				}
+				scores = getScoresOfLegalValue(game, i, j, numOflegalValues, legalValues);
+				randIndex = getRandIndex(game, numOflegalValues, scores);
+				if (legalValues != NULL) {
+					setValue(game, i, j, legalValues[randIndex]);
+				}
+			}
+		}
+		free(legalValues);
+		return 1;
+	}
+	else {
+		printErrorMode();
+		return 0;
+	}
+}
 
 /*
 * the function response to "generate" command.
@@ -257,12 +303,13 @@ int validateCommand(Game* game) {
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
 */
 int generate(Game* game, int x, int y) {
-	if (game->mode = edit) {
+	if (game->mode == edit) {
 		int i, t, m, n, N, val, emptyCells, randCol, randRow;
 		index ind;
 		Board* orignalBoard;
 		ILPsol solve;;
 		bool succeedSet, generateSolvableBoard;
+		orignalBoard = initialize(game->board->blocksize);
 		emptyCells = FindHowMuchEmptyCells(game);
 		if (x > emptyCells) {
 			printf("Error: Board does not contain %d empty cells\n", x);
@@ -323,6 +370,8 @@ int generate(Game* game, int x, int y) {
 			}
 		}
 		makeCopyBoard(newBoard, game->board);
+		free(newBoard);
+		free(orignalBoard);
 	}
 	else {
 		printErrorMode();
@@ -340,8 +389,8 @@ void addMove(Game* game, linkedList* move) {
 	game->curMove = doublyGetLast(game->userMoves);
 }
 
-int undoCommand(Game* game) {
-	if ((game->mode = solve) || (game->mode == edit)) {
+int undoCommand(Game* game, bool print) {
+	if ((game->mode == solve) || (game->mode == edit)) {
 		linkedList* dataToUndo;
 		node* i;
 		if (game->curMove == NULL) {
@@ -351,7 +400,9 @@ int undoCommand(Game* game) {
 		dataToUndo = game->curMove->move;
 		game->curMove = game->curMove->prev;
 		for (i = dataToUndo->head; i != NULL; i = i->next) {
-			printf("Undo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->newVal, i->prevVal);
+			if (print == true) {
+				printf("Undo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->newVal, i->prevVal);
+			}
 			setCommand(&game, i->row, i->col, i->prevVal);
 		}
 	}
@@ -362,7 +413,7 @@ int undoCommand(Game* game) {
 }
 
 int redoCommand(Game* game) {
-	if ((game->mode = solve) || (game->mode == edit)) {
+	if ((game->mode == solve) || (game->mode == edit)) {
 		linkedList* dataToRedo;
 		node* i;
 		if ((game->curMove == NULL) || (game->curMove->next == NULL)) {
@@ -394,7 +445,7 @@ void saveGame(Game* game, char* path) {
 	}
 	if (game->mode == edit) {
 		if (game->board->erroneous) {
-			printf("Error: The board is erroneous ");
+			printErroneousBoardError();
 			return;
 		}
 		if (!validateCommand(game)) return;
@@ -446,7 +497,7 @@ void hintCommand(Game* game, char* x, char* y) {
 	row = atoi(y) - 1;
 	ILPsol sol;
 	if (game->board->erroneous == true) {
-		printf("Error: board is erroneous\n");
+		printErroneousBoardError();
 	}
 	else if (game->board->cells[row][col].fixed == true) {
 		printf("Error: cell is fixed\n");
@@ -477,7 +528,7 @@ void guessHintCommand(Game* game, char* x, char* y) {
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	if (game->board->erroneous == true) {
-		printf("Error: board is erroneous\n");
+		printErroneousBoardError();
 	}
 	else if (game->board->cells[row][col].fixed == true) {
 		printf("Error: cell is fixed\n");
@@ -500,11 +551,21 @@ void guessHintCommand(Game* game, char* x, char* y) {
 	}
 }
 
+int numSolution(Game* game) {
+	int count = 0;
+	Board* copyBoard;
+	copyBoard = initialize(game->board->blocksize);
+	makeCopyBoard(game->board, copyBoard);
+	count = exhaustiveBacktracking();
+	free(copyBoard);
+	return count;
+}
+
 void autofillCommand(Game* game) {
 	if (game->mode == solve) {
 		bool errornous = isBoardErroneous(game->board);
 		if (errornous == true) {
-			printf("Error: board is erroneous\n");
+			printErroneousBoardError();
 		}
 		int i, j, m, n, N, val;
 		index ind;
@@ -542,6 +603,22 @@ void autofillCommand(Game* game) {
 		printErrorMode();
 	}
 }
+
+/*
+* the function response to "reset" command in 'edit' or 'solve' mode.
+* the function goes over the entire undo/redo list and revert all moves.
+*/
+void reset(Game* game) {
+	if (game->mode == init) {
+		printErrorMode();
+		return;
+	}
+	while (game->curMove != NULL) {
+		undoCommand(game,false);
+	}
+	printBoard(game);
+}
+
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
  */
@@ -577,7 +654,6 @@ void freeBoard(Board* currentBoard) {
 }
 
 /**
- * check the user value during setCommand.
  * check if the value is invalid (if the value is already in the same box, row or column).
  * if the value is valid returns true, else returns false.
  */

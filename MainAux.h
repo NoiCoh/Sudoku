@@ -3,6 +3,7 @@
 #include "Solver.h"
 
 void printErrorMode();
+void printErroneousBoardError();
 Board* createDefaultBoard();
 Game* initializeGame();
 void UpdateGame(Game* game, Board *userBoard, enum modes mode);
@@ -49,4 +50,9 @@ Count how many empty cells in board's game
 **/
 int FindHowMuchEmptyCells(Game* game);
 
+int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValues);
+
+float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues, int* legalValues);
+
+int getRandIndex(Game* game, int numOflegalValues, float* scores);
 #endif
