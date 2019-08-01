@@ -9,17 +9,24 @@ int LPsolver(Game* game) {
 	double*	sol=NULL;
 	int	error, *optimstatus;
 	char* vType = NULL;
-	int m, n, N,i;
+	int m, n, N, i, N3;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
-	objective = malloc(N * sizeof(double));
+	N3 = N * N * N;
+	objective = malloc(N3 * sizeof(double));
+	if (!objective) {
+		printf("Error: malloc failed\n");
+		return 0;
+	}
 	error = 0;
 	initVtype(N, vType);
 	initSol(N, sol);
 	error = creaetEnv(env, model);
-	for (i = 0; i < N; i++) {
-		objective[i] = 1 + rand() % 10;
+	for (i = 0; i < N3; i++) {
+		if (objective != NULL) {
+			objective[i] = 1.0 + rand() % 10;
+		}
 	}
 	if (error) {
 		freeSolved(env, model, vType, sol);
@@ -255,15 +262,17 @@ int initVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
 int calculateIndex(int row, int col, int k, int N) {
 	return row * N*N + col * N + k;
 }
-void initVals(double *val,int N) {
+void initVals(double *val, int N) {
 	int i;
 	val = (double*)malloc(N * sizeof(double));
-	for (i = 0; i < N; i++) {
-		val[i] = 1;
-	}
 	if (val == NULL) {
 		printf("Error: malloc failed\n");
 		exit(0);
+	}
+	else {
+		for (i = 0; i < N; i++) {
+				val[i] = 1;
+			}
 	}
 }
 void initInd(int * ind, int N) {
@@ -275,7 +284,8 @@ void initInd(int * ind, int N) {
 }
 
 void initVtype(int N, char* vType) {
-	vType = (char*)malloc(N*N*N * sizeof(char));
+	int N3 = N * N * N;
+	vType = (char*)malloc( N3 * sizeof(char));
 	if (vType == NULL) {
 		printf("Error: malloc failed\n");
 		exit(0);
@@ -283,7 +293,8 @@ void initVtype(int N, char* vType) {
 }
 
 void initSol(int N, double* sol) {
-	sol = (double*)calloc(N*N*N, sizeof(double));
+	int N3 = N * N * N;
+	sol = (double*)calloc(N3 , sizeof(double));
 	if (sol == NULL) {
 		printf("Error: calloc failed\n");
 		exit(0);
