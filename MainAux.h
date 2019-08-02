@@ -59,4 +59,6 @@ int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, i
 double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues);
 
 int getRandIndex(int numOflegalValues, double* scores);
+
+linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard);
 #endif

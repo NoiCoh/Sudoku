@@ -103,6 +103,8 @@ int numSolution(Game* game);
 
 void autofillCommand(Game* game);
 
+
+
 /*
 * the function response to "reset" command in 'edit' or 'solve' mode.
 * the function goes over the entire undo/redo list and revert all moves.

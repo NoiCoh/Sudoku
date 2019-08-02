@@ -242,10 +242,10 @@ int getRandIndex(int numOflegalValues, double* scores) {
 		random = rand() % numOflegalValues;
 		return random;
 	}
-	for (i = 0; i < numOflegalValues; i++) {
+	for (i = 0; i < numOflegalValues; i++) {/* make score's sum equal to 1 */
 		scores[i] = scores[i] / sum;
 	}
-	random = (double)rand() / (float)(RAND_MAX)+1;
+	random = (double)rand() / (float)(RAND_MAX)+1; /* random must be in range [0,1] */
 
 	for (i = 0; i < numOflegalValues; i++) { 
 		accumulative += scores[i]; 
@@ -254,6 +254,24 @@ int getRandIndex(int numOflegalValues, double* scores) {
 		}
 	}
 	return 0;
+}
+
+linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
+	int i, j, row, col, newVal, prevVal;
+	linkedList* move;
+	move = initializeLinkedList();
+	row = orignalBoard->blocksize.n;
+	col = orignalBoard->blocksize.m;
+	for (i = 0; i < row; i++) {
+		for (j = 0; j < col; j++) {
+			prevVal = orignalBoard->cells[i][j].value;
+			newVal = newBoard->cells[i][j].value;
+			if (prevVal != newVal) {
+				insertLast(move, i, j, newVal, prevVal);
+			}
+		}
+	}
+	return move;
 }
 
 

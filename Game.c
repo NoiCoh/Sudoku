@@ -142,8 +142,6 @@ int setCommand(Game *game, int row, int col, int val) {
 	ind.col = col;
 	ind.row = row;
 	prevVal = game->board->cells[row][col].value;
-	move = initializeLinkedList();
-	insertLast(move, row, col, val, prevVal);
 	if ((game->mode == solve) || (game->mode == edit)) {
 		if (game->mode == solve) {
 			if (game->board->cells[row][col].fixed == true) {
@@ -182,6 +180,9 @@ int setCommand(Game *game, int row, int col, int val) {
 		}
 		game->board->cells[row][col].value = val;
 		game->board->cells[row][col].userInput = true;
+		move = initializeLinkedList();
+		insertLast(move, row, col, val, prevVal);
+		addMove(game, move);
 		printBoard(game);
 		return 1;
 	}
@@ -189,7 +190,7 @@ int setCommand(Game *game, int row, int col, int val) {
 	printErrorMode();
 	return 1;
 	}
-	addMove(game, move);
+	
 }
 
 /**
@@ -220,7 +221,8 @@ int validateCommand(Game* game) {
 * if the board is erroneous the function prints error and the command is not executed.
 */
 int guess(Game* game, float threshold) {
-	int i, j, N, numOflegalValues, * legalValues, randIndex;
+	int i, j, N, numOflegalValues, * legalValues, randIndex,newVal;
+	linkedList* move;
 	LPsol* sol;
 	double* scores;
 	if (game->mode == solve) {
@@ -234,6 +236,7 @@ int guess(Game* game, float threshold) {
 			printf("Error: the board is unsolvable\n");
 			return 0;
 		}
+		move = initializeLinkedList();
 		legalValues = malloc(N * sizeof(int));
 		for (i = 0; i < N; i++) {
 			for (j = 0; j < N; j++) {
@@ -250,11 +253,19 @@ int guess(Game* game, float threshold) {
 				scores = getScoresOfLegalValue(sol, i, j, numOflegalValues, legalValues);
 				randIndex = getRandIndex(numOflegalValues, scores);
 				if (legalValues != NULL) {
-					setValue(game, i, j, legalValues[randIndex]);
+					newVal = legalValues[randIndex];
+					setValue(game, i, j, newVal);
+					insertLast(move, i, j, newVal, 0);
 				}
 			}
 		}
 		free(legalValues);
+		if (move->size > 0) {
+			addMove(game, move);
+		}
+		else {
+			freeList(move);
+		}
 		return 1;
 	}
 	else {
@@ -273,6 +284,7 @@ void generate(Game* game, int x, int y) {
 	if (game->mode == edit) {
 		int i, t, m, n, N, val, emptyCells, randCol, randRow;
 		index ind;
+		linkedList* move;
 		Board *orignalBoard, *newBoard;
 		LPsol *solve = NULL;
 		bool succeedSet, generateSolvableBoard;
@@ -335,6 +347,13 @@ void generate(Game* game, int x, int y) {
 				newBoard->cells[randRow][randCol].value = solve->solBoard->cells[randRow][randCol].value;
 			}
 		}
+		move=createGenerateMoveList(newBoard, orignalBoard);
+		if (move->size > 0) {
+			addMove(game, move);
+		}
+		else {
+			freeList(move);
+		}
 		makeCopyBoard(newBoard, game->board);
 		free(newBoard);
 		free(orignalBoard);
@@ -343,6 +362,7 @@ void generate(Game* game, int x, int y) {
 		printErrorMode();
 	}
 }
+
 
 /* Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
 * part of the list is cleared, i.e., all items beyond the current pointer are removed, the new
@@ -535,7 +555,9 @@ void autofillCommand(Game* game) {
 	int i, j, m, n, N, val;
 	index ind;
 	bool res;
+	linkedList* move;
 	if (game->mode == solve) {
+		move = initializeLinkedList();
 		bool errornous = isBoardErroneous(game->board);
 		if (errornous == true) {
 			printErroneousBoardError();
@@ -562,9 +584,15 @@ void autofillCommand(Game* game) {
 					}
 					game->board->cells[i][j].value = val;
 					printf("Cell <%d,%d> autofilled to %d\n", i + 1, j + 1, val);
-
+					insertLast(move, i+1, j+1, val, 0);
 				}
 			}
+		}
+		if (move->size > 0) {
+			addMove(game, move);
+		}
+		else {
+			freeList(move);
 		}
 		printBoard(game);
 	}
