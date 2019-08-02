@@ -1,7 +1,7 @@
 #include "MainAux.h"
 
 void printErrorMode() {
-	printf("Error: The command is not available ");
+	printf("Error: The command is unavailable in the current mode\n");
 }
 
 void printWelcome() {
@@ -91,7 +91,7 @@ void UpdateGame(Game* game, Board *userBoard, enum modes mode)
 /**
  * Prints the current state of @param board
  */
-void printBoard(Game* game) {
+/**void printBoard(Game* game) {
     int i, j, val, size, m, n;
     n = game->board->blocksize.n;
     m = game->board->blocksize.m;
@@ -122,7 +122,7 @@ void printBoard(Game* game) {
     }
     printNTimes(4*size+m+1);
 }
-
+*/
 
 /**
  * Make a deep copy of @param board to @param copyBorad.

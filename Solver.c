@@ -6,12 +6,13 @@
  * else return unsolved.
  */
 SudokuSolved RandBacktracking(Game* game){
-    int val;
+    int val,N;
     index ind;
-    if(!IsThereEmptyCell(game->board)){
+	N = game->board->blocksize.m * game->board->blocksize.n;
+    if(!IsThereEmptyCell(game->board,N)){
         return solved;
     }else{
-        ind = FindEmptyCell(game->board);
+        ind = FindEmptyCell(game->board,N);
     }
     findOptionsCell(game,ind);
     val=getRandValue(game->board,ind);
@@ -66,17 +67,17 @@ SudokuSolved goBackRand(Game* game, index ind){
  * the function checks if the board is solvable. if the board is solvable return solved,
  * else return unsolved.
  */
-SudokuSolved deterministicBacktracking(Game* game){
-    int val;
+SudokuSolved deterministicBacktracking(Game* game,int N){
+	int val;
     index ind;
-    if(!IsThereEmptyCell(game->board)) {
+    if(!IsThereEmptyCell(game->board,N)) {
         return solved;
     }else{
-        ind = FindEmptyCell(game->board);
-    }for(val=1; val<=9;val++){
+        ind = FindEmptyCell(game->board,N);
+    }for(val=1; val<=N;val++){
         if(isValidOption(game,ind,val,false)) {
             game->board->cells[ind.row][ind.col].value = val;
-            if(deterministicBacktracking(game)==solved){
+            if(deterministicBacktracking(game,N)==solved){
                 return solved;
             }
             game->board->cells[ind.row][ind.col].value = 0;
@@ -236,11 +237,11 @@ void removeZeroFromOptions(Board* board, index ind) {
  * the function checks if there is an empty cell in the board.
  * if so, returns true. else, returns false.
  */
-bool IsThereEmptyCell(Board* board){
+bool IsThereEmptyCell(Board* board,int N){
     int row;
     int col;
-    for(row=0; row<9; row++) {
-        for (col = 0; col < 9; col++) {
+    for(row=0; row < N; row++) {
+		for (col = 0; col < N; col++) {
             if (board->cells[row][col].value==0) {
                 return true;
             }
@@ -251,13 +252,13 @@ bool IsThereEmptyCell(Board* board){
 /**
  * the function returns the index of the first empty cell.
  */
-index FindEmptyCell(Board* board){
+index FindEmptyCell(Board* board,int N){
     int row,col;
     index i;
     i.col=0;
     i.row=0;
-    for(row=0; row<9; row++) {
-        for (col = 0; col < 9; col++) {
+    for(row=0; row<N; row++) {
+        for (col = 0; col < N; col++) {
             if (board->cells[row][col].value==0) {
                 i.col = col;
                 i.row = row;
@@ -268,7 +269,85 @@ index FindEmptyCell(Board* board){
     return i;
 }
 
-int exhaustiveBacktracking() {
-	return 0;
+void printBoard(Game* game) {
+	int i, j, val, size, m, n;
+	n = game->board->blocksize.n;
+	m = game->board->blocksize.m;
+	size = n * m;
+	for (i = 0; i < size; i++) {
+		if (i % n == 0) {
+			printNTimes(4 * size + m + 1);
+		}
+		for (j = 0; j < size; j++) {
+			if (j % m == 0) {
+				printf("|");
+			}
+			val = game->board->cells[i][j].value;
+			if (val == 0) {
+				printf("    ");
+			}
+			else {
+				printf(" %2d", val);
+				if (game->board->cells[i][j].fixed == true) {
+					printf(".");
+				}
+				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == edit))) {
+					printf("*");
+				}
+				else {
+					printf(" ");
+				}
+			}
+		}
+		printf("|\n");
+	}
+	printNTimes(4 * size + m + 1);
 }
 
+int exhaustiveBacktracking(Game* game, int N) {
+	int counter, k, i, j, val;
+	index ind;
+	bool doneGoBack;
+	counter = 0;
+	while (deterministicBacktracking(game, N) == solved) {
+		counter++;
+		i = N - 1;
+		j = N - 1;
+		doneGoBack = false;
+		while (doneGoBack == false) {
+			val = game->board->cells[i][j].value;
+			for (k = val + 1; k <= N; k++) {
+				ind.col = j;
+				ind.row = i;
+				if (isValidOption(game, ind, k, false)) {
+					game->board->cells[i][j].value = k;
+					doneGoBack = true;
+					break;
+				}
+			}
+			if (doneGoBack == false) {
+				game->board->cells[i][j].value = 0;
+				if (i == 0 && j == 0) {
+					return counter;
+				}
+				pre(&i, &j, N);
+				while (game->board->cells[i][j].fixed == true || game->board->cells[i][j].userInput == true) {
+					if (i == 0 && j == 0) {
+						return counter;
+					}
+					pre(&i, &j, N);
+				}
+			}
+		}
+	}
+}
+	
+void pre(int* i, int* j,int N) {
+	if (*j == 0) {
+		*i = *i - 1;
+		*j = N-1;
+	}
+	else {
+		*j = *j - 1;
+	}
+}

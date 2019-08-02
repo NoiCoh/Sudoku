@@ -122,13 +122,14 @@ void removeZeroFromOptions(Board* board, index ind);
  * the function checks if there is an empty cell in the board.
  * if so, returns true. else, returns false.
  */
-bool IsThereEmptyCell(Board* board);
+bool IsThereEmptyCell(Board* board,int N);
 
 /**
  * the function returns the index of the first empty cell.
  */
-index FindEmptyCell(Board* board);
+index FindEmptyCell(Board* board,int N);
 
-int exhaustiveBacktracking();
+int exhaustiveBacktracking(Game* game, int N);
+void pre(int* i, int* j, int N);
 
 #endif

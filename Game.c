@@ -136,11 +136,12 @@ void printCommand(Game* game) {
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
 int setCommand(Game *game, int row, int col, int val) {
-	int prevVal;
+	int prevVal,N;
 	index ind;
 	linkedList* move;
 	ind.col = col;
 	ind.row = row;
+	N = game->board->blocksize.m * game->board->blocksize.n;
 	prevVal = game->board->cells[row][col].value;
 	if ((game->mode == solve) || (game->mode == edit)) {
 		if (game->mode == solve) {
@@ -161,7 +162,7 @@ int setCommand(Game *game, int row, int col, int val) {
 			printBoard(game);
 		}
 		if (game->mode == solve) {
-			if (!IsThereEmptyCell(game->board)) {
+			if (!IsThereEmptyCell(game->board,N)) {
 				if (game->board->erroneous == true) {
 					printErroneousBoardError();
 					printBoard(game);
@@ -464,6 +465,7 @@ void saveGame(Game* game, char* path) {
 			}
 			else {
 				fprintf(fp, regCellFormat, value);
+				value = game->board->cells[i][j].fixed == true;
 			}
 		}
 		value = game->board->cells[i][boardSize - 1].value;
@@ -472,6 +474,7 @@ void saveGame(Game* game, char* path) {
 		}
 		else {
 			fprintf(fp, lastCellFormat, value);
+			value = game->board->cells[i][boardSize - 1].fixed == true;
 		}
 	}
 	fclose(fp);
@@ -542,11 +545,13 @@ void guessHintCommand(Game* game, char* x, char* y) {
 }
 
 int numSolution(Game* game) {
-	int count = 0;
+	int count,N;
+	count= 0;
 	Board* copyBoard;
 	copyBoard = initialize(game->board->blocksize);
 	makeCopyBoard(game->board, copyBoard);
-	count = exhaustiveBacktracking();
+	N = game->board->blocksize.m * game->board->blocksize.n;
+	count = exhaustiveBacktracking(game,N);
 	free(copyBoard);
 	return count;
 }
@@ -613,7 +618,6 @@ void reset(Game* game) {
 	while (game->curMove != NULL) {
 		undoCommand(game,false);
 	}
-	printBoard(game);
 }
 
 /**

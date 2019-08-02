@@ -7,6 +7,13 @@
 
 
 int main() {
-	restart();
-	return 1;
+	Game* game;
+	int N,res;
+	game = initializeGame();
+	game->mode = solve;
+	game->board = getUserBoard(game,"C:\\Users\\Noi\\Desktop\\game.txt");
+	N = game->board->blocksize.m * game->board->blocksize.n;
+	res=exhaustiveBacktracking(game, N);
+	printf("%d",res);
+	return res;
 }
