@@ -1,50 +1,6 @@
 #include "Game.h"
 
 /**
- * initialize board values and params to zero.
- */
-Board* initialize(blocksize block){
-    int i,j,sizeOfRow;
-    Cell **arrayBoard;
-    Board* board;
-    sizeOfRow = block.n*block.m;
-    arrayBoard = malloc(sizeOfRow*sizeof(Cell *));
-    if(!arrayBoard){
-        funcFailed("malloc");
-    }
-    for(i=0;i<sizeOfRow;i++)
-    {
-        arrayBoard[i] = malloc(sizeof(Cell)*sizeOfRow);
-        if(!arrayBoard[i]){
-            funcFailed("malloc");
-        }
-    }
-    for(i=0;i<sizeOfRow;i++){
-        for(j=0;j<sizeOfRow;j++){
-            arrayBoard[i][j].value = 0;
-            arrayBoard[i][j].fixed = false;
-            arrayBoard[i][j].error = false;
-            arrayBoard[i][j].userInput = false;
-            arrayBoard[i][j].optionsSize = 0;
-            arrayBoard[i][j].options = calloc(sizeOfRow, sizeof(int));
-            if(!arrayBoard[i][j].options){
-                funcFailed("malloc");
-            }
-        }
-    }
-    board = malloc(sizeof(Board));
-    if(!board){
-        funcFailed("malloc");
-    }
-	board->erroneous = false;
-    board->cells = arrayBoard;
-    board->solved=false;
-    board->blocksize.m=block.m;
-    board->blocksize.n=block.n;
-    return board;
-}
-
-/**
  * the function returns user board with random fixed cells from the solution board and empty cells.
  * the number of fixed cell is according to the user's input (@param hint).
  */
@@ -79,9 +35,13 @@ void solveCommand(char* path, Game* game) {
 * upload board from path
 */
 Board* getUserBoard(Game* game, char* path) {
-	int j, i = 0, k = 0;
+	int j, i, k, x, boardSize;
 	blocksize block;
-	char* delim = " \n";
+	char** input;
+	char* row;
+	const char *delim = " \n";
+	i = 0;
+	k = 0;
 	game->ptr = fopen(path, "r");
 	if (game->ptr == NULL) {
 		printf("Error: File cannot be opened\n");
@@ -90,14 +50,14 @@ Board* getUserBoard(Game* game, char* path) {
 		block.m = fgetc(game->ptr) - '0';
 		fgetc(game->ptr);
 		block.n = fgetc(game->ptr) - '0';
-		const int boardSize = block.n * block.m;
+		boardSize = block.n * block.m;
 		game->board = initialize(block);
 		game->board->blocksize.m = block.m;
 		game->board->blocksize.n = block.n;
-		char** input = calloc(boardSize, sizeof(char*));
-		char* row = calloc(4096, sizeof(char));
+		input = calloc(boardSize, sizeof(char*));
+		row = calloc(4096, sizeof(char));
 		fgets(row, 4096, game->ptr);
-		while (fgets(row, 4096, game->ptr) != EOF && row != NULL && *row != '\n' && i < boardSize) {
+		while (fgets(row, 4096, game->ptr) != NULL && *row != '\n' && i < boardSize) {
 			input[k] = strtok(row, delim);
 			while (input[k] != NULL) {
 				k++;
@@ -105,12 +65,12 @@ Board* getUserBoard(Game* game, char* path) {
 			}
 			for (j = 0; j < boardSize; j++) {
 				if (strlen(input[j]) == 1) {
-					int x = atoi(input[j]);
+					x = atoi(input[j]);
 					game->board->cells[i][j].value = x;
 				}
 				else {
 					input[j][1] = '\0';
-					int x = atoi(input[j]);
+					x = atoi(input[j]);
 					game->board->cells[i][j].value = x;
 					game->board->cells[i][j].fixed = true;
 				}
@@ -118,8 +78,8 @@ Board* getUserBoard(Game* game, char* path) {
 			i++;
 			k = 0;
 		}
-		return game->board;
 	}
+	return game->board;
 }
 
 void editCommand(char* path, Game* game) {
@@ -131,7 +91,7 @@ void editCommand(char* path, Game* game) {
 	{
 		userBoard = getUserBoard(game, path);
 	}
-	UpdateGame(game, userBoard, edit, true);
+	UpdateGame(game, userBoard, edit);
 	game->mode = edit;
 	printBoard(game);
 }
@@ -178,10 +138,10 @@ void printCommand(Game* game) {
 int setCommand(Game *game, int row, int col, int val) {
 	int prevVal;
 	index ind;
+	linkedList* move;
 	ind.col = col;
 	ind.row = row;
 	prevVal = game->board->cells[row][col].value;
-	linkedList* move;
 	move = initializeLinkedList();
 	insertLast(move, row, col, val, prevVal);
 	if ((game->mode == solve) || (game->mode == edit)) {
@@ -240,8 +200,8 @@ int setCommand(Game *game, int row, int col, int val) {
  */
 int validateCommand(Game* game) {
 	if ((game->mode == solve) || (game->mode == edit)) {
-		ILPsol solve = ILPsolver(game);
-		if (solve.solvable == true) {
+		LPsol* solve = LPsolver(game, true);
+		if (solve->solvable == true) {
 			printf("Validation passed: board is solvable\n");
 			return 1;
 		}
@@ -260,16 +220,17 @@ int validateCommand(Game* game) {
 * if the board is erroneous the function prints error and the command is not executed.
 */
 int guess(Game* game, float threshold) {
+	int i, j, N, numOflegalValues, * legalValues, randIndex;
+	LPsol* sol;
+	double* scores;
 	if (game->mode == solve) {
 		if (game->board->erroneous == true) {
 			printErroneousBoardError();
 			return 0;
 		}
-		int check, i, j, N, numOflegalValues, * legalValues, randIndex;
-		float* scores;
 		N = game->board->blocksize.m * game->board->blocksize.n;
-		check =LPsolver(game);
-		if (check == 0) {
+		sol =LPsolver(game, false);
+		if (sol->solvable == 0) {
 			printf("Error: the board is unsolvable\n");
 			return 0;
 		}
@@ -282,12 +243,12 @@ int guess(Game* game, float threshold) {
 				if (!legalValues) {
 					funcFailed("malloc");
 				}
-				numOflegalValues = getLegalGuess(game, i, j, threshold, legalValues);
+				numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues);
 				if (numOflegalValues == 0) {
 					continue;
 				}
-				scores = getScoresOfLegalValue(game, i, j, numOflegalValues, legalValues);
-				randIndex = getRandIndex(game, numOflegalValues, scores);
+				scores = getScoresOfLegalValue(sol, i, j, numOflegalValues, legalValues);
+				randIndex = getRandIndex(numOflegalValues, scores);
 				if (legalValues != NULL) {
 					setValue(game, i, j, legalValues[randIndex]);
 				}
@@ -308,12 +269,12 @@ int guess(Game* game, float threshold) {
 * if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution the function reset the board back to the original state
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
 */
-int generate(Game* game, int x, int y) {
+void generate(Game* game, int x, int y) {
 	if (game->mode == edit) {
 		int i, t, m, n, N, val, emptyCells, randCol, randRow;
 		index ind;
-		Board* orignalBoard;
-		ILPsol solve;;
+		Board *orignalBoard, *newBoard;
+		LPsol *solve = NULL;
 		bool succeedSet, generateSolvableBoard;
 		orignalBoard = initialize(game->board->blocksize);
 		emptyCells = FindHowMuchEmptyCells(game);
@@ -346,8 +307,8 @@ int generate(Game* game, int x, int y) {
 				}
 			}
 			if (succeedSet) {
-				solve = ILPsolver(game);
-				if (solve.solvable == true) {
+				solve = LPsolver(game,true);
+				if (solve->solvable == true) {
 					generateSolvableBoard = true;
 					break;
 				}
@@ -362,7 +323,6 @@ int generate(Game* game, int x, int y) {
 			printf("Error: Can't generate solvable board with parameters %d and %d \n", x, y);
 			return;
 		}
-		Board* newBoard;
 		newBoard = initialize(game->board->blocksize);
 		for (i = 0; i < y; i++) {
 			randCol = rand() % N;
@@ -372,7 +332,7 @@ int generate(Game* game, int x, int y) {
 				continue;
 			}
 			else {
-				newBoard->cells[randRow][randCol].value = solve.solBoard->cells[randRow][randCol].value;
+				newBoard->cells[randRow][randCol].value = solve->solBoard->cells[randRow][randCol].value;
 			}
 		}
 		makeCopyBoard(newBoard, game->board);
@@ -410,7 +370,7 @@ int undoCommand(Game* game, bool print) {
 			if (print == true) {
 				printf("Undo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->newVal, i->prevVal);
 			}
-			setCommand(&game, i->row, i->col, i->prevVal);
+			setCommand(game, i->row, i->col, i->prevVal);
 		}
 	}
 	else {
@@ -433,7 +393,7 @@ int redoCommand(Game* game) {
 
 		for (i = dataToRedo->head; i != NULL; i = i->next) {
 			printf("Redo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->prevVal, i->newVal);
-			setCommand(&game, i->row, i->col, i->newVal);
+			setCommand(game, i->row, i->col, i->newVal);
 		}
 	}
 	else {
@@ -447,6 +407,10 @@ int redoCommand(Game* game) {
 * errorneous board or board without a solution may not be saved.
 */
 void saveGame(Game* game, char* path) {
+	FILE* fp;
+	int m, n, value, boardSize, i, j;
+	char* regCellFormat;
+	char* lastCellFormat;
 	if (game->mode == init) {
 		printErrorMode();
 		return;
@@ -458,15 +422,12 @@ void saveGame(Game* game, char* path) {
 		}
 		if (!validateCommand(game)) return;
 	}
-	FILE* fp;
 	fp = fopen(path, "w");
-	int m = game->board->blocksize.m;
-	int n = game->board->blocksize.n;
-	int value = 0;
-	const int boardSize = n * m;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	value = 0;
+	boardSize = n * m;
 	fprintf(fp, "%d %d\n", m, n);
-	char* regCellFormat;
-	char* lastCellFormat;
 	if (game->mode == edit) {
 		regCellFormat = "%d. ";
 		lastCellFormat = "%d.\n";
@@ -475,8 +436,8 @@ void saveGame(Game* game, char* path) {
 		regCellFormat = "%d ";
 		lastCellFormat = "%d\n";
 	}
-	for (int i = 0; i < boardSize; i++) {
-		for (int j = 0; j < boardSize - 1; j++) {
+	for (i = 0; i < boardSize; i++) {
+		for (j = 0; j < boardSize - 1; j++) {
 			value = game->board->cells[i][j].value;
 			if (value == 0) {
 				fprintf(fp, "0 ");
@@ -501,9 +462,9 @@ void saveGame(Game* game, char* path) {
  */
 void hintCommand(Game* game, char* x, char* y) {
 	int row, col, z;
+	LPsol* sol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
-	ILPsol sol;
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 	}
@@ -514,12 +475,12 @@ void hintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell contain a value\n");
 	}
 	else {
-		sol = ILPsolver(game);
-		if (sol.solvable == false) {
+		sol = LPsolver(game, true);
+		if (sol->solvable == false) {
 			printf("Error: board is unsolvable\n");
 		}
 		else {
-			z = game->solBoard->cells[row][col].value;
+			z = sol->solBoard->cells[row][col].value;
 			printf("Hint: set cell to %d\n", z);
 		}
 	}
@@ -530,7 +491,8 @@ void hintCommand(Game* game, char* x, char* y) {
  * hint is given according to the scores Matrix calculate with LP Solver
  */
 void guessHintCommand(Game* game, char* x, char* y) {
-	int row, col, z, check, i, m, n;
+	int row, col, i, m, n;
+	LPsol* sol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
 	m = game->board->blocksize.m;
@@ -545,14 +507,14 @@ void guessHintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell contain a value\n");
 	}
 	else {
-		check = LPsolver(game);
-		if (check == 0) {
+		sol = LPsolver(game,false);
+		if (sol->solvable == false) {
 			printf("Error: board is unsolvable\n");
 		}
 		else {
 			for (i = 0; i < n * m; i++) {
-				if (game->scores[col][row][i] != 0) {
-					printf("value:%d , score:%f \n", i, game->scores[col][row][i]);
+				if (sol->scores[col][row][i] != 0) {
+					printf("value:%d , score:%f \n", i, sol->scores[col][row][i]);
 				}
 			}
 		}
@@ -570,14 +532,14 @@ int numSolution(Game* game) {
 }
 
 void autofillCommand(Game* game) {
+	int i, j, m, n, N, val;
+	index ind;
+	bool res;
 	if (game->mode == solve) {
 		bool errornous = isBoardErroneous(game->board);
 		if (errornous == true) {
 			printErroneousBoardError();
 		}
-		int i, j, m, n, N, val;
-		index ind;
-		bool res;
 		n = game->board->blocksize.n;
 		m = game->board->blocksize.m;
 		N = n * m;
@@ -605,7 +567,6 @@ void autofillCommand(Game* game) {
 			}
 		}
 		printBoard(game);
-
 	}
 	else {
 		printErrorMode();

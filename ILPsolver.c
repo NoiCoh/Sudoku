@@ -1,23 +1,19 @@
 #include "ILPsolver.h"
-#include "Solver.h"
+
 LPsol* LPsolver(Game* game,bool intSol) {
-	int m, n, N, i,error,varsNum;
+	int m, n, N, error, varsNum, optimstatus;
 	double* objective=NULL;
 	LPsol* lpSol;
 	GRBenv *env = NULL;
 	GRBmodel *model = NULL;
-	double *val = NULL;
-	int *ind = NULL;
 	double*	sol = NULL;
-	int	error, *optimstatus;
 	char* vType = NULL;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
 	error = 0;
-	initInd(ind, N);
-	initVals(val, N);
-	lpSol = initLpSol(N);
+	optimstatus = 0;
+	lpSol = initLpSol();
 	varsNum = getVarsNum(N, game);
 	initVtype(varsNum, vType);
 	initSol(varsNum, sol);
@@ -25,9 +21,9 @@ LPsol* LPsolver(Game* game,bool intSol) {
 	error = creaetEnv(env, model);
 	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
-	if (intSol = 1) {
+	if (intSol == true) {
 		error = initVars(env, model, N, vType);
 	}
 	else {
@@ -35,109 +31,56 @@ LPsol* LPsolver(Game* game,bool intSol) {
 	}
 	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
-	error = LpConstraint(env, model, N, ind, val);
-	if (error) {
+	error = allConstraints(game, env, model, n, m);
+	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
 	error = optimize(env, model);
-	if (error) {
+	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
-	error = optimizeStatus(env, model, optimizeStatus);
-	if (error) {
+	error = optimizeStatus(env, model, optimstatus);
+	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
-	error = getSol(env, model, optimizeStatus, N, sol);
-	if (error) {
+	error = getSol(env, model, optimstatus, varsNum, sol);
+	if (!error) {
 		freeLpSolver(env, model, vType, sol, objective);
-		return 0;
+		return lpSol;
 	}
-	makeScores(game,sol,N);
-	freeLpSolver(env, model, vType, sol, objective);
-	return 1;
-}
-
-void initObjective(double* objective, int varsNum,bool intSol) {
-	int i ;
-	objective = malloc(varsNum * sizeof(double));
-	if (!objective) {
-		printf("Error: malloc failed");
-		exit(0);
-	}
-	for (i = 0; i < varsNum; i++) {
+	if (optimstatus == GRB_OPTIMAL) {
+		lpSol->solvable = 1;
 		if (intSol == true) {
-			objective[i] = 0;
-		}
-		else {
-			objective[i] = 1.0 + rand() % 10;
+			updateBoard(lpSol->solBoard, sol, N);
 		}
 	}
-	
-}
-int getVarsNum(int N, Game* game) {
-	int i, j, varsNum;
-	index ind;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			ind.row = i;
-			ind.col = j;
-			findOptionsCell(game, ind);
-		}
-	}
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if (game->board->cells[i][j].value = 0) {
-				varsNum += game->board->cells[i][j].optionsSize;
-			}
-		}
-	}
-	return varsNum;
+	makeScores(lpSol,sol,N);
+	freeLpSolver(env, model, vType, sol, objective);
+	return lpSol;
 }
 
-
-void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol,double* objective) {
-	GRBfreemodel(model);
-	GRBfreeenv(env);
-	free(sol);
-	free(vType);
-	free(objective);
-}
-
-LPsol* initLpSol(int N) {
-	int i, j;
+LPsol* initLpSol() {
 	LPsol* lpSol = malloc(sizeof(LPsol));
 	if (!lpSol) {
 		printf("Error: malloc failed");
 		exit(0);
 	}
 	lpSol->solvable = 0;
-	lpSol->sol = NULL;
+	lpSol->scores = NULL;
 	return lpSol;
 }
 
-void makeScores(Game* game, double* sol, int N){
-	int i, j, k, ind;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			for (k = 0; k < N; k++) {
-				ind = calculateIndex(i, j, k, N);
-				game->scores[i][j][k] = sol[ind];
-			}
-		}
-	}
-}
-
-int initLpVars(GRBenv *env, GRBmodel *model, int varsNum, char* vtype,double* objective) {
-	int error,i;
+int initLpVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype, double* objective) {
+	int error, i;
 	for (i = 0; i < varsNum; i++) {
 		vtype[i] = GRB_CONTINUOUS;
 	}
-		
+
 	/* add variables to model */
 	error = GRBaddvars(model, varsNum, 0, NULL, NULL, NULL, objective, NULL, NULL, vtype, NULL);
 	if (error) {
@@ -162,84 +105,127 @@ int initLpVars(GRBenv *env, GRBmodel *model, int varsNum, char* vtype,double* ob
 	return 1;
 }
 
+void initObjective(double* objective, int varsNum,bool intSol) {
+	int i ;
+	objective = malloc(varsNum * sizeof(double));
+	if (!objective) {
+		printf("Error: malloc failed");
+		exit(0);
+	}
+	for (i = 0; i < varsNum; i++) {
+		if (intSol == true) {
+			objective[i] = 0;
+		}
+		else {
+			objective[i] = 1.0 + rand() % 10;
+		}
+	}
+	
+}
 
-/**
-every cell's vars's sum is 1.0 
-**/
-int LpConstraint(GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
-	int i, j, k, index, error;
+void initVals(double* val, int N) {
+	val = (double*)malloc(N * sizeof(double));
+	if (val == NULL) {
+		printf("Error: malloc failed\n");
+		exit(0);
+	}
+}
+void initInd(int* ind, int N) {
+	ind = (int*)malloc(N * sizeof(int));
+	if (ind == NULL) {
+		printf("Error: malloc failed\n");
+		exit(0);
+	}
+}
+
+void initVtype(int N, char* vType) {
+	int N3 = N * N * N;
+	vType = (char*)malloc(N3 * sizeof(char));
+	if (vType == NULL) {
+		printf("Error: malloc failed\n");
+		exit(0);
+	}
+}
+
+void initSol(int N, double* sol) {
+	int N3 = N * N * N;
+	sol = (double*)calloc(N3, sizeof(double));
+	if (sol == NULL) {
+		printf("Error: calloc failed\n");
+		exit(0);
+	}
+}
+
+
+int initVars(GRBenv* env, GRBmodel* model, int N, char* vtype) {
+	unsigned int error;
+	int i, j, k, ind;
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
 			for (k = 0; k < N; k++) {
-				index = calculateIndex(i, j, k, N);
-				ind[k] = index;
+				ind = calculateIndex(i, j, k, N);
+				vtype[ind] = GRB_BINARY;
 			}
-			error = GRBaddconstr(model, N, ind, val, GRB_EQUAL, 1.0, NULL);
-			if (error) {
-				printf("ERROR %d 2nd GRBaddconstr(): %s\n", error, GRBgeterrormsg(env));
-				return -1;
-			}
-
 		}
 	}
-	return 0;
+	/* add variables to model */
+	error = GRBaddvars(model, N * N * N, 0, NULL, NULL, NULL, NULL, NULL, NULL, vtype, NULL);
+	if (error) {
+		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
+		return 0;
+	}
+
+	/* Change objective sense to maximization */
+	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
+	if (error) {
+		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
+		return 0;
+	}
+
+	/* update the model - to integrate new variables */
+
+	error = GRBupdatemodel(model);
+	if (error) {
+		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
+		return 0;
+	}
+	return 1;
 }
 
-void initilizeILPSolve(ILPsol * solve, Game* game) {
-	solve->solBoard = initialize(game->board->blocksize);
-	solve->solBoard = false;
+int getVarsNum(int N, Game* game) {
+	int i, j, varsNum;
+	index ind;
+	varsNum = 0;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			ind.row = i;
+			ind.col = j;
+			findOptionsCell(game, ind);
+		}
+	}
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (game->board->cells[i][j].value == 0) {
+				varsNum += game->board->cells[i][j].optionsSize;
+			}
+		}
+	}
+	return varsNum;
 }
 
-ILPsol ILPsolver(Game* game) {
-	GRBenv *env = NULL;
-	GRBmodel *model = NULL;
-	double*	sol=NULL;
-	int	error,*optimstatus;
-	char* vType=NULL;
-	ILPsol solve;
-	int m, n, N;
-	m = game->board->blocksize.m;
-	n = game->board->blocksize.n;
-	N = n * m;
-	initilizeILPSolve(&solve, game);
-	error = 0;
-	initVtype(N, vType);
-	initSol(N, sol);
-	error = creaetEnv(env, model);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
+
+void makeScores(LPsol* lpSol, double* sol, int N){
+	int i, j, k, ind;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			for (k = 0; k < N; k++) {
+				ind = calculateIndex(i, j, k, N);
+				lpSol->scores[i][j][k] = sol[ind];
+			}
+		}
 	}
-	error=initVars(env, model, N, vType);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
-	}
-	error = allConstraints(env, model, game->board, n, m);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
-	}
-	error=optimize(env, model);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
-	}
-	error = optimizeStatus(env, model,optimizeStatus);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
-	}
-	error = getSol(env, model, optimizeStatus, N, sol);
-	if (error) {
-		freeSolved(env, model, vType, sol);
-		return solve;
-	}
-	updateBoard(solve.solBoard, sol, N);
-	freeSolved(env, model, vType, sol);
-	solve.solvable = true;
-	return solve;
 }
+
 
 int creaetEnv(GRBenv *env, GRBmodel *model) {
 	int error;
@@ -264,80 +250,13 @@ int creaetEnv(GRBenv *env, GRBmodel *model) {
 	return 1;
 }
 
-int initVars(GRBenv *env, GRBmodel *model, int N, char* vtype) {
-	unsigned int error;
-	int i, j, k,ind;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			for (k = 0; k < N; k++) {
-				ind = calculateIndex(i, j, k, N);
-				vtype[ind] = GRB_BINARY;
-			}
-		}
-	}
-	/* add variables to model */
-	error = GRBaddvars(model, N*N*N, 0, NULL, NULL, NULL, NULL, NULL, NULL, vtype, NULL);
-	if (error) {
-		printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
-	}
-
-	/* Change objective sense to maximization */
-	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
-	if (error) {
-		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
-	}
-
-	/* update the model - to integrate new variables */
-
-	error = GRBupdatemodel(model);
-	if (error) {
-		printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
-	}
-	return 0;
-}
 int calculateIndex(int row, int col, int k, int N) {
 	return row * N*N + col * N + k;
-}
-void initVals(double *val, int N) {
-	int i;
-	val = (double*)malloc(N * sizeof(double));
-	if (val == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
-	}
-}
-void initInd(int * ind, int N) {
-	ind = (int*)malloc(N * sizeof(int));
-	if (ind == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
-	}
-}
-
-void initVtype(int N, char* vType) {
-	int N3 = N * N * N;
-	vType = (char*)malloc( N3 * sizeof(char));
-	if (vType == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
-	}
-}
-
-void initSol(int N, double* sol) {
-	int N3 = N * N * N;
-	sol = (double*)calloc(N3 , sizeof(double));
-	if (sol == NULL) {
-		printf("Error: calloc failed\n");
-		exit(0);
-	}
 }
 
 
 /**
-every cell has one value
+every cell has one value and every cell's scores's sum is 1.0 
 **/
 int firstConstraint(Game* game, GRBenv *env, GRBmodel *model, int N, int* ind, double* val) {
 	int i, j, k, index, v,error,varsNum;
@@ -491,30 +410,29 @@ int fifthConstraint(GRBenv *env, GRBmodel *model, Board *board,int N) {
 	return 1;
 }
 
-int allConstraints(GRBenv *env, GRBmodel *model, Board *board, int n, int m) {
+int allConstraints(Game* game, GRBenv *env, GRBmodel *model, int n, int m) {
 	double *val=NULL;
 	int *ind=NULL;
 	int N,error ;
 	N = n * m;
 	initVals(val, N);
 	initInd(ind, N);
-	error=firstConstraint(env, model, N, ind, val);
+	error=firstConstraint(game ,env, model, N, ind, val);
 	if (!error) {
-		error = secConstraint(env, model, N, ind, val);
+		error = secConstraint(game, env, model, N, ind, val);
 	}
 	if (!error) {
-		error = thirdConstraint(env, model, N, ind, val);
+		error = thirdConstraint(game, env, model, N, ind, val);
 	}
 	if (!error) {
 		error=forthConstraint(env, model, N, n, m, ind, val);
 	}
 	if (!error) {
-		error = fifthConstraint(env, model, board, N);
+		error = fifthConstraint(env, model,game->board, N);
 	}
 	free(val);
 	free(ind);
 	return error;
-
 }
 	/* Optimize model - need to call this before calculation */
 int optimize(GRBenv *env, GRBmodel *model) {
@@ -522,36 +440,36 @@ int optimize(GRBenv *env, GRBmodel *model) {
 	error = GRBoptimize(model);
 	if (error) {
 		printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 	/* Get solution information */
-int optimizeStatus(GRBenv *env, GRBmodel *model,int *optimstatus) {
+int optimizeStatus(GRBenv *env, GRBmodel *model,int optimstatus) {
 	int error;
-	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, optimstatus);
+	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
-		return -1;
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 
 /* get the solution - the assignment to each variable
  * sol is 3D matrix that includes the cell's score*/
-int getSol(GRBenv *env, GRBmodel *model, int *optimstatus,int N, double *sol) {
+int getSol(GRBenv *env, GRBmodel *model, int optimstatus,int varsNum, double *sol) {
 	int error;
-	if ((*optimstatus) == GRB_OPTIMAL) {
-		error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, N*N*N, &sol);
+	if (optimstatus == GRB_OPTIMAL) {
+		error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, varsNum, sol);
 		if (error) {
 			printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-			return -1;
+			return 0;
 		}	
 	}
-	return 0;
+	return 1;
 }
 
 void updateBoard(Board *solBoard, double *sol, int N) {
@@ -567,4 +485,11 @@ void updateBoard(Board *solBoard, double *sol, int N) {
 			}
 		}
 	}
+}
+void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol, double* objective) {
+	GRBfreemodel(model);
+	GRBfreeenv(env);
+	free(sol);
+	free(vType);
+	free(objective);
 }

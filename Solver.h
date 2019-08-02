@@ -34,7 +34,7 @@ typedef struct Board{
 typedef struct {
 	int solvable;
 	Board* solBoard;
-	double* sol;
+	double*** scores;
 }LPsol;
 
 typedef struct {
@@ -48,8 +48,6 @@ typedef struct Game{
 	enum modes mode;
 	bool markErrors;
     Board* board;
-    Board* solBoard;
-    double ***scores;
 	FILE * ptr;
 }Game;
 
@@ -64,13 +62,13 @@ SudokuSolved RandBacktracking(Game* game);
  * if there is no valid options for a specific cell, the algorithm leaves the cell blank
  * and moves back (backtracks) to the previous cell.
  */
-SudokuSolved goBackRand(Board* board, index ind);
+SudokuSolved goBackRand(Game* game, index ind);
 /**
  * the deterministic recursive algorithm to solve a Sudoku board.
  * the function checks if the board is solvable. if the board is solvable return solved,
  * else return unsolved.
  */
-SudokuSolved deterministicBacktracking(Board* board);
+SudokuSolved deterministicBacktracking(Game* game);
 
 /**
  * the function chooses a random value from the options array of a specific cell.

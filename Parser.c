@@ -1,9 +1,8 @@
 #include "Parser.h"
 
-
-
 blocksize getBoardSize(){
     int n,m, ok;
+	blocksize block;
     n=0;
     m=0;
     printf("Please enter the block's size:\n");
@@ -14,12 +13,10 @@ blocksize getBoardSize(){
         printf("Exiting...\n");
         exit(0);
     }
-    blocksize block;
     block.m=m;
     block.n=n;
     return block;
 }
-
 
 /**
  * The game starts by asking the user to enter the number of cells to fill.

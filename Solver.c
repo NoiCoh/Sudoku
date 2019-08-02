@@ -17,13 +17,13 @@ SudokuSolved RandBacktracking(Game* game){
     val=getRandValue(game->board,ind);
     if (val!=0){
         game->board->cells[ind.row][ind.col].value=val;
-        if(RandBacktracking(game->board)==solved){
+        if(RandBacktracking(game)==solved){
             return solved;
         }else{
             return unsolved;
         }
     }else {
-        if(goBackRand(game->board, ind)==solved){
+        if(goBackRand(game, ind)==solved){
             return solved;
         }else{
             return unsolved;
@@ -35,7 +35,7 @@ SudokuSolved RandBacktracking(Game* game){
  * if there is no valid options for a specific cell, the algorithm leaves the cell blank
  * and moves back (backtracks) to the previous cell.
  */
-SudokuSolved goBackRand(Board* board, index ind){
+SudokuSolved goBackRand(Game* game, index ind){
     int row,col,val;
     row= ind.row;
     col= ind.col;
@@ -48,14 +48,14 @@ SudokuSolved goBackRand(Board* board, index ind){
         }
         ind.col = col;
         ind.row = row;
-        val  = getRandValue(board, ind);
-        if (board->cells[ind.row][ind.col].fixed == false && board->cells[ind.row][ind.col].userInput == false) {
+        val  = getRandValue(game->board, ind);
+        if (game->board->cells[ind.row][ind.col].fixed == false && game->board->cells[ind.row][ind.col].userInput == false) {
             if (val != 0) { /**if val==0 there is no option for cell **/
-                board->cells[ind.row][ind.col].value = val;
-                RandBacktracking(board);
+                game->board->cells[ind.row][ind.col].value = val;
+                RandBacktracking(game);
                 return solved;
             }else {
-                board->cells[ind.row][ind.col].value = 0;
+                game->board->cells[ind.row][ind.col].value = 0;
             }
         }
     }
@@ -66,20 +66,20 @@ SudokuSolved goBackRand(Board* board, index ind){
  * the function checks if the board is solvable. if the board is solvable return solved,
  * else return unsolved.
  */
-SudokuSolved deterministicBacktracking(Board* board){
+SudokuSolved deterministicBacktracking(Game* game){
     int val;
     index ind;
-    if(!IsThereEmptyCell(board)) {
+    if(!IsThereEmptyCell(game->board)) {
         return solved;
     }else{
-        ind = FindEmptyCell(board);
+        ind = FindEmptyCell(game->board);
     }for(val=1; val<=9;val++){
-        if(isValidOption(board,ind,val,false)) {
-            board->cells[ind.row][ind.col].value = val;
-            if(deterministicBacktracking(board)==solved){
+        if(isValidOption(game,ind,val,false)) {
+            game->board->cells[ind.row][ind.col].value = val;
+            if(deterministicBacktracking(game)==solved){
                 return solved;
             }
-            board->cells[ind.row][ind.col].value = 0;
+            game->board->cells[ind.row][ind.col].value = 0;
         }
     }
     return unsolved;

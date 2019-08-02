@@ -6,6 +6,12 @@ void printErrorMode();
 void printErroneousBoardError();
 Board* createDefaultBoard();
 Game* initializeGame();
+
+/**
+ * initialize board values and params to zero.
+ */
+Board* initialize(blocksize block);
+
 void UpdateGame(Game* game, Board *userBoard, enum modes mode);
 void printWelcome();
 void printNTimes(int n);
@@ -48,9 +54,9 @@ Count how many empty cells in board's game
 **/
 int FindHowMuchEmptyCells(Game* game);
 
-int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValues);
+int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues);
 
-float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues, int* legalValues);
+double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues);
 
-int getRandIndex(Game* game, int numOflegalValues, float* scores);
+int getRandIndex(int numOflegalValues, double* scores);
 #endif

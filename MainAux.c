@@ -20,12 +20,55 @@ void printNTimes(int n) {
 	putchar('\n');
 }
 
-Board* createDefaultBoard()
-{
+Board* createDefaultBoard(){
 	blocksize block;
+	Board* board;
 	block.m = 3;
 	block.n = 3;
-	Board* board = initialize(block);
+	board = initialize(block);
+	return board;
+}
+/**
+ * initialize board values and params to zero.
+ */
+Board* initialize(blocksize block) {
+	int i, j, sizeOfRow;
+	Cell** arrayBoard;
+	Board* board;
+	sizeOfRow = block.n * block.m;
+	arrayBoard = malloc(sizeOfRow * sizeof(Cell*));
+	if (!arrayBoard) {
+		funcFailed("malloc");
+	}
+	for (i = 0;i < sizeOfRow;i++)
+	{
+		arrayBoard[i] = malloc(sizeof(Cell) * sizeOfRow);
+		if (!arrayBoard[i]) {
+			funcFailed("malloc");
+		}
+	}
+	for (i = 0;i < sizeOfRow;i++) {
+		for (j = 0;j < sizeOfRow;j++) {
+			arrayBoard[i][j].value = 0;
+			arrayBoard[i][j].fixed = false;
+			arrayBoard[i][j].error = false;
+			arrayBoard[i][j].userInput = false;
+			arrayBoard[i][j].optionsSize = 0;
+			arrayBoard[i][j].options = calloc(sizeOfRow, sizeof(int));
+			if (!arrayBoard[i][j].options) {
+				funcFailed("malloc");
+			}
+		}
+	}
+	board = malloc(sizeof(Board));
+	if (!board) {
+		funcFailed("malloc");
+	}
+	board->erroneous = false;
+	board->cells = arrayBoard;
+	board->solved = false;
+	board->blocksize.m = block.m;
+	board->blocksize.n = block.n;
 	return board;
 }
 
@@ -155,7 +198,7 @@ int FindHowMuchEmptyCells(Game* game) {
 	return count;
 }
 
-int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValues) {
+int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, int* legalValues) {
 	int numOflegalValues, N, val;
 	index ind;
 	numOflegalValues = 0;
@@ -163,7 +206,7 @@ int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValue
 	ind.col = col;
 	ind.row = row;
 	for (val = 0; val < N; val++) {
-		if (game->scores[row][col][val] >= threshold) {
+		if (lpSol->scores[row][col][val] >= threshold) {
 			if (isValidOption(game, ind, val, false)) {
 				legalValues[numOflegalValues++] = val;
 			}
@@ -172,19 +215,20 @@ int getLegalGuess(Game* game, int row, int col, float threshold, int* legalValue
 	return numOflegalValues;
 }
 
-float* getScoresOfLegalValue(Game* game, int row, int col, int numOflegalValues, int* legalValues) {
+double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues) {
 	int i, val;
-	float* scores;
+	double* scores;
 	scores = malloc(numOflegalValues * sizeof(float));
 	for (i = 0; i < numOflegalValues; i++) {
 		val = legalValues[i];
-		scores[i] = game->scores[row][col][val];
+		scores[i] = lpsol->scores[row][col][val];
 	}
 	return scores;
 }
 
-int getRandIndex(Game* game, int numOflegalValues, float* scores) {
-	int i, random;
+int getRandIndex(int numOflegalValues, double* scores) {
+	int i;
+	double random;
 	float sum, accumulative;
 	accumulative = 0;
 	sum = 0;
@@ -194,7 +238,7 @@ int getRandIndex(Game* game, int numOflegalValues, float* scores) {
 	for (i = 0; i < numOflegalValues; i++) {
 		sum += scores[i];
 	}
-	if (sum == 0) { //all scores equal to zero then pick randomly
+	if (sum == 0) { /* all scores equal to zero then pick randomly */
 		random = rand() % numOflegalValues;
 		return random;
 	}

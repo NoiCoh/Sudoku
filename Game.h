@@ -5,12 +5,6 @@
 #include "Parser.h"
 #include "ILPsolver.h"
 
-
-/**
- * initialize board values and params to zero.
- */
-Board* initialize(blocksize block);
-
 /**
  * the function returns user board with random fixed cells from the solution board and empty cells.
  * the number of fixed cell is according to the user's input (@param hint).
@@ -70,7 +64,7 @@ int guess(Game* game, float threshold);
 * if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution the function reset the board back to the original state
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
 */
-int generate(Game* game, int x, int y);
+void generate(Game* game, int x, int y);
 
 /* whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
 * part of the list is cleared, i.e., all items beyond the current pointer are removed, the new

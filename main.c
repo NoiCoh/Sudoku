@@ -19,4 +19,5 @@ int main() {
 	ILPsolver(game);
 	game1->board = game->solBoard;
 	printBoard(game1);*/
+	return 0;
 }
