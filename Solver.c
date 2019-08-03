@@ -306,6 +306,39 @@ SudokuSolved deterministicBacktracking(Game* game, int N) {
 	return unsolved;
 }
 
+SudokuSolved deterministicBacktrackingWithStack(Game* game, int N) {
+	int val;
+	index ix;
+	bool tried_all;
+	Stack stack;
+	cellMem* prevCellMem;
+	val = 1;
+	initStack(&stack);
+	tried_all = false;
+	while(IsThereEmptyCell(game->board, N)) {
+		if (!tried_all) val = 1;
+		ix = FindEmptyCell(game->board, N);
+		tried_all = true;
+		for (; val <= N; val++) {
+			if (isValidOption(game, ix, val, false)) {
+				game->board->cells[ix.row][ix.col].value = val;
+				push(ix,val,&stack);
+				tried_all = false;
+				break;
+			}
+		}
+		if (tried_all) {
+			if (stackIsEmpty(&stack)) {
+				return unsolved;
+			}
+			prevCellMem = pop(&stack); /* previous index we handle in the stack */
+			game->board->cells[prevCellMem->ix.row][prevCellMem->ix.col].value = 0; 
+			val = prevCellMem->val;
+		}
+	}
+	return solved;
+}
+
 
 int exhaustiveBacktracking(Game* game, int N) {
 	int counter, k, i, j, val;

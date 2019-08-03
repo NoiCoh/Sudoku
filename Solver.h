@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "linkedList.h"
+#include "Stack.h"
 
 typedef enum {solved,unsolved} SudokuSolved;
 
@@ -36,11 +37,6 @@ typedef struct {
 	Board* solBoard;
 	double*** scores;
 }LPsol;
-
-typedef struct {
-    int col;
-    int row;
-}index;
 
 typedef struct Game{
 	doublyLinkedList *userMoves;
