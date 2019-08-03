@@ -62,29 +62,6 @@ SudokuSolved goBackRand(Game* game, index ind){
     }
     return unsolved;
 }
-/**
- * the deterministic recursive algorithm to solve a Sudoku board.
- * the function checks if the board is solvable. if the board is solvable return solved,
- * else return unsolved.
- */
-SudokuSolved deterministicBacktracking(Game* game,int N){
-	int val;
-    index ind;
-    if(!IsThereEmptyCell(game->board,N)) {
-        return solved;
-    }else{
-        ind = FindEmptyCell(game->board,N);
-    }for(val=1; val<=N;val++){
-        if(isValidOption(game,ind,val,false)) {
-            game->board->cells[ind.row][ind.col].value = val;
-            if(deterministicBacktracking(game,N)==solved){
-                return solved;
-            }
-            game->board->cells[ind.row][ind.col].value = 0;
-        }
-    }
-    return unsolved;
-}
 
 /**
  * the function chooses a random value from the options array of a specific cell.
@@ -304,15 +281,55 @@ void printBoard(Game* game) {
 	printNTimes(4 * size + m + 1);
 }
 
+/**
+ * the deterministic recursive algorithm to solve a Sudoku board.
+ * the function checks if the board is solvable. if the board is solvable return solved,
+ * else return unsolved.
+ */
+SudokuSolved deterministicBacktracking(Game* game, int N) {
+	int val;
+	index ind;
+	if (!IsThereEmptyCell(game->board, N)) {
+		return solved;
+	}
+	else {
+		ind = FindEmptyCell(game->board, N);
+	}for (val = 1; val <= N;val++) {
+		if (isValidOption(game, ind, val, false)) {
+			game->board->cells[ind.row][ind.col].value = val;
+			if (deterministicBacktracking(game, N) == solved) {
+				return solved;
+			}
+			game->board->cells[ind.row][ind.col].value = 0;
+		}
+	}
+	return unsolved;
+}
+
+
 int exhaustiveBacktracking(Game* game, int N) {
 	int counter, k, i, j, val;
 	index ind;
 	bool doneGoBack;
 	counter = 0;
-	while (deterministicBacktracking(game, N) == solved) {
-		counter++;
-		i = N - 1;
-		j = N - 1;
+	while (1) {
+		if (deterministicBacktracking(game, N) == solved) {
+			counter++;
+			i = N - 1;
+			j = N - 1;
+		}
+		else {
+			ind = FindEmptyCell(game->board, N);
+			j = ind.col;
+			i = ind.row;
+			pre(&i, &j, N);
+			while (game->board->cells[i][j].fixed == true || game->board->cells[i][j].userInput == true) {
+				if (i == 0 && j == 0) {
+					return counter;
+				}
+				pre(&i, &j, N);
+			}
+		}
 		doneGoBack = false;
 		while (doneGoBack == false) {
 			val = game->board->cells[i][j].value;
