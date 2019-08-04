@@ -197,7 +197,7 @@ int validateCommand(Game* game) {
 * the function guesses a solution to the current board using LP with thershold.
 * if the board is erroneous the function prints error and the command is not executed.
 */
-int guess(Game* game, float threshold) {
+int guessCommand(Game* game, float threshold) {
 	int i, j, N, numOflegalValues, * legalValues, randIndex,newVal;
 	linkedList* move;
 	LPsol* sol;
