@@ -149,16 +149,7 @@ int setCommand(Game *game, int row, int col, int val) {
 			game->board->cells[row][col].userInput = false;
 		}
 		if (game->mode == solve) {
-			if (!IsThereEmptyCell(game->board,N)) {
-				if (game->board->erroneous == true) {
-					printErroneousBoardError();
-				}
-				else {
-					printf("Puzzle solved successfully\n");
-					game->board->solved = true;
-					UpdateGame(game, game->board, initMode);
-				}
-			}
+			checkIfBoardSolved(game);
 		}
 		else if (!isValidOption(game, ind, val, true)) {
 			game->board->cells[row][col].error = true;
@@ -197,7 +188,7 @@ int validateCommand(Game* game) {
 * the function guesses a solution to the current board using LP with thershold.
 * if the board is erroneous the function prints error and the command is not executed.
 */
-int guess(Game* game, float threshold) {
+int guessCommand(Game* game, float threshold) {
 	int i, j, N, numOflegalValues, * legalValues, randIndex,newVal;
 	linkedList* move;
 	LPsol* sol;
@@ -214,16 +205,17 @@ int guess(Game* game, float threshold) {
 		}
 		move = initializeLinkedList();
 		legalValues = malloc(N * sizeof(int));
+		if (!legalValues) { /* check if malloc succeseed */
+			funcFailed("malloc");
+		}
 		for (i = 0; i < N; i++) {
 			for (j = 0; j < N; j++) {
 				if (game->board->cells[i][j].value != 0) {
 					continue;
 				}
-				if (!legalValues) {
-					funcFailed("malloc");
-				}
-				numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues);
-				if (numOflegalValues == 0) {
+				/* get valid options for cell without erroneous*/
+				numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues); 
+				if (numOflegalValues == 0) { /* if there is no option avaliable for this cell, continue*/
 					continue;
 				}
 				scores = getScoresOfLegalValue(sol, i, j, numOflegalValues, legalValues);
@@ -235,6 +227,7 @@ int guess(Game* game, float threshold) {
 				}
 			}
 		}
+		checkIfBoardSolved(game);
 		free(legalValues);
 		if (move->size > 0) {
 			addMove(game, move);
@@ -243,7 +236,6 @@ int guess(Game* game, float threshold) {
 			freeList(move);
 		}
 		return 1;
-
 }
 
 /*
@@ -264,7 +256,7 @@ void generateCammand(Game* game, int x, int y) {
 		if (x > emptyCells) {
 			printf("Error: Board does not contain %d empty cells\n", x);
 		}
-		makeCopyBoard(game->board, orignalBoard);
+		makeCopyBoard(game->board, orignalBoard); /* save a copy of the orignal board*/
 		m = game->board->blocksize.m;
 		n = game->board->blocksize.n;
 		N = n * m;
@@ -307,28 +299,35 @@ void generateCammand(Game* game, int x, int y) {
 			return;
 		}
 		newBoard = initialize(game->board->blocksize);
-		for (i = 0; i < y; i++) {
-			randCol = rand() % N;
-			randRow = rand() % N;
-			if (newBoard->cells[randRow][randCol].value != 0) {
-				y--;
-				continue;
-			}
-			else {
-				newBoard->cells[randRow][randCol].value = solve->solBoard->cells[randRow][randCol].value;
-			}
+		if (y == N) { /* check if the board solved */
+			makeCopyBoard(game->board, newBoard); /*all values in solved board is chosen for the new board*/
+			printf("Puzzle solved successfully\n");
+			game->board->solved = true;
+			UpdateGame(game, game->board, initMode);
 		}
-		move=createGenerateMoveList(newBoard, orignalBoard);
+		else {
+			for (i = 0; i < y; i++) {
+				randCol = rand() % N;
+				randRow = rand() % N;
+				if (newBoard->cells[randRow][randCol].value != 0) {
+					y--;
+					continue;
+				}
+				else {
+					newBoard->cells[randRow][randCol].value = solve->solBoard->cells[randRow][randCol].value;
+				}
+			}
+			makeCopyBoard(newBoard, game->board); /*game board is now the new board that we generate*/
+		}
+		move = createGenerateMoveList(newBoard, orignalBoard);
 		if (move->size > 0) {
 			addMove(game, move);
 		}
 		else {
 			freeList(move);
 		}
-		makeCopyBoard(newBoard, game->board);
 		free(newBoard);
 		free(orignalBoard);
-	
 }
 
 
@@ -393,7 +392,7 @@ void saveGame(Game* game, char* path) {
 	char* regCellFormat;
 	char* lastCellFormat;
 	if (game->mode == initMode) {
-		printErrorMode();
+		printErrorMode(initMode);
 		return;
 	}
 	if (game->mode == edit) {
@@ -559,9 +558,12 @@ void autofillCommand(Game* game) {
 		else {
 			freeList(move);
 		}
+		checkIfBoardSolved(game);
 	}
 	else {
-		printErrorMode();
+		if(game->mode==initMode) printErrorMode("init");
+		if(game->mode == editMode) printErrorMode("edit");
+		
 	}
 }
 
@@ -572,7 +574,7 @@ void autofillCommand(Game* game) {
 void resetCommand(Game* game) {
 	if (game->mode == initMode) {
 		if (game->mode == initMode) {
-			printErrorMode();
+			printErrorMode("init");
 			return;
 		}
 		while (game->curMove != NULL) {

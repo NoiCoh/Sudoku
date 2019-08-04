@@ -43,16 +43,21 @@ int validateAutofill(char* move, Game* game);
 
 
 
-
+void printExtraParams();
 void printErrorMode(char* mode);
 void printErroneousBoardError();
 Board* createDefaultBoard();
-Game* initializeGame();
+
+void checkIfBoardSolved(Game* game);
+
+
 
 /**
  * initialize board values and params to zero.
  */
 Board* initialize(blocksize block);
+
+Game* initializeGame();
 
 void UpdateGame(Game* game, Board *userBoard, enum modes mode);
 void printWelcome();

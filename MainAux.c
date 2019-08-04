@@ -1,5 +1,8 @@
 #include "MainAux.h"
 
+void printExtraParams() {
+	printf("Error: Too many parameter");
+}
 
 void printlegalRange(char* param, char* type,int minNum,int maxNum) {
 	printf("Error:The %s parameter should be %s in range [%d-%d]",param,type,minNum, maxNum);
@@ -10,7 +13,7 @@ void printErrorMode(char* mode) {
 }
 
 void printWelcome() {
-	printf("Welcome to N&I Sudoku Game!\n ");
+	printf("Welcome to N&I Sudoku Game!\n");
 }
 
 void printErroneousBoardError() {
@@ -32,6 +35,21 @@ Board* createDefaultBoard(){
 	block.n = 3;
 	board = initialize(block);
 	return board;
+}
+
+void checkIfBoardSolved(Game* game) {
+	int N;
+	N = game->board->blocksize.m * game->board->blocksize.n;
+	if (!IsThereEmptyCell(game->board, N)) {
+		if (game->board->erroneous == true) {
+			printErroneousBoardError();
+		}
+		else {
+			printf("Puzzle solved successfully\n");
+			game->board->solved = true;
+			UpdateGame(game, game->board, initMode);
+		}
+	}
 }
 /**
  * initialize board values and params to zero.
