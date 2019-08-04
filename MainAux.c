@@ -79,7 +79,7 @@ Board* initialize(blocksize block) {
 			arrayBoard[i][j].optionsSize = 0;
 			arrayBoard[i][j].options = calloc(sizeOfRow, sizeof(int));
 			if (!arrayBoard[i][j].options) {
-				funcFailed("malloc");
+				funcFailed("calloc");
 			}
 		}
 	}
@@ -97,6 +97,9 @@ Board* initialize(blocksize block) {
 
 Game* initializeGame() {
 	Game* game = malloc(sizeof(Game));
+	if (!game) {
+		funcFailed("malloc");
+	}
 	game->userMoves=initializeDoublyLinkedList();
 	game->curMove = NULL;
 	game->mode = initMode;
@@ -242,6 +245,9 @@ double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValu
 	int i, val;
 	double* scores;
 	scores = malloc(numOflegalValues * sizeof(float));
+	if (!scores) {
+		funcFailed("malloc");
+	}
 	for (i = 0; i < numOflegalValues; i++) {
 		val = legalValues[i];
 		scores[i] = lpsol->scores[row][col][val];

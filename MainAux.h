@@ -1,6 +1,48 @@
 #ifndef MAINAUX_H
 #define MAINAUX_H
-#include "Solver.h"
+#include <stdbool.h>
+#include "Stack.h"
+#include "linkedList.h"
+
+typedef enum { solved, unsolved } SudokuSolved;
+
+typedef struct {
+	int n;
+	int m;
+}blocksize;
+
+typedef enum modes { editMode, solveMode, initMode };
+
+typedef struct cell {
+	int value;
+	bool fixed;
+	bool error;
+	bool userInput;
+	int* options;
+	int optionsSize;
+} Cell;
+
+typedef struct Board {
+	bool solved;
+	Cell** cells;
+	bool erroneous;
+	blocksize blocksize;
+} Board;
+
+typedef struct {
+	int solvable;
+	Board* solBoard;
+	double*** scores;
+}LPsol;
+
+typedef struct Game {
+	doublyLinkedList* userMoves;
+	doublyNode* curMove;
+	enum modes mode;
+	bool markErrors;
+	Board* board;
+	FILE* ptr;
+}Game;
 
 typedef enum {
 	solve,

@@ -54,7 +54,13 @@ Board* getUserBoard(Game* game, char* path) {
 		game->board->blocksize.m = block.m;
 		game->board->blocksize.n = block.n;
 		input = calloc(boardSize, sizeof(char*));
+		if (!input) {
+			funcFailed("calloc");
+		}
 		row = calloc(4096, sizeof(char));
+		if (!row) {
+			funcFailed("calloc");
+		}
 		fgets(row, 4096, game->ptr);
 		while (fgets(row, 4096, game->ptr) != NULL && *row != '\n' && i < boardSize) {
 			input[k] = strtok(row, delim);

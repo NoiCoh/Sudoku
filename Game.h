@@ -1,7 +1,6 @@
-
 #ifndef GAME_H
 #define GAME_H
-#include "MainAux.h"
+#include "Solver.h"
 #include "Parser.h"
 #include "ILPsolver.h"
 

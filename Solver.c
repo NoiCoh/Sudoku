@@ -1,4 +1,5 @@
 #include "Solver.h"
+#include <time.h>
 
 /**
  * the random recursive algorithm to solve a sudoku board.

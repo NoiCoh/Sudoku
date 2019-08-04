@@ -1,51 +1,8 @@
 #ifndef SOLVER_H
 #define SOLVER_H
-#include <stdbool.h>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "linkedList.h"
-#include "Stack.h"
+#include "MainAux.h"
 
-typedef enum {solved,unsolved} SudokuSolved;
-
-typedef struct {
-    int n;
-    int m;
-}blocksize;
-
-typedef enum modes { editMode, solveMode, initMode };
-
-typedef struct cell{
-    int value;
-    bool fixed;
-    bool error;
-    bool userInput;
-    int *options;
-    int optionsSize;
-} Cell;
-
-typedef struct Board{
-    bool solved;
-    Cell **cells;
-    bool erroneous;
-    blocksize blocksize;
-} Board;
-
-typedef struct {
-	int solvable;
-	Board* solBoard;
-	double*** scores;
-}LPsol;
-
-typedef struct Game{
-	doublyLinkedList *userMoves;
-	doublyNode* curMove;
-	enum modes mode;
-	bool markErrors;
-    Board* board;
-	FILE * ptr;
-}Game;
 
 /**
  * the random recursive algorithm to solve a sudoku board.
