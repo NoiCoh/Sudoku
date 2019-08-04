@@ -38,5 +38,10 @@ void checkString(Game * game,char* move[]);
  */
 void restart();
 
+bool isValidSet(char* x, char* y, char* z, Game* game);
+bool isValidInput(char* x, char* y, int minValue, int maxValue);
+bool isInRange(int value, int max, int min);
+bool isfloatInRange(char* num);
+
 
 #endif

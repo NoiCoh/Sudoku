@@ -2,7 +2,49 @@
 #define MAINAUX_H
 #include "Solver.h"
 
-void printErrorMode();
+typedef enum {
+	solve,
+	edit,
+	mark_errors,
+	print_board,
+	set,
+	validate,
+	guess,
+	generate,
+	undo,
+	redo,
+	save,
+	hint,
+	guess_hint,
+	num_solutions,
+	autofill,
+	reset,
+	exitCommand
+}Command;
+
+void printCommandSyntax(Command c, int maxVal);
+
+void printlegalRange(char* type, char* param, int minNum, int maxNum);
+int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
+
+int validateSolve(char* move);
+int validateEdit(char* move);
+int validateMarkErrors(char* move, Game* game);
+int validatePrintBoard(char* move, Game* game);
+int validateSet(char* move, Game* game);
+int validateValidate(char* move, Game* game);
+int validateGuess(char* move, Game* game);
+int validateGenerate(char* move, Game* game, int N);
+int validateSave(char* move, Game* game);
+int validateUndoAndRedo(char* move, Game* game, int isUndo);
+int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint);
+int validateAutofill(char* move, Game* game);
+
+
+
+
+
+void printErrorMode(char* mode);
 void printErroneousBoardError();
 Board* createDefaultBoard();
 Game* initializeGame();

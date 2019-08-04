@@ -11,7 +11,7 @@ blocksize getBoardSize(){
     if(ok <2 ){
         printf("Error: not a number\n");
         printf("Exiting...\n");
-        exit(0);
+        return block;
     }
     block.m=m;
     block.n=n;
@@ -36,7 +36,7 @@ int getNumCells(blocksize block){
     if(ok <= 0 ){
         printf("Error: not a number\n");
 		printf("Exiting...\n");
-		exit(0);
+		return 0;
     }
     return num;
 }
@@ -79,41 +79,145 @@ checkEOF();
  * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
-void checkString(Game * game,char* move[]){
-	int row, col, val ,x;
-    if(move[0]!=NULL) {
-		if (strcmp(move[0], "autofill")==0) {
-			autofillCommand(game);
-		}else if ((strcmp(move[0], "solve") == 0) &&( move[1] != NULL )) {
-			solveCommand( move[1], game);
-		}else if (strcmp(move[0], "edit") == 0) {
-				editCommand( move[1], game );
-		}else if ((strcmp(move[0], "mark_errors") == 0) && move[1] != NULL && game->board->solved == false) {
-			x = atoi(move[1]);
-			markErrorsCommand( x, game);
-		}else if ((strcmp(move[0], "print_board") == 0)  ) {
-			printCommand(game);
-		}else if ((strcmp(move[0], "set") == 0) && move[1] != NULL && move[2] != NULL && move[3] != NULL &&
-            game->board->solved == false) {
-			/**convert string to int**/
-			row = atoi(move[1]) - 1;
-			col = atoi(move[2]) - 1;
-			val = atoi(move[3]);
-            setCommand(game, row, col, val);
-        } else if ((strcmp(move[0], "hint") == 0) && move[1] != NULL && move[2] != NULL && game->board->solved == false) {
-            hintCommand(game, move[1], move[2]);
-        } else if ((strcmp(move[0], "validate") == 0) && game->board->solved == false) {
-            validateCommand(game);
-        } else if ((strcmp(move[0], "restart") == 0)) {
-		            restart();
-        } else if (strcmp(move[0], "exit") == 0) {
-			
-            exiting(game);
-        } else {
-            printf("Error: invalid command\n");
-        }
-    }
-}
+void checkString(Game * game, char* move[]) {
+	int row, col, val, x,n,m,N;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	N = m * n;
+	if (move[0] != NULL) {
+		if (strcmp(move[0], "solve") == 0) {
+			if (validateSolve(move)) {
+				solveCommand(move[1], game);
+			}
+			printBoard(game);
+		}
+		else if (strcmp(move[0], "edit") == 0) {
+			if (validateEdit(move)) {
+				editCommand(move[1], game);
+			}
+			printBoard(game);
+		}
+		else if (strcmp(move[0], "mark_errors") == 0) {
+			if (validateMarkErrors(move,game)) {
+				markErrorsCommand(move[1], game, 1);
+			}
+			printBoard(game);
+		}
+		else if ((strcmp(move[0], "print_board") == 0)) {
+			if (validatePrintBoard(move,game)) {
+				printCommand(game);
+			}
+		}
+		else if ((strcmp(move[0], "set") == 0)) {
+			if (validateSet(move,game)){
+				/**convert string to int**/
+					row = atoi(move[1]) - 1;
+					col = atoi(move[2]) - 1;
+					val = atoi(move[3]);
+					setCommand(game, row, col, val);
+				}
+			printBoard(game);
+			}
+		else if ((strcmp(move[0], "validate") == 0)) {
+			if (validateValidate(move,game)){
+				validateCommand(game);
+			}
+			printBoard(game);
+		}
+		else if ((strcmp(move[0], "guess") == 0)) {
+			if (validateGuess(move,game)) {
+					guessCommand(game, atof(move[1]));
+				}
+			printBoard(game);
+			}
+		else if ((strcmp(move[0], "generate") == 0)) {
+			if (validateGenerate(move,game,N)){
+				generateCammand(game, atoi(move[1]), atoi(move[2]));
+				}
+			}
+			printBoard(game);
+		}
+		else if (strcmp(move[0], "undo") == 0) {
+			if (validateUndoAndRedo(move,game,1)) {
+				undoCommand(game,false);
+			}
+			printBoard(game);
+			}
+
+		else if (strcmp(move[0], "redo") == 0) {
+			if (validateUndoAndRedo(move, game, 0)) {
+				redoCommand(game);
+			}
+			printBoard(game);
+			}
+		else if (strcmp(move[0], "save") == 0) {
+			if (validateSave(move,game)){
+				saveGame(game, move[1]);
+			}
+			printBoard(game);
+			}
+		else if ((strcmp(move[0], "hint") == 0)) {
+			if (validateHintAndGuessHint(move,game,N,1)){
+					hintCommand(game, atoi(move[1]), atoi(move[2]));
+				}
+			printBoard(game);
+			}
+		else if ((strcmp(move[0], "guess_hint") == 0)) {
+			if (validateHintAndGuessHint(move, game, N, 0)) {
+				guessHintCommand(game, atoi(move[1]), atoi(move[2]));
+			}
+			printBoard(game);
+		}
+		else if (strcmp(move[0], "autofill") == 0) {
+			if (move[1] != NULL) {
+				printExtraParams();
+				printCommandSyntax(autofill, 0);
+				printBoard(game);
+			}
+			else {
+				autofillCommand(game);
+				printBoard(game);
+			}
+		}
+		else if (strcmp(move[0], "num_solutions") == 0) {
+			if (move[1] != NULL) {
+				printExtraParams();
+				printCommandSyntax(num_solutions, 0);
+				printBoard(game);
+			}
+			else {
+				numSolution(game);
+				printBoard(game);
+			}
+		}
+		else if ((strcmp(move[0], "reset") == 0)) {
+			if (move[1] != NULL) {
+				printExtraParams();
+				printCommandSyntax(reset, 0);
+				printBoard(game);
+			}
+			else {
+				reset(game);
+				printBoard(game);
+			}
+		}
+		else if (strcmp(move[0], "exit") == 0) {
+		if (move[1] != NULL) {
+			printExtraParams();
+			printCommandSyntax(exitCommand, 0);
+			printBoard(game);
+		}
+		else {
+			exiting(game);
+			printBoard(game);
+		}
+		}
+	
+		else {
+			printf("Error: invalid command\n");
+		}
+	}
+
 /**
  * restart the game by starting over with the initialization procedure.
  */
@@ -134,3 +238,9 @@ void restart(){
 	*/
     readUser(game);
 }
+
+
+
+
+
+

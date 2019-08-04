@@ -268,7 +268,7 @@ void printBoard(Game* game) {
 				if (game->board->cells[i][j].fixed == true) {
 					printf(".");
 				}
-				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == edit))) {
+				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == editMode))) {
 					printf("*");
 				}
 				else {

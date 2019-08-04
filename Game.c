@@ -28,7 +28,6 @@ void solveCommand(char* path, Game* game) {
 	Board* userBoard;
 	userBoard = getUserBoard(game, path);
 	UpdateGame(game, userBoard, solve);
-	printBoard(game);
 }
 
 /*
@@ -92,39 +91,29 @@ void editCommand(char* path, Game* game) {
 		userBoard = getUserBoard(game, path);
 	}
 	UpdateGame(game, userBoard, edit);
-	game->mode = edit;
-	printBoard(game);
 }
 
 /*
 * the function response to "mark_errors" command, the x parameter is 1 for display mark errors in the board and 0 otherwise.
 */
-void markErrorsCommand(int x, Game* game) {
-	if (game->mode == solve) {
-		if (x == 1) {
+void markErrorsCommand( char* input, Game* game, int maxNum) {
+
+		if (strcmp(input, '1') == 0) {
 			game->markErrors = true;
-			printBoard(game);
-		}
-		if (x == 0) {
+		}else if (strcmp(input, '0') == 0) {
 			game->markErrors = false;
-			printBoard(game);
 		}
-	}
-	else {
-		printErrorMode();
-	}
+		else {
+			printlegalRange("first", "integer", 0, 1);
+		}
+	
 }
 
 /*
 * the function response to "print_board" command and prints the board.
 */
 void printCommand(Game* game) {
-	if (game->mode == solve || game->mode == edit) {
 		printBoard(game);
-	}
-	else {
-		printErrorMode();
-	}
 }
 
 
@@ -143,11 +132,10 @@ int setCommand(Game *game, int row, int col, int val) {
 	ind.row = row;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	prevVal = game->board->cells[row][col].value;
-	if ((game->mode == solve) || (game->mode == edit)) {
+	
 		if (game->mode == solve) {
 			if (game->board->cells[row][col].fixed == true) {
 				printf("Error: cell is fixed\n");
-				printBoard(game);
 				return 0;
 			}
 		}
@@ -159,19 +147,16 @@ int setCommand(Game *game, int row, int col, int val) {
 			}
 			game->board->cells[row][col].value = val;
 			game->board->cells[row][col].userInput = false;
-			printBoard(game);
 		}
 		if (game->mode == solve) {
 			if (!IsThereEmptyCell(game->board,N)) {
 				if (game->board->erroneous == true) {
 					printErroneousBoardError();
-					printBoard(game);
 				}
 				else {
 					printf("Puzzle solved successfully\n");
-					printBoard(game);
 					game->board->solved = true;
-					game->mode = init;
+					UpdateGame(game, game->board, initMode);
 				}
 			}
 		}
@@ -184,13 +169,7 @@ int setCommand(Game *game, int row, int col, int val) {
 		move = initializeLinkedList();
 		insertLast(move, row, col, val, prevVal);
 		addMove(game, move);
-		printBoard(game);
 		return 1;
-	}
-	else {
-	printErrorMode();
-	return 1;
-	}
 	
 }
 
@@ -201,7 +180,6 @@ int setCommand(Game *game, int row, int col, int val) {
  * else, prints "Validation passed: board is solvable"
  */
 int validateCommand(Game* game) {
-	if ((game->mode == solve) || (game->mode == edit)) {
 		LPsol* solve = LPsolver(game, true);
 		if (solve->solvable == true) {
 			printf("Validation passed: board is solvable\n");
@@ -211,12 +189,10 @@ int validateCommand(Game* game) {
 			printf("Validation failed: board is unsolvable\n");
 			return 0;
 		}
-	}
-	else {
-		printErrorMode();
+
 		return 0;
 	}
-}
+
 /*
 * the function guesses a solution to the current board using LP with thershold.
 * if the board is erroneous the function prints error and the command is not executed.
@@ -226,7 +202,6 @@ int guess(Game* game, float threshold) {
 	linkedList* move;
 	LPsol* sol;
 	double* scores;
-	if (game->mode == solve) {
 		if (game->board->erroneous == true) {
 			printErroneousBoardError();
 			return 0;
@@ -268,11 +243,7 @@ int guess(Game* game, float threshold) {
 			freeList(move);
 		}
 		return 1;
-	}
-	else {
-		printErrorMode();
-		return 0;
-	}
+
 }
 
 /*
@@ -281,8 +252,7 @@ int guess(Game* game, float threshold) {
 * if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution the function reset the board back to the original state
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
 */
-void generate(Game* game, int x, int y) {
-	if (game->mode == edit) {
+void generateCammand(Game* game, int x, int y) {
 		int i, t, m, n, N, val, emptyCells, randCol, randRow;
 		index ind;
 		linkedList* move;
@@ -358,10 +328,7 @@ void generate(Game* game, int x, int y) {
 		makeCopyBoard(newBoard, game->board);
 		free(newBoard);
 		free(orignalBoard);
-	}
-	else {
-		printErrorMode();
-	}
+	
 }
 
 
@@ -378,7 +345,7 @@ void addMove(Game* game, linkedList* move) {
 /*undo a previous move done by the user. This command is only availble
 in solve and edit modes */
 int undoCommand(Game* game, bool print) {
-	if ((game->mode == solve) || (game->mode == edit)) {
+
 		linkedList* dataToUndo;
 		node* i;
 		if (game->curMove == NULL) {
@@ -393,16 +360,12 @@ int undoCommand(Game* game, bool print) {
 			}
 			setCommand(game, i->row, i->col, i->prevVal);
 		}
-	}
-	else {
-		printErrorMode();
-	}
+	
 	return 1;
 }
 /*redo a move previously undone by the user . This command is only availble
 in solve and edit modes*/
 int redoCommand(Game* game) {
-	if ((game->mode == solve) || (game->mode == edit)) {
 		linkedList* dataToRedo;
 		node* i;
 		if ((game->curMove == NULL) || (game->curMove->next == NULL)) {
@@ -416,10 +379,7 @@ int redoCommand(Game* game) {
 			printf("Redo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->prevVal, i->newVal);
 			setCommand(game, i->row, i->col, i->newVal);
 		}
-	}
-	else {
-		printErrorMode();
-	}
+
 	return 1;
 }
 
@@ -432,7 +392,7 @@ void saveGame(Game* game, char* path) {
 	int m, n, value, boardSize, i, j;
 	char* regCellFormat;
 	char* lastCellFormat;
-	if (game->mode == init) {
+	if (game->mode == initMode) {
 		printErrorMode();
 		return;
 	}
@@ -599,7 +559,6 @@ void autofillCommand(Game* game) {
 		else {
 			freeList(move);
 		}
-		printBoard(game);
 	}
 	else {
 		printErrorMode();
@@ -610,13 +569,15 @@ void autofillCommand(Game* game) {
 * the function response to "reset" command in 'edit' or 'solve' mode.
 * the function goes over the entire undo/redo list and revert all moves.
 */
-void reset(Game* game) {
-	if (game->mode == init) {
-		printErrorMode();
-		return;
-	}
-	while (game->curMove != NULL) {
-		undoCommand(game,false);
+void resetCommand(Game* game) {
+	if (game->mode == initMode) {
+		if (game->mode == initMode) {
+			printErrorMode();
+			return;
+		}
+		while (game->curMove != NULL) {
+			undoCommand(game, false);
+		}
 	}
 }
 

@@ -1,7 +1,12 @@
 #include "MainAux.h"
 
-void printErrorMode() {
-	printf("Error: The command is unavailable in the current mode\n");
+
+void printlegalRange(char* param, char* type,int minNum,int maxNum) {
+	printf("Error:The %s parameter should be %s in range [%d-%d]",param,type,minNum, maxNum);
+}
+
+void printErrorMode(char* mode) {
+	printf("Error: This command is unavailable in %s mode\n",mode);
 }
 
 void printWelcome() {
@@ -76,7 +81,7 @@ Game* initializeGame() {
 	Game* game = malloc(sizeof(Game));
 	game->userMoves=initializeDoublyLinkedList();
 	game->curMove = NULL;
-	game->mode = init;
+	game->mode = initMode;
 	game->markErrors = true;
 	return game;
 }
@@ -274,4 +279,372 @@ linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
 	return move;
 }
 
+void printCommandSyntax(Command c, int maxVal) {
+	if (c == solve) {
+		printf("The correct syntax for solve command is: solve x .\n X should include a full or relative path to the file\n");
+	}
+	if (c == edit) {
+		printf("The correct syntax for edit command is: edit x.\n X should include a full or relative path to the file\
+and this parameter is optional. If no parameter is supplied, the default board is an empty 9X9 board\n");
+	}
+	if (c = mark_errors) {
+		printf("The correct syntax for mark_errors command is: mark_errors x.\n X should be either 0 or 1\n");
+	}
+	if (c = print_board) {
+		printf("The correct syntax for print_board command: print_board (with no extra parameters)\n");
+	}
+	if (c = set) {
+		printf("The correct syntax for set command: set x y z.\n (sets the value of cell<x,y> to z).\n");
+		printf("X and y are integers between 1 to %d.\n", maxVal);
+		printf("Z is an integer between 0 to %d.\n", maxVal);
+	}
+	if (c = validate) {
+		printf("The correct syntax for validate command:validate (with no extra parameters)\n");
+	}
+	if (c = guess) {
+		printf("The correct syntax for guess command:guess x.\n X should be a float in range [0-1]\n");
+	}
+	if (c = generate) {
+		printf("The correct syntax for generate command:generate x y.\n ");
+		printf("X and y are integers between 0 to %d.\n", maxVal);
+	}
+	if (c = undo) {
+		printf("The correct syntax for undo command:undo (with no extra parameters)\n");
+	}
+	if (c = redo) {
+		printf("The correct syntax for redo command:redo (with no extra parameters)\n");
+	}
+	if (c = save) {
+		printf("The correct syntax for save command is: save x.\n X includes a full or relative path to the file.\n");
+	}
+	if (c = hint) {
+		printf("The correct syntax for hint command is: hint x y\n");
+		printf("X and y are integers between 1 to %d.\n", maxVal);
+	}
+	if (c = guess_hint) {
+		printf("The correct syntax for guess_hint command is: guess_hint x y\n");
+		printf("X and y are integers between 1 to %d.\n", maxVal);
+	}
+	if (c = num_solutions) {
+		printf("The correct syntax for num_solutions command:num_solutions (with no extra parameters)\n");
+	}
+	if (c = autofill) {
+		printf("The correct syntax for autofill command:autofill (with no extra parameters)\n");
+	}
+	if (c = reset) {
+		printf("The correct syntax for reset command:reset (with no extra parameters)\n");
+	}
+	if (c = exitCommand) {
+		printf("The correct syntax for exit command:exit (with no extra parameters)\n");
+	}
+
+}
+
+int argsNum(char* move) {
+	int cnt, i;
+	cnt= 0;
+	i = 0;
+	while (move[i] != NULL) {
+		cnt++;
+	}
+	return cnt;
+}
+
+int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal) {
+	if (paramsNum == validNum) {
+		return 1;
+	}
+	if (paramsNum < validNum) {
+		printf("Error: Not enough parameters were entered");
+	}
+	else if (paramsNum > validNum) {
+		printf("Error: Extra parameters were entered");
+	}
+
+	printCommandSyntax(c, maxVal);
+	return 0;
+
+}
+
+int isFloat(char* num) {
+	int i, flag;
+	i = 1;
+	flag = 0;
+	while (num[i++] != '\0') {
+		if ((!isdigit(num[i])) && (!num[i] == '.')) {
+			return 0;
+		}
+		if (num[i] == '.') {
+			flag++;
+		}
+	}if (flag == 1) {
+		return 1;
+	}
+}
+
+int isNum(char* move) {
+	int i = 0;
+	while (move[i] != '\0') {
+		if (!(move[i] >= '0' && move[i] <= '9')) {
+			return 0;
+		}
+		i++;
+	}
+	return 1;
+}
+
+int isInRange(int value, int max, int min)
+{
+	if (value <= max && value >= min){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
+
+int validateSolve(char* move) {
+	int paramsNum, checkparamsnum;
+	paramsNum= argsNum(move);
+	checkparamsnum = checkParamsNum(2, paramsNum, solve, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateEdit(char* move) {
+	int paramsNum;
+	paramsNum = argsNum(move);
+
+	if (paramsNum>2) {
+		printf("Error: Extra parameters were entered");
+		printCommandSyntax(edit, 0);
+		return 0;
+	}
+	return 1;
+}
+
+int validateMarkErrors(char* move,Game* game) {
+	int paramsNum, checkparamsnum;
+	if (game->mode != solveMode) {
+		if (game->mode == editMode) {
+		printErrorMode("edit");
+		}
+		else{
+			printErrorMode("init");
+		}
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(2, paramsNum, mark_errors, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validatePrintBoard(char* move, Game* game) {
+	int paramsNum, checkparamsnum;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(1, paramsNum, print_board, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateSet(char* move,Game* game) {
+	int paramsNum, checkparamsnum,n,m,maxValue;
+	n = game->board->blocksize.n;
+	m = game->board->blocksize.m;
+	maxValue = n * m;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(4, paramsNum, set, maxValue);
+	if (!checkparamsnum) {
+		return 0;
+	}
+
+	if (!(isValidSetParams(move[1],move[2],move[3],game))) {
+		return 0;
+	}
+return 1;
+}
+
+int isValidSetParams(char* x, char* y, char* z, Game* game) {
+	int maxValue, m, n;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	maxValue = n * m;
+	if (!isNum(x) && isInRange(atoi(x), maxValue, 1))
+	{
+		printlegalRange("first", "integer", 1, maxValue);
+		return 0;
+	}
+	if (!isNum(y) && isInRange(atoi(y), maxValue, 1))
+	{
+		printlegalRange("second", "integer", 1, maxValue);
+		return 0;
+	}
+	if (!isNum(z) && isInRange(atoi(z), maxValue, 0))
+	{
+		printlegalRange("third", "integer", 0, maxValue);
+		return 0;
+	}
+	return 1;
+}
+
+int validateValidate(char* move, Game* game) {
+	int paramsNum, checkparamsnum;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(1, paramsNum, validate, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateGuess(char* move,Game* game) {
+	int paramsNum, checkparamsnum,x;
+	if (game->mode != solveMode) {
+		if (game->mode == editMode) {
+			printErrorMode("edit");
+		}
+		else {
+			printErrorMode("init");
+		}
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(2, paramsNum, guess, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	if (!isFloat(move[1])) { 
+		printlegalRange("first", "integer", 0, 1);
+		return 0;
+	}
+	else {
+		x = atof(move[1]);
+		if (!(isInRange(x, 1, 0))) {
+			printlegalRange("first", "integer", 0, 1);
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int validateGenerate(char* move, Game* game, int N) {
+	int paramsNum, checkparamsnum;
+	if (game->mode != editMode) {
+		if (game->mode == solveMode) {
+			printErrorMode("solve");
+		}
+		else {
+			printErrorMode("init");
+		}
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(3, paramsNum, generate, N*N);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	if (!(isValidTwoParams(move[1],move[2],0,N*N))) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int isValidTwoParams(char* x, char* y, int minValue, int maxValue) {
+	if (!isNum(x) && isInRange(atoi(x), maxValue, minValue))
+	{
+		printlegalRange("first", "integer", minValue, maxValue);
+		return 0;
+	}
+	if (!isNum(y) && isInRange(atoi(y), maxValue, minValue))
+	{
+		printlegalRange("second", "integer", minValue, maxValue);
+		return 0;
+	}
+	return 1;
+}
+
+int validateUndoAndRedo(char* move, Game* game, int isUndo) {
+	int paramsNum, checkparamsnum;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	if (isUndo) {
+		checkparamsnum = checkParamsNum(1, paramsNum, undo, 0);
+	}
+	else {
+		checkparamsnum = checkParamsNum(1, paramsNum, redo, 0);
+	}
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateSave(char* move, Game* game) {
+	int paramsNum, checkparamsnum;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(2, paramsNum, save, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint) {
+	int paramsNum, checkparamsnum;
+
+	if (game->mode != solveMode) {
+		if (game->mode == editMode) {
+			printErrorMode("edit");
+		}
+		else {
+			printErrorMode("init");
+		}
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	if (isHint) {
+		checkparamsnum = checkParamsNum(2, paramsNum, hint, maxValue);
+	}
+	else {
+		checkparamsnum = checkParamsNum(2, paramsNum, guess_hint, maxValue);
+	}
+	if (!checkparamsnum) {
+		return 0;
+	}
+	if (!isValidTwoParams(move[1], move[2], 1, maxValue)){
+		return 0;
+}
+	return 1;
+}
+
+int validateAutofill(char* move, Game* game) {
+	
+}
 

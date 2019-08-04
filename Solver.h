@@ -14,7 +14,7 @@ typedef struct {
     int m;
 }blocksize;
 
-enum modes {edit, solve, init};
+typedef enum modes { editMode, solveMode, initMode };
 
 typedef struct cell{
     int value;

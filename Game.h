@@ -27,7 +27,7 @@ void editCommand(char* path, Game* game);
 /*
 * the function response to "mark_errors" command, the x parameter is 1 for display mark errors in the board and 0 otherwise.
 */
-void markErrorsCommand(int x, Game* game);
+void markErrorsCommand(char* input, Game* game, int maxNum);
 
 /*
 * the function response to "print_board" command and prints the board.
@@ -56,7 +56,7 @@ int validateCommand(Game* game);
 * the function guesses a solution to the current board using LP with thershold.
 * if the board is erroneous the function prints error and the command is not executed.
 */
-int guess(Game* game, float threshold);
+int guessCommand(Game* game, float threshold);
 
 /*
 * the function response to "generate" command. 
@@ -64,7 +64,7 @@ int guess(Game* game, float threshold);
 * if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution the function reset the board back to the original state
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
 */
-void generate(Game* game, int x, int y);
+void generateCammand(Game* game, int x, int y);
 
 /* whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
 * part of the list is cleared, i.e., all items beyond the current pointer are removed, the new
@@ -109,7 +109,7 @@ void autofillCommand(Game* game);
 * the function response to "reset" command in 'edit' or 'solve' mode.
 * the function goes over the entire undo/redo list and revert all moves.
 */
-void reset(Game* game);
+void resetCommand(Game* game);
 
 /**
  * the function prints "Exiting..." , frees all memory resources and exits.
