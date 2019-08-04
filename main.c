@@ -11,9 +11,11 @@ int main() {
 	int N,res;
 	game = initializeGame();
 	game->mode = solve;
-	game->board = getUserBoard(game,"C:\\Users\\Noi\\Desktop\\game.txt");
-	N = game->board->blocksize.m * game->board->blocksize.n;
-	res=exhaustiveBacktracking(game, N);
-	printf("%d",res);
-	return res;
+	restart();
+	//game->board = getUserBoard(game,"C:\\Users\\Noi\\Desktop\\game.txt");
+	//N = game->board->blocksize.m * game->board->blocksize.n;
+	//res=exhaustiveBacktracking(game, N);
+	//printf("%d",res);
+	//return res;
+	return 0;
 }

@@ -1,13 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include <string.h>
 #include "Game.h"
-
-
 
 /**
  * The game starts by asking the user to enter the number of cells to fill.

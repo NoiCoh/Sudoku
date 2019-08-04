@@ -67,8 +67,7 @@ LPsol* LPsolver(Game* game,bool intSol) {
 LPsol* initLpSol() {
 	LPsol* lpSol = malloc(sizeof(LPsol));
 	if (!lpSol) {
-		printf("Error: malloc failed");
-		exit(0);
+		funcFailed("malloc");
 	}
 	lpSol->solvable = 0;
 	lpSol->scores = NULL;
@@ -109,8 +108,7 @@ void initObjective(double* objective, int varsNum,bool intSol) {
 	int i ;
 	objective = malloc(varsNum * sizeof(double));
 	if (!objective) {
-		printf("Error: malloc failed");
-		exit(0);
+		funcFailed("calloc");
 	}
 	for (i = 0; i < varsNum; i++) {
 		if (intSol == true) {
@@ -126,15 +124,13 @@ void initObjective(double* objective, int varsNum,bool intSol) {
 void initVals(double* val, int N) {
 	val = (double*)malloc(N * sizeof(double));
 	if (val == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
+		funcFailed("malloc");
 	}
 }
 void initInd(int* ind, int N) {
 	ind = (int*)malloc(N * sizeof(int));
 	if (ind == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
+		funcFailed("malloc");
 	}
 }
 
@@ -142,8 +138,7 @@ void initVtype(int N, char* vType) {
 	int N3 = N * N * N;
 	vType = (char*)malloc(N3 * sizeof(char));
 	if (vType == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
+		funcFailed("malloc");
 	}
 }
 
@@ -151,8 +146,7 @@ void initSol(int N, double* sol) {
 	int N3 = N * N * N;
 	sol = (double*)calloc(N3, sizeof(double));
 	if (sol == NULL) {
-		printf("Error: calloc failed\n");
-		exit(0);
+		funcFailed("calloc");
 	}
 }
 

@@ -1,13 +1,13 @@
 #include "linkedList.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "MainAux.h"
 
 node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
 	node* newNode;
 	newNode = (node*)malloc(sizeof(node));
 	if (newNode == NULL) {
-		printf("Error: malloc failed\n");
-		exit(0);
+		funcFailed("malloc");
 	}
 	newNode->row = row;
 	newNode->col = col;
@@ -21,8 +21,7 @@ linkedList* initializeLinkedList() {
 	linkedList* newNode;
 	newNode = (linkedList*)calloc(1, sizeof(linkedList));
 	if (newNode == NULL) {
-		printf("Error: calloc failed\n");
-		exit(0);
+		funcFailed("calloc");
 	}
 	return newNode;
 }
@@ -80,8 +79,7 @@ doublyNode* initializeDoublyNode(linkedList *move) {
 	doublyNode* newNode;
 	newNode = (doublyNode*)calloc(1, sizeof(doublyNode));
 	if (newNode == NULL) {
-		printf("Error: calloc failed\n");
-		exit(0);
+		funcFailed("calloc");
 	}
 	newNode->move = move;
 	return newNode;
@@ -91,8 +89,7 @@ doublyLinkedList* initializeDoublyLinkedList() {
 	doublyLinkedList* newNode;
 	newNode = (doublyLinkedList*)calloc(1, sizeof(doublyLinkedList));
 	if (newNode == NULL) {
-		printf("Error: calloc failed\n");
-		exit(0);
+		funcFailed("calloc");
 	}
 	return newNode;
 }
