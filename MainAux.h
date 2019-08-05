@@ -66,44 +66,68 @@ typedef enum {
 
 void printCommandSyntax(Command c, int maxVal);
 
+int argsNum(char* move);
+
+int isFloat(char* num);
+
+int isNum(char* move);
+
 void printlegalRange(char* type, char* param, int minNum, int maxNum);
+
+int isValidSetParams(char* x, char* y, char* z, Game* game);
+
 int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
 
+int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal);
+
 int validateSolve(char* move);
+
 int validateEdit(char* move);
+
 int validateMarkErrors(char* move, Game* game);
+
 int validatePrintBoard(char* move, Game* game);
+
 int validateSet(char* move, Game* game);
+
 int validateValidate(char* move, Game* game);
+
 int validateGuess(char* move, Game* game);
-int validateGenerate(char* move, Game* game, int N);
+
+int validateGenerate(char* move, Game* game);
+
 int validateSave(char* move, Game* game);
+
 int validateUndoAndRedo(char* move, Game* game, int isUndo);
-int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint);
+
+int validateHintAndGuessHint(char* move, Game* game, int isHint);
+
 int validateAutofill(char* move, Game* game);
 
-
-
+int validateNumSolAndExitAndReset(char* move, Game* game, Command c);
 
 void printExtraParams();
+
 void printErrorMode(char* mode);
+
 void printErroneousBoardError();
+
 Board* createDefaultBoard();
 
 void checkIfBoardSolved(Game* game);
 
+Game* initializeGame();
 
+void UpdateGame(Game* game, Board *userBoard, enum modes mode);
+
+void printWelcome();
+
+void printNTimes(int n);
 
 /**
  * initialize board values and params to zero.
  */
 Board* initialize(blocksize block);
-
-Game* initializeGame();
-
-void UpdateGame(Game* game, Board *userBoard, enum modes mode);
-void printWelcome();
-void printNTimes(int n);
 
 /**
  * Prints the current state of @param board. if the markErrors parameter is true-
@@ -150,4 +174,5 @@ double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValu
 int getRandIndex(int numOflegalValues, double* scores);
 
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard);
+
 #endif

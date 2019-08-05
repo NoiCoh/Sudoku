@@ -306,7 +306,9 @@ SudokuSolved deterministicBacktracking(Game* game, int N) {
 	}
 	return unsolved;
 }
-
+/**
+ * the deterministic algorithm to solve a Sudoku board with a stack implementation
+ */
 SudokuSolved deterministicBacktrackingWithStack(Game* game, int N) {
 	int val;
 	index ix;
@@ -340,14 +342,16 @@ SudokuSolved deterministicBacktrackingWithStack(Game* game, int N) {
 	return solved;
 }
 
-
+/**
+ * count the number of solutions of the current board using backtracking algorithm.
+ */
 int exhaustiveBacktracking(Game* game, int N) {
 	int counter, k, i, j, val;
 	index ind;
 	bool doneGoBack;
 	counter = 0;
 	while (1) {
-		if (deterministicBacktracking(game, N) == solved) {
+		if (deterministicBacktrackingWithStack(game, N) == solved) {
 			counter++;
 			i = N - 1;
 			j = N - 1;
@@ -392,7 +396,9 @@ int exhaustiveBacktracking(Game* game, int N) {
 		}
 	}
 }
-	
+/**
+* an auxiliary function that finds the previous cell index
+*/
 void pre(int* i, int* j,int N) {
 	if (*j == 0) {
 		*i = *i - 1;

@@ -27,7 +27,7 @@ Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block){
 void solveCommand(char* path, Game* game) {
 	Board* userBoard;
 	userBoard = getUserBoard(game, path);
-	UpdateGame(game, userBoard, solve);
+	UpdateGame(game, userBoard, solveMode);
 }
 
 /*
@@ -96,7 +96,7 @@ void editCommand(char* path, Game* game) {
 	{
 		userBoard = getUserBoard(game, path);
 	}
-	UpdateGame(game, userBoard, edit);
+	UpdateGame(game, userBoard, editMode);
 }
 
 /*
@@ -139,7 +139,7 @@ int setCommand(Game *game, int row, int col, int val) {
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	prevVal = game->board->cells[row][col].value;
 	
-		if (game->mode == solve) {
+		if (game->mode == solveMode) {
 			if (game->board->cells[row][col].fixed == true) {
 				printf("Error: cell is fixed\n");
 				return 0;
@@ -154,7 +154,7 @@ int setCommand(Game *game, int row, int col, int val) {
 			game->board->cells[row][col].value = val;
 			game->board->cells[row][col].userInput = false;
 		}
-		if (game->mode == solve) {
+		if (game->mode == solveMode) {
 			checkIfBoardSolved(game);
 		}
 		else if (!isValidOption(game, ind, val, true)) {
@@ -401,7 +401,7 @@ void saveGame(Game* game, char* path) {
 		printErrorMode(initMode);
 		return;
 	}
-	if (game->mode == edit) {
+	if (game->mode == editMode) {
 		if (game->board->erroneous) {
 			printErroneousBoardError();
 			return;
@@ -414,7 +414,7 @@ void saveGame(Game* game, char* path) {
 	value = 0;
 	boardSize = n * m;
 	fprintf(fp, "%d %d\n", m, n);
-	if (game->mode == edit) {
+	if (game->mode == editMode) {
 		regCellFormat = "%d. ";
 		lastCellFormat = "%d.\n";
 	}
@@ -526,7 +526,7 @@ void autofillCommand(Game* game) {
 	index ind;
 	bool res;
 	linkedList* move;
-	if (game->mode == solve) {
+	if (game->mode == solveMode) {
 		move = initializeLinkedList();
 		bool errornous = isBoardErroneous(game->board);
 		if (errornous == true) {
