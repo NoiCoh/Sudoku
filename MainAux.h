@@ -11,7 +11,7 @@ typedef struct {
 	int m;
 }blocksize;
 
-typedef enum modes { editMode, solveMode, initMode };
+typedef enum { editMode, solveMode, initMode } modes;
 
 typedef struct cell {
 	int value;
@@ -66,7 +66,7 @@ typedef enum {
 
 void printCommandSyntax(Command c, int maxVal);
 
-int argsNum(char* move);
+int argsNum(char* move[]);
 
 int isFloat(char* num);
 
@@ -80,31 +80,31 @@ int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
 
 int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal);
 
-int validateSolve(char* move);
+int validateSolve(char* move[]);
 
-int validateEdit(char* move);
+int validateEdit(char* move[]);
 
-int validateMarkErrors(char* move, Game* game);
+int validateMarkErrors(char* move[], Game* game);
 
-int validatePrintBoard(char* move, Game* game);
+int validatePrintBoard(char* move[], Game* game);
 
-int validateSet(char* move, Game* game);
+int validateSet(char* move[], Game* game);
 
-int validateValidate(char* move, Game* game);
+int validateValidate(char* move[], Game* game);
 
-int validateGuess(char* move, Game* game);
+int validateGuess(char* move[], Game* game);
 
-int validateGenerate(char* move, Game* game);
+int validateGenerate(char* move[], Game* game);
 
-int validateSave(char* move, Game* game);
+int validateSave(char* move[], Game* game);
 
-int validateUndoAndRedo(char* move, Game* game, int isUndo);
+int validateUndoAndRedo(char* move[], Game* game, int isUndo);
 
-int validateHintAndGuessHint(char* move, Game* game, int isHint);
+int validateHintAndGuessHint(char* move[], Game* game, int isHint);
 
-int validateAutofill(char* move, Game* game);
+int validateAutofill(char* move[], Game* game);
 
-int validateNumSolAndExitAndReset(char* move, Game* game, Command c);
+int validateNumSolAndExitAndReset(char* move[], Game* game, Command c);
 
 void printExtraParams();
 

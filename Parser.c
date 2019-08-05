@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <string.h>
+
 
 
 /**
@@ -157,7 +157,7 @@ void checkString(Game* game, char* move[]) {
 		}
 		else if ((strcmp(move[0], "guess_hint") == 0)) {
 			if (validateHintAndGuessHint(move, game, 0)) {
-				guessHintCommand(game, atoi(move[1]), atoi(move[2]));
+				guessHintCommand(game, move[1], move[2]);
 			}
 			printBoard(game);
 		}
@@ -180,7 +180,7 @@ void checkString(Game* game, char* move[]) {
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "exit") == 0) {
-		if (validateNumSolAndExitAndReset(move, game, exit)) {
+		if (validateNumSolAndExitAndReset(move, game, exitCommand)) {
 			exiting(game);
 		}
 		printBoard(game);

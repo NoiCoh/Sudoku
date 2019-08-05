@@ -104,9 +104,9 @@ void editCommand(char* path, Game* game) {
 */
 void markErrorsCommand( char* input, Game* game, int maxNum) {
 
-		if (strcmp(input, '1') == 0) {
+		if (strcmp(input, '1') == '1') {
 			game->markErrors = true;
-		}else if (strcmp(input, '0') == 0) {
+		}else if (strcmp(input, '0') == '0') {
 			game->markErrors = false;
 		}
 		else {
@@ -398,7 +398,7 @@ void saveGame(Game* game, char* path) {
 	char* regCellFormat;
 	char* lastCellFormat;
 	if (game->mode == initMode) {
-		printErrorMode(initMode);
+		printErrorMode("init");
 		return;
 	}
 	if (game->mode == editMode) {
