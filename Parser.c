@@ -3,25 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <string.h>
 
-blocksize getBoardSize() {
-	int n, m, ok;
-	blocksize block;
-	n = 0;
-	m = 0;
-	printf("Please enter the block's size:\n");
-	ok = scanf("%d %d", &n, &m);
-	checkEOF();
-	if (ok < 2) {
-		printf("Error: not a number\n");
-		printf("Exiting...\n");
-		exit(1);
-	}
-	block.m = m;
-	block.n = n;
-	return block;
-}
+
 
 /**
  * The game starts by asking the user to enter the number of cells to fill.
@@ -94,11 +77,7 @@ void readUser(Game* game) {
  * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
  */
 void checkString(Game* game, char* move[]) {
-	int row, col, val, x, n, m, N;
-	N = 0;  // just for now, Inbal please fix this
-//	m = game->board->blocksize.m;
-//	n = game->board->blocksize.n;
-//	N = m * n;
+	int row, col, val;
 	if (move[0] != NULL) {
 		if (strcmp(move[0], "solve") == 0) {
 			if (validateSolve(move)) {
@@ -146,7 +125,7 @@ void checkString(Game* game, char* move[]) {
 			printBoard(game);
 		}
 		else if ((strcmp(move[0], "generate") == 0)) {
-			if (validateGenerate(move, game, N)) {
+			if (validateGenerate(move, game)) {
 				generateCammand(game, atoi(move[1]), atoi(move[2]));
 			}
 			printBoard(game);
@@ -171,65 +150,44 @@ void checkString(Game* game, char* move[]) {
 			printBoard(game);
 		}
 		else if ((strcmp(move[0], "hint") == 0)) {
-			if (validateHintAndGuessHint(move, game, N, 1)) {
+			if (validateHintAndGuessHint(move, game, 1)) {
 				hintCommand(game, atoi(move[1]), atoi(move[2]));
 			}
 			printBoard(game);
 		}
 		else if ((strcmp(move[0], "guess_hint") == 0)) {
-			if (validateHintAndGuessHint(move, game, N, 0)) {
-				guessHintCommand(game, atoi(move[1]), atoi(move[2]));
+			if (validateHintAndGuessHint(move, game, 0)) {
+				guessHintCommand(game, move[1], move[2]);
 			}
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "autofill") == 0) {
-			if (move[1] != NULL) {
-				printExtraParams();
-				printCommandSyntax(autofill, 0);
-				printBoard(game);
-			}
-			else {
+			if (validateAutofill(move,game)){
 				autofillCommand(game);
-				printBoard(game);
 			}
+			printBoard(game);
 		}
 		else if (strcmp(move[0], "num_solutions") == 0) {
-			if (move[1] != NULL) {
-				printExtraParams();
-				printCommandSyntax(num_solutions, 0);
-				printBoard(game);
-			}
-			else {
+			if (validateNumSolAndExitAndReset(move,game,num_solutions)){
 				numSolution(game);
-				printBoard(game);
 			}
+				printBoard(game);
 		}
 		else if ((strcmp(move[0], "reset") == 0)) {
-			if (move[1] != NULL) {
-				printExtraParams();
-				printCommandSyntax(reset, 0);
-				printBoard(game);
-			}
-			else {
+			if (validateNumSolAndExitAndReset(move, game, reset)) {
 				resetCommand(game);
-				printBoard(game);
 			}
+			printBoard(game);
 		}
 		else if (strcmp(move[0], "exit") == 0) {
-			if (move[1] != NULL) {
-				printExtraParams();
-				printCommandSyntax(exitCommand, 0);
-				printBoard(game);
-			}
-			else {
-				exiting(game);
-				printBoard(game);
-			}
+		if (validateNumSolAndExitAndReset(move, game, exitCommand)) {
+			exiting(game);
 		}
-
-		else {
-			printf("Error: invalid command\n");
+		printBoard(game);
 		}
+	}
+	else {
+		printf("Error: invalid command\n");
 	}
 }
 

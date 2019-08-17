@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include "Game.h"
+#include <string.h>
 
 /**
  * The game starts by asking the user to enter the number of cells to fill.
@@ -30,11 +31,6 @@ void checkString(Game * game,char* move[]);
  * restart the game by starting over with the initialization procedure.
  */
 void restart();
-
-bool isValidSet(char* x, char* y, char* z, Game* game);
-bool isValidInput(char* x, char* y, int minValue, int maxValue);
-bool isInRange(int value, int max, int min);
-bool isfloatInRange(char* num);
 
 
 #endif

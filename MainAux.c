@@ -1,7 +1,7 @@
 #include "MainAux.h"
 
 void printExtraParams() {
-	printf("Error: Too many parameter");
+	printf("Error: Too many parameters");
 }
 
 void printlegalRange(char* param, char* type,int minNum,int maxNum) {
@@ -100,6 +100,7 @@ Game* initializeGame() {
 	if (!game) {
 		funcFailed("malloc");
 	}
+	game->board = NULL;
 	game->userMoves=initializeDoublyLinkedList();
 	game->curMove = NULL;
 	game->mode = initMode;
@@ -430,7 +431,7 @@ int isInRange(int value, int max, int min)
 	}
 }
 
-int validateSolve(char* move) {
+int validateSolve(char* move[]) {
 	int paramsNum, checkparamsnum;
 	paramsNum= argsNum(move);
 	checkparamsnum = checkParamsNum(2, paramsNum, solve, 0);
@@ -452,7 +453,7 @@ int validateEdit(char** move) {
 	return 1;
 }
 
-int validateMarkErrors(char* move,Game* game) {
+int validateMarkErrors(char* move[],Game* game) {
 	int paramsNum, checkparamsnum;
 	if (game->mode != solveMode) {
 		if (game->mode == editMode) {
@@ -471,7 +472,7 @@ int validateMarkErrors(char* move,Game* game) {
 	return 1;
 }
 
-int validatePrintBoard(char* move, Game* game) {
+int validatePrintBoard(char* move[], Game* game) {
 	int paramsNum, checkparamsnum;
 	if (game->mode == initMode) {
 		printErrorMode("init");
@@ -485,7 +486,7 @@ int validatePrintBoard(char* move, Game* game) {
 	return 1;
 }
 
-int validateSet(char* move,Game* game) {
+int validateSet(char* move[],Game* game) {
 	int paramsNum, checkparamsnum,n,m,maxValue;
 	n = game->board->blocksize.n;
 	m = game->board->blocksize.m;
@@ -529,7 +530,7 @@ int isValidSetParams(char* x, char* y, char* z, Game* game) {
 	return 1;
 }
 
-int validateValidate(char* move, Game* game) {
+int validateValidate(char* move[], Game* game) {
 	int paramsNum, checkparamsnum;
 	if (game->mode == initMode) {
 		printErrorMode("init");
@@ -543,7 +544,7 @@ int validateValidate(char* move, Game* game) {
 	return 1;
 }
 
-int validateGuess(char* move,Game* game) {
+int validateGuess(char* move[],Game* game) {
 	int paramsNum, checkparamsnum,x;
 	if (game->mode != solveMode) {
 		if (game->mode == editMode) {
@@ -573,8 +574,11 @@ int validateGuess(char* move,Game* game) {
 	return 1;
 }
 
-int validateGenerate(char* move, Game* game, int N) {
-	int paramsNum, checkparamsnum;
+int validateGenerate(char* move[], Game* game) {
+	int paramsNum, checkparamsnum, n, m, N;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	N = m * n;
 	if (game->mode != editMode) {
 		if (game->mode == solveMode) {
 			printErrorMode("solve");
@@ -610,7 +614,7 @@ int isValidTwoParams(char* x, char* y, int minValue, int maxValue) {
 	return 1;
 }
 
-int validateUndoAndRedo(char* move, Game* game, int isUndo) {
+int validateUndoAndRedo(char* move[], Game* game, int isUndo) {
 	int paramsNum, checkparamsnum;
 	if (game->mode == initMode) {
 		printErrorMode("init");
@@ -629,7 +633,7 @@ int validateUndoAndRedo(char* move, Game* game, int isUndo) {
 	return 1;
 }
 
-int validateSave(char* move, Game* game) {
+int validateSave(char* move[], Game* game) {
 	int paramsNum, checkparamsnum;
 	if (game->mode == initMode) {
 		printErrorMode("init");
@@ -643,9 +647,11 @@ int validateSave(char* move, Game* game) {
 	return 1;
 }
 
-int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint) {
-	int paramsNum, checkparamsnum;
-
+int validateHintAndGuessHint(char* move[], Game* game, int isHint) {
+	int paramsNum, checkparamsnum, n, m, maxValue;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	maxValue = m * n;
 	if (game->mode != solveMode) {
 		if (game->mode == editMode) {
 			printErrorMode("edit");
@@ -671,8 +677,45 @@ int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint) {
 	return 1;
 }
 
-int validateAutofill(char* move, Game* game) {
-	
+int validateAutofill(char* move[], Game* game) {
+	int paramsNum, checkparamsnum;
+	if (game->mode != solveMode) {
+		if (game->mode == editMode) {
+			printErrorMode("edit");
+		}
+		else {
+			printErrorMode("init");
+		}
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	checkparamsnum = checkParamsNum(1, paramsNum, autofill, 0);
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
+}
+
+int validateNumSolAndExitAndReset(char* move[], Game* game, Command c) {
+	int paramsNum, checkparamsnum;
+	if (game->mode == initMode) {
+		printErrorMode("init");
+		return 0;
+	}
+	paramsNum = argsNum(move);
+	if (c == num_solutions) {
+		checkparamsnum = checkParamsNum(1, paramsNum, num_solutions, 0);
+	}
+	else if (c == exitCommand) {
+		checkparamsnum = checkParamsNum(1, paramsNum, exitCommand, 0);
+	}
+	else if (c == reset) {
+		checkparamsnum = checkParamsNum(1, paramsNum, reset, 0);
+	}
+	if (!checkparamsnum) {
+		return 0;
+	}
+	return 1;
 }
 
 void markErroneous(Game* game) {

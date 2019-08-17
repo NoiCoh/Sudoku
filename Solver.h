@@ -21,7 +21,7 @@ SudokuSolved goBackRand(Game* game, index ind);
  * the function checks if the board is solvable. if the board is solvable return solved,
  * else return unsolved.
  */
-SudokuSolved deterministicBacktracking(Game* game);
+SudokuSolved deterministicBacktracking(Game* game, int N);
 
 /**
  * the function chooses a random value from the options array of a specific cell.
@@ -82,7 +82,19 @@ bool IsThereEmptyCell(Board* board,int N);
  */
 index FindEmptyCell(Board* board,int N);
 
+/**
+ * the deterministic algorithm to solve a Sudoku board with a stack implementation
+ */
+SudokuSolved deterministicBacktrackingWithStack(Game* game, int N);
+
+ /**
+  * count the number of solutions of the current board using backtracking algorithm.
+  */
 int exhaustiveBacktracking(Game* game, int N);
+
+/**
+ * an auxiliary function that finds the previous cell index
+ */
 void pre(int* i, int* j, int N);
 
 #endif
