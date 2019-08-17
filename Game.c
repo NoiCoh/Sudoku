@@ -40,6 +40,7 @@ Board* getUserBoard(Game* game, char* path) {
 	ptr = fopen(path, "r");
 	if (ptr == NULL) {
 		printf("Error: File cannot be opened\n");
+		return NULL;
 	}
 	else {
 		block.m = fgetc(ptr) - '0';
@@ -48,7 +49,7 @@ Board* getUserBoard(Game* game, char* path) {
 		boardSize = block.n * block.m;
 		if (boardSize > 99) {
 			printf("Error: Block size is too big\n");
-			return game->board;
+			return NULL;
 		}
 		game->board = initialize(block);
 		game->board->blocksize.m = block.m;
@@ -63,6 +64,7 @@ Board* getUserBoard(Game* game, char* path) {
 			}
 		}
 	}
+	markErroneous(game);
 	fclose(ptr);
 	return game->board;
 }
@@ -109,44 +111,47 @@ void printCommand(Game* game) {
  * the function prints -"Error: value is invalid"
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
-int setCommand(Game *game, int row, int col, int val) {
-	int prevVal,N;
+int setCommand(Game* game, int row, int col, int val) {
+	int prevVal, N, solved;
 	index ind;
 	linkedList* move;
 	ind.col = col;
 	ind.row = row;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	prevVal = game->board->cells[row][col].value;
-	
+	if (game->mode == solveMode) {
+		if (game->board->cells[row][col].fixed == true) {
+			printf("Error: cell is fixed\n");
+			return 0;
+		}
+	}
+	if (val == 0) {
+		if (game->board->cells[row][col].error == true) {
+			game->board->cells[row][col].error = false;
+		}
+		game->board->cells[row][col].userInput = false;
+	}
+	else {
 		if (game->mode == solveMode) {
-			if (game->board->cells[row][col].fixed == true) {
-				printf("Error: cell is fixed\n");
-				return 0;
+			solved = checkIfBoardSolved(game);
+			if (solved == 1) {
+				return 1;
 			}
 		}
-		if (val == 0) {
-			if (game->board->cells[row][col].error == true) {
-				game->board->cells[row][col].error = false;
-				isValidOption(game, ind, prevVal, false);
-				game->board->erroneous = isBoardErroneous(game->board);
-			}
-			game->board->cells[row][col].value = val;
-			game->board->cells[row][col].userInput = false;
-		}
-		if (game->mode == solveMode) {
-			checkIfBoardSolved(game);
-		}
-		else if (!isValidOption(game, ind, val, true)) {
+		if (!isValidOption(game, ind, val, true)) {
 			game->board->cells[row][col].error = true;
 			game->board->erroneous = true;
+		}else {
+			game->board->cells[row][col].error = false;
+			game->board->erroneous = isBoardErroneous(game->board);
 		}
-		game->board->cells[row][col].value = val;
 		game->board->cells[row][col].userInput = true;
-		move = initializeLinkedList();
-		insertLast(move, row, col, val, prevVal);
-		addMove(game, move);
-		return 1;
-	
+	}
+	game->board->cells[row][col].value = val;
+	move = initializeLinkedList();
+	insertLast(move, row, col, val, prevVal);
+	addMove(game, move);
+	return 1;
 }
 
 /**
@@ -287,7 +292,6 @@ void generateCammand(Game* game, int x, int y) {
 		if (y == N) { /* check if the board solved */
 			makeCopyBoard(game->board, newBoard); /*all values in solved board is chosen for the new board*/
 			printf("Puzzle solved successfully\n");
-			game->board->solved = true;
 			UpdateGame(game, game->board, initMode);
 		}
 		else {

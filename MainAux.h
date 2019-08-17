@@ -23,7 +23,6 @@ typedef struct cell {
 } Cell;
 
 typedef struct Board {
-	bool solved;
 	Cell** cells;
 	bool erroneous;
 	blocksize blocksize;
@@ -113,7 +112,7 @@ void printErroneousBoardError();
 
 Board* createDefaultBoard();
 
-void checkIfBoardSolved(Game* game);
+int checkIfBoardSolved(Game* game);
 
 Game* initializeGame();
 
@@ -173,5 +172,7 @@ double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValu
 int getRandIndex(int numOflegalValues, double* scores);
 
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard);
+
+void markErroneous(Game* game);
 
 #endif

@@ -1,15 +1,15 @@
 #include "MainAux.h"
 
 void printExtraParams() {
-	printf("Error: Too many parameters");
+	printf("Error: Too many parameters.\n");
 }
 
 void printlegalRange(char* param, char* type,int minNum,int maxNum) {
-	printf("Error:The %s parameter should be %s in range [%d-%d]",param,type,minNum, maxNum);
+	printf("Error:The %s parameter should be %s in range [%d-%d].\n",param,type,minNum, maxNum);
 }
 
 void printErrorMode(char* mode) {
-	printf("Error: This command is unavailable in %s mode\n",mode);
+	printf("Error: This command is unavailable in %s mode.\n",mode);
 }
 
 void printWelcome() {
@@ -17,7 +17,7 @@ void printWelcome() {
 }
 
 void printErroneousBoardError() {
-	printf("Error: The board is erroneous\n");
+	printf("Error: The board is erroneous!\n");
 }
 
 void printNTimes(int n) {
@@ -37,17 +37,18 @@ Board* createDefaultBoard(){
 	return board;
 }
 
-void checkIfBoardSolved(Game* game) {
+int checkIfBoardSolved(Game* game) {
 	int N;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	if (!IsThereEmptyCell(game->board, N)) {
 		if (game->board->erroneous == true) {
 			printErroneousBoardError();
+			return 0;
 		}
 		else {
-			printf("Puzzle solved successfully\n");
-			game->board->solved = true;
-			UpdateGame(game, game->board, initMode);
+			printf("Puzzle solved successfully!\n");
+			UpdateGame(game, NULL , initMode);
+			return 1;
 		}
 	}
 }
@@ -89,7 +90,6 @@ Board* initialize(blocksize block) {
 	}
 	board->erroneous = false;
 	board->cells = arrayBoard;
-	board->solved = false;
 	board->blocksize.m = block.m;
 	board->blocksize.n = block.n;
 	return board;
@@ -108,8 +108,7 @@ Game* initializeGame() {
 	return game;
 }
 
-void UpdateGame(Game* game, Board *userBoard, enum modes mode)
-{
+void UpdateGame(Game* game, Board *userBoard, enum modes mode){
 	game->mode = mode;
 	game->board = userBoard;
 }
@@ -119,38 +118,40 @@ void UpdateGame(Game* game, Board *userBoard, enum modes mode)
  * Prints the current state of @param board
  */
 void printBoard(Game* game) {
-	int i, j, val, size, m, n;
-	n = game->board->blocksize.n;
-	m = game->board->blocksize.m;
-	size = n * m;
-	for (i = 0; i < size; i++) {
-		if (i % m == 0) {
-			printNTimes(4 * size + m + 1);
-		}
-		for (j = 0; j < size; j++) {
-			if (j % n == 0) {
-				printf("|");
+	if (game->board != NULL) {
+		int i, j, val, size, m, n;
+		n = game->board->blocksize.n;
+		m = game->board->blocksize.m;
+		size = n * m;
+		for (i = 0; i < size; i++) {
+			if (i % m == 0) {
+				printNTimes(4 * size + m + 1);
 			}
-			val = game->board->cells[i][j].value;
-			if (val == 0) {
-				printf("    ");
-			}
-			else {
-				printf(" %2d", val);
-				if (game->board->cells[i][j].fixed == true) {
-					printf(".");
+			for (j = 0; j < size; j++) {
+				if (j % n == 0) {
+					printf("|");
 				}
-				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == editMode))) {
-					printf("*");
+				val = game->board->cells[i][j].value;
+				if (val == 0) {
+					printf("    ");
 				}
 				else {
-					printf(" ");
+					printf(" %2d", val);
+					if (game->board->cells[i][j].fixed == true) {
+						printf(".");
+					}
+					else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == editMode))) {
+						printf("*");
+					}
+					else {
+						printf(" ");
+					}
 				}
 			}
+			printf("|\n");
 		}
-		printf("|\n");
+		printNTimes(4 * size + m + 1);
 	}
-	printNTimes(4 * size + m + 1);
 }
 
 /**
@@ -308,17 +309,17 @@ linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
 
 void printCommandSyntax(Command c, int maxVal) {
 	if (c == solve) {
-		printf("The correct syntax for solve command is: solve x .\n X should include a full or relative path to the file\n");
+		printf("The correct syntax for solve command is: solve x.\nx should include a full or relative path to the file.\n");
 	}
 	if (c == edit) {
-		printf("The correct syntax for edit command is: edit x.\n X should include a full or relative path to the file\
-and this parameter is optional. If no parameter is supplied, the default board is an empty 9X9 board\n");
+		printf("The correct syntax for edit command is: edit x.\nx should include a full or relative path to the file \
+and this parameter is optional.\n If no parameter is supplied, the default board is an empty 9X9 board\n");
 	}
 	if (c == mark_errors) {
-		printf("The correct syntax for mark_errors command is: mark_errors x.\n X should be either 0 or 1\n");
+		printf("The correct syntax for mark_errors command is: mark_errors x.\n X should be either 0 or 1.\n");
 	}
 	if (c == print_board) {
-		printf("The correct syntax for print_board command: print_board (with no extra parameters)\n");
+		printf("The correct syntax for print_board command: print_board (with no extra parameters).\n");
 	}
 	if (c == set) {
 		printf("The correct syntax for set command: set x y z.\n (sets the value of cell<x,y> to z).\n");
@@ -326,20 +327,20 @@ and this parameter is optional. If no parameter is supplied, the default board i
 		printf("Z is an integer between 0 to %d.\n", maxVal);
 	}
 	if (c == validate) {
-		printf("The correct syntax for validate command:validate (with no extra parameters)\n");
+		printf("The correct syntax for validate command:validate (with no extra parameters).\n");
 	}
 	if (c == guess) {
-		printf("The correct syntax for guess command:guess x.\n X should be a float in range [0-1]\n");
+		printf("The correct syntax for guess command:guess x.\n X should be a float in range [0-1].\n");
 	}
 	if (c == generate) {
-		printf("The correct syntax for generate command:generate x y.\n ");
+		printf("The correct syntax for generate command:generate x y.\n");
 		printf("X and y are integers between 0 to %d.\n", maxVal);
 	}
 	if (c == undo) {
-		printf("The correct syntax for undo command:undo (with no extra parameters)\n");
+		printf("The correct syntax for undo command:undo (with no extra parameters).\n");
 	}
 	if (c == redo) {
-		printf("The correct syntax for redo command:redo (with no extra parameters)\n");
+		printf("The correct syntax for redo command:redo (with no extra parameters).\n");
 	}
 	if (c == save) {
 		printf("The correct syntax for save command is: save x.\n X includes a full or relative path to the file.\n");
@@ -353,16 +354,16 @@ and this parameter is optional. If no parameter is supplied, the default board i
 		printf("X and y are integers between 1 to %d.\n", maxVal);
 	}
 	if (c == num_solutions) {
-		printf("The correct syntax for num_solutions command:num_solutions (with no extra parameters)\n");
+		printf("The correct syntax for num_solutions command:num_solutions (with no extra parameters).\n");
 	}
 	if (c == autofill) {
-		printf("The correct syntax for autofill command:autofill (with no extra parameters)\n");
+		printf("The correct syntax for autofill command:autofill (with no extra parameters).\n");
 	}
 	if (c == reset) {
-		printf("The correct syntax for reset command:reset (with no extra parameters)\n");
+		printf("The correct syntax for reset command:reset (with no extra parameters).\n");
 	}
 	if (c == exitCommand) {
-		printf("The correct syntax for exit command:exit (with no extra parameters)\n");
+		printf("The correct syntax for exit command:exit (with no extra parameters).\n");
 	}
 
 }
@@ -383,10 +384,10 @@ int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal) {
 		return 1;
 	}
 	if (paramsNum < validNum) {
-		printf("Error: Not enough parameters were entered");
+		printf("Error: Not enough parameters were entered.\n");
 	}
 	else if (paramsNum > validNum) {
-		printf("Error: Extra parameters were entered");
+		printf("Error: Extra parameters were entered.\n");
 	}
 
 	printCommandSyntax(c, maxVal);
@@ -446,7 +447,7 @@ int validateEdit(char** move) {
 	paramsNum = argsNum(move);
 
 	if (paramsNum>2) {
-		printf("Error: Extra parameters were entered");
+		printf("Error: Extra parameters were entered.\n");
 		printCommandSyntax(edit, 0);
 		return 0;
 	}
@@ -719,15 +720,18 @@ int validateNumSolAndExitAndReset(char* move[], Game* game, Command c) {
 }
 
 void markErroneous(Game* game) {
-	int i, j, n, m;
+	int i, j, n, m, val;
 	index ind;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; i++) {
-			ind.row = i;
-			ind.col = j;
-			isValidOption(game, ind, game->board->cells[i][j].value, true);
+	for (i = 0; i < m*n; i++) {
+		for (j = 0; j < m*n; j++) {
+			val = game->board->cells[i][j].value;
+			if (val != 0) {
+				ind.row = i;
+				ind.col = j;
+				isValidOption(game, ind, val , true);
+			}
 		}
 	}
 }

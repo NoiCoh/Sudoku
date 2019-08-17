@@ -112,9 +112,12 @@ void findOptionsCell(Game* game,index ind){
  * (for example,when setting a cell to zero).
  */
 bool isValidOption(Game* game,index ind,int value, bool mark ){
+	bool checkBox, checkRowCol;
     index box;
     box= findBoxIndex(game, ind);
-    if (checkInRowAndCol(game,ind,value,mark) && checkInBox(game,box,value, mark)){
+	checkBox = checkInBox(game, box, ind, value, mark);
+	checkRowCol = checkInRowAndCol(game, ind, value, mark);
+    if (checkBox && checkRowCol){
         return true;
     }
     return false;
@@ -127,27 +130,29 @@ index findBoxIndex(Game* game,index ind){
     index boxIndex;
     m=game->board->blocksize.m;
     n=game->board->blocksize.n;
-    boxIndex.col= ind.col - ind.col%m;
-    boxIndex.row= ind.row - ind.row%n;
+    boxIndex.col= ind.col - ind.col%n;
+    boxIndex.row= ind.row - ind.row%m;
     return boxIndex;
 }
 /**
  * the function checks if the @param value is in the block starting at @param index block. if mark=true , 
  * the function marks errornous cells in the same block.
  */
-bool checkInBox(Game* game,index box,int value, bool mark){
+bool checkInBox(Game* game,index box,index ind,int value, bool mark){
     int i,j,valBox, m,n;
     bool res;
     res=true;
     m=game->board->blocksize.m;
     n=game->board->blocksize.n;
-    for (i= 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            valBox= game->board->cells[box.row + i][ box.col + j].value;
-            if ( valBox==value) {
-                res = false;
-                game->board->cells[box.row + i][ box.col + j].error=mark;
-            }
+    for (i= 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+			if ((box.row + i) != ind.row && (box.col + j) != ind.col) {
+				valBox = game->board->cells[box.row + i][box.col + j].value;
+				if (valBox == value) {
+					res = false;
+					game->board->cells[box.row + i][box.col + j].error = mark;
+				}
+			}
         }
     }
     return res;
@@ -164,16 +169,20 @@ bool checkInRowAndCol(Game* game,index index, int value,bool mark){
     m=game->board->blocksize.m;
     n=game->board->blocksize.n;
     for(i=0; i<n*m; i++){
-        valCol=game->board->cells[i][index.col].value;
-        valRow=game->board->cells[index.row][i].value;
-        if(valRow==value){
-            res= false;
-            game->board->cells[index.row][i].error=mark;
-        }
-        if(valCol==value){
-            res= false;
-            game->board->cells[i][index.col].error=mark;
-        }
+		if (i != index.row) {
+			valCol = game->board->cells[i][index.col].value;
+			if (valCol == value) {
+				res = false;
+				game->board->cells[i][index.col].error = mark;
+			}
+		}
+		if (i != index.col) {
+			valRow = game->board->cells[index.row][i].value;
+			if (valRow == value) {
+				res = false;
+				game->board->cells[index.row][i].error = mark;
+			}
+		}        
     }
     return res;
 }

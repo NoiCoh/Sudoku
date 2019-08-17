@@ -52,7 +52,7 @@ index findBoxIndex(Game* game, index index);
  * the function checks if the @param value is in the block starting at @param index block. if mark=true ,
  * the function marks errornous cells in the same block.
  */
-bool checkInBox(Game* game,index box,int value,bool mark);
+bool checkInBox(Game* game,index box, index ind, int value,bool mark);
 
 /**
  * the function check if @param value is in the same row and column.
