@@ -84,7 +84,7 @@ void readUser(Game* game) {
 		i++;
 		move[i] = strtok(NULL, delimiter);
 	}
-	checkString(game, move);
+	checkString(game, &move);
 	fflush(stdin);
 }
 

@@ -41,7 +41,6 @@ typedef struct Game {
 	enum modes mode;
 	bool markErrors;
 	Board* board;
-	FILE* ptr;
 }Game;
 
 typedef enum {

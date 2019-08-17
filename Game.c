@@ -34,56 +34,36 @@ void solveCommand(char* path, Game* game) {
 * upload board from path
 */
 Board* getUserBoard(Game* game, char* path) {
-	int j, i, k, x, boardSize;
+	int i, j, boardSize, num;
+	FILE* ptr;
 	blocksize block;
-	char** input;
-	char* row;
-	const char *delim = " \n";
-	i = 0;
-	k = 0;
-	game->ptr = fopen(path, "r");
-	if (game->ptr == NULL) {
+	ptr = fopen(path, "r");
+	if (ptr == NULL) {
 		printf("Error: File cannot be opened\n");
 	}
 	else {
-		block.m = fgetc(game->ptr) - '0';
-		fgetc(game->ptr);
-		block.n = fgetc(game->ptr) - '0';
+		block.m = fgetc(ptr) - '0';
+		fgetc(ptr);
+		block.n = fgetc(ptr) - '0';
 		boardSize = block.n * block.m;
+		if (boardSize > 99) {
+			printf("Error: Block size is too big\n");
+			return game->board;
+		}
 		game->board = initialize(block);
 		game->board->blocksize.m = block.m;
 		game->board->blocksize.n = block.n;
-		input = calloc(boardSize, sizeof(char*));
-		if (!input) {
-			funcFailed("calloc");
-		}
-		row = calloc(4096, sizeof(char));
-		if (!row) {
-			funcFailed("calloc");
-		}
-		fgets(row, 4096, game->ptr);
-		while (fgets(row, 4096, game->ptr) != NULL && *row != '\n' && i < boardSize) {
-			input[k] = strtok(row, delim);
-			while (input[k] != NULL) {
-				k++;
-				input[k] = strtok(NULL, delim);
-			}
+		for (i = 0; i < boardSize; i++) {
 			for (j = 0; j < boardSize; j++) {
-				if (strlen(input[j]) == 1) {
-					x = atoi(input[j]);
-					game->board->cells[i][j].value = x;
-				}
-				else {
-					input[j][1] = '\0';
-					x = atoi(input[j]);
-					game->board->cells[i][j].value = x;
-					game->board->cells[i][j].fixed = true;
+				fscanf(ptr, "%d", &num);
+				game->board->cells[i][j].value = num;
+				if (fgetc(ptr) == '.') {
+					game->board->cells[i][j].fixed = 1;
 				}
 			}
-			i++;
-			k = 0;
 		}
 	}
+	fclose(ptr);
 	return game->board;
 }
 
@@ -102,17 +82,16 @@ void editCommand(char* path, Game* game) {
 /*
 * the function response to "mark_errors" command, the x parameter is 1 for display mark errors in the board and 0 otherwise.
 */
-void markErrorsCommand( char* input, Game* game, int maxNum) {
-
-		if (strcmp(input, '1') == 0) {
-			game->markErrors = true;
-		}else if (strcmp(input, '0') == 0) {
-			game->markErrors = false;
-		}
-		else {
-			printlegalRange("first", "integer", 0, 1);
-		}
-	
+void markErrorsCommand(char* input, Game* game, int maxNum) {
+	if (strcmp(input, '1') == 0) {
+		game->markErrors = true;
+	}
+	else if (strcmp(input, '0') == 0) {
+		game->markErrors = false;
+	}
+	else {
+		printlegalRange("first", "integer", 0, 1);
+	}
 }
 
 /*
@@ -595,7 +574,6 @@ void resetCommand(Game* game) {
 void exiting(Game* game) {
 	printf("Exiting...\n");
 	freeBoard(game->board);
-	fclose(game->ptr);
 	exit(0);
 
 }

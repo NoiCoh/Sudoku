@@ -117,38 +117,40 @@ void UpdateGame(Game* game, Board *userBoard, enum modes mode)
 /**
  * Prints the current state of @param board
  */
-/**void printBoard(Game* game) {
-    int i, j, val, size, m, n;
-    n = game->board->blocksize.n;
-    m = game->board->blocksize.m;
-    size = n * m;
-    for (i = 0; i < size; i++) {
-        if (i % n == 0) {
-            printNTimes(4*size+m+1);
-        }
-        for (j = 0; j < size; j++) {
-            if (j % m == 0) {
-                printf("|");
-            }
-            val = game->board->cells[i][j].value;
-            if (val == 0) {
-                printf("    ");
-            } else {
-                printf(" %2d", val);
-                if (game->board->cells[i][j].fixed == true) {
-                    printf(".");
-                } else if ((game->board->cells[i][j].error == true)&&((game->markErrors==true)||(game->mode==edit ))){
-                    printf("*");
-                } else {
-                    printf(" ");
-                }
-            }
-        }
-        printf("|\n");
-    }
-    printNTimes(4*size+m+1);
+void printBoard(Game* game) {
+	int i, j, val, size, m, n;
+	n = game->board->blocksize.n;
+	m = game->board->blocksize.m;
+	size = n * m;
+	for (i = 0; i < size; i++) {
+		if (i % m == 0) {
+			printNTimes(4 * size + m + 1);
+		}
+		for (j = 0; j < size; j++) {
+			if (j % n == 0) {
+				printf("|");
+			}
+			val = game->board->cells[i][j].value;
+			if (val == 0) {
+				printf("    ");
+			}
+			else {
+				printf(" %2d", val);
+				if (game->board->cells[i][j].fixed == true) {
+					printf(".");
+				}
+				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == editMode))) {
+					printf("*");
+				}
+				else {
+					printf(" ");
+				}
+			}
+		}
+		printf("|\n");
+	}
+	printNTimes(4 * size + m + 1);
 }
-*/
 
 /**
  * Make a deep copy of @param board to @param copyBorad.
@@ -311,65 +313,66 @@ void printCommandSyntax(Command c, int maxVal) {
 		printf("The correct syntax for edit command is: edit x.\n X should include a full or relative path to the file\
 and this parameter is optional. If no parameter is supplied, the default board is an empty 9X9 board\n");
 	}
-	if (c = mark_errors) {
+	if (c == mark_errors) {
 		printf("The correct syntax for mark_errors command is: mark_errors x.\n X should be either 0 or 1\n");
 	}
-	if (c = print_board) {
+	if (c == print_board) {
 		printf("The correct syntax for print_board command: print_board (with no extra parameters)\n");
 	}
-	if (c = set) {
+	if (c == set) {
 		printf("The correct syntax for set command: set x y z.\n (sets the value of cell<x,y> to z).\n");
 		printf("X and y are integers between 1 to %d.\n", maxVal);
 		printf("Z is an integer between 0 to %d.\n", maxVal);
 	}
-	if (c = validate) {
+	if (c == validate) {
 		printf("The correct syntax for validate command:validate (with no extra parameters)\n");
 	}
-	if (c = guess) {
+	if (c == guess) {
 		printf("The correct syntax for guess command:guess x.\n X should be a float in range [0-1]\n");
 	}
-	if (c = generate) {
+	if (c == generate) {
 		printf("The correct syntax for generate command:generate x y.\n ");
 		printf("X and y are integers between 0 to %d.\n", maxVal);
 	}
-	if (c = undo) {
+	if (c == undo) {
 		printf("The correct syntax for undo command:undo (with no extra parameters)\n");
 	}
-	if (c = redo) {
+	if (c == redo) {
 		printf("The correct syntax for redo command:redo (with no extra parameters)\n");
 	}
-	if (c = save) {
+	if (c == save) {
 		printf("The correct syntax for save command is: save x.\n X includes a full or relative path to the file.\n");
 	}
-	if (c = hint) {
+	if (c == hint) {
 		printf("The correct syntax for hint command is: hint x y\n");
 		printf("X and y are integers between 1 to %d.\n", maxVal);
 	}
-	if (c = guess_hint) {
+	if (c == guess_hint) {
 		printf("The correct syntax for guess_hint command is: guess_hint x y\n");
 		printf("X and y are integers between 1 to %d.\n", maxVal);
 	}
-	if (c = num_solutions) {
+	if (c == num_solutions) {
 		printf("The correct syntax for num_solutions command:num_solutions (with no extra parameters)\n");
 	}
-	if (c = autofill) {
+	if (c == autofill) {
 		printf("The correct syntax for autofill command:autofill (with no extra parameters)\n");
 	}
-	if (c = reset) {
+	if (c == reset) {
 		printf("The correct syntax for reset command:reset (with no extra parameters)\n");
 	}
-	if (c = exitCommand) {
+	if (c == exitCommand) {
 		printf("The correct syntax for exit command:exit (with no extra parameters)\n");
 	}
 
 }
 
-int argsNum(char* move) {
+int argsNum(char** move) {
 	int cnt, i;
 	cnt= 0;
 	i = 0;
 	while (move[i] != NULL) {
 		cnt++;
+		i++;
 	}
 	return cnt;
 }
@@ -437,7 +440,7 @@ int validateSolve(char* move) {
 	return 1;
 }
 
-int validateEdit(char* move) {
+int validateEdit(char** move) {
 	int paramsNum;
 	paramsNum = argsNum(move);
 
@@ -670,5 +673,19 @@ int validateHintAndGuessHint(char* move, Game* game, int maxValue, int isHint) {
 
 int validateAutofill(char* move, Game* game) {
 	
+}
+
+void markErroneous(Game* game) {
+	int i, j, n, m;
+	index ind;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	for (i = 0; i < m; i++) {
+		for (j = 0; j < n; i++) {
+			ind.row = i;
+			ind.col = j;
+			isValidOption(game, ind, game->board->cells[i][j].value, true);
+		}
+	}
 }
 

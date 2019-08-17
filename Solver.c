@@ -247,41 +247,6 @@ index FindEmptyCell(Board* board,int N){
     return i;
 }
 
-void printBoard(Game* game) {
-	int i, j, val, size, m, n;
-	n = game->board->blocksize.n;
-	m = game->board->blocksize.m;
-	size = n * m;
-	for (i = 0; i < size; i++) {
-		if (i % n == 0) {
-			printNTimes(4 * size + m + 1);
-		}
-		for (j = 0; j < size; j++) {
-			if (j % m == 0) {
-				printf("|");
-			}
-			val = game->board->cells[i][j].value;
-			if (val == 0) {
-				printf("    ");
-			}
-			else {
-				printf(" %2d", val);
-				if (game->board->cells[i][j].fixed == true) {
-					printf(".");
-				}
-				else if ((game->board->cells[i][j].error == true) && ((game->markErrors == true) || (game->mode == editMode))) {
-					printf("*");
-				}
-				else {
-					printf(" ");
-				}
-			}
-		}
-		printf("|\n");
-	}
-	printNTimes(4 * size + m + 1);
-}
-
 /**
  * the deterministic recursive algorithm to solve a Sudoku board.
  * the function checks if the board is solvable. if the board is solvable return solved,
