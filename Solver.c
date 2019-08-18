@@ -105,87 +105,7 @@ void findOptionsCell(Game* game,index ind){
     }
     game->board->cells[ind.row][ind.col].optionsSize=count;
 }
-/**
- * the function checks if @param value is in the same row ,column and box of the cell in @param index.
- * if so returns false. else, returns true.
- * if mark=true we mark erroneous cells, if mark=false we unmark erroneous cells
- * (for example,when setting a cell to zero).
- */
-bool isValidOption(Game* game,index ind,int value, bool mark ){
-	bool checkBox, checkRowCol;
-    index box;
-    box= findBoxIndex(game, ind);
-	checkBox = checkInBox(game, box, ind, value, mark);
-	checkRowCol = checkInRowAndCol(game, ind, value, mark);
-    if (checkBox && checkRowCol){
-        return true;
-    }
-    return false;
-}
-/**
- * the function finds the starting cell index of the the block that @param index belongs to.
- */
-index findBoxIndex(Game* game,index ind){
-    int m,n;
-    index boxIndex;
-    m=game->board->blocksize.m;
-    n=game->board->blocksize.n;
-    boxIndex.col= ind.col - ind.col%n;
-    boxIndex.row= ind.row - ind.row%m;
-    return boxIndex;
-}
-/**
- * the function checks if the @param value is in the block starting at @param index block. if mark=true , 
- * the function marks errornous cells in the same block.
- */
-bool checkInBox(Game* game,index box,index ind,int value, bool mark){
-    int i,j,valBox, m,n;
-    bool res;
-    res=true;
-    m=game->board->blocksize.m;
-    n=game->board->blocksize.n;
-    for (i= 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-			if ((box.row + i) != ind.row && (box.col + j) != ind.col) {
-				valBox = game->board->cells[box.row + i][box.col + j].value;
-				if (valBox == value) {
-					res = false;
-					game->board->cells[box.row + i][box.col + j].error = mark;
-				}
-			}
-        }
-    }
-    return res;
-}
-/**
- * the function check if @param value is in the same row and column.
- *  if so returns false. else, returns true. if mark=true , 
- *  the function marks errornous cells in the same row and column.
- */
-bool checkInRowAndCol(Game* game,index index, int value,bool mark){
-    int valRow, valCol, i, n,m;
-    bool res;
-    res=true;
-    m=game->board->blocksize.m;
-    n=game->board->blocksize.n;
-    for(i=0; i<n*m; i++){
-		if (i != index.row) {
-			valCol = game->board->cells[i][index.col].value;
-			if (valCol == value) {
-				res = false;
-				game->board->cells[i][index.col].error = mark;
-			}
-		}
-		if (i != index.col) {
-			valRow = game->board->cells[index.row][i].value;
-			if (valRow == value) {
-				res = false;
-				game->board->cells[index.row][i].error = mark;
-			}
-		}        
-    }
-    return res;
-}
+
 /**
  * the function checks the size of the options array for a specific cell.
  */
@@ -220,22 +140,7 @@ void removeZeroFromOptions(Board* board, index ind) {
     }
 }
 
-/**
- * the function checks if there is an empty cell in the board.
- * if so, returns true. else, returns false.
- */
-bool IsThereEmptyCell(Board* board,int N){
-    int row;
-    int col;
-    for(row=0; row < N; row++) {
-		for (col = 0; col < N; col++) {
-            if (board->cells[row][col].value==0) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
+
 /**
  * the function returns the index of the first empty cell.
  */

@@ -84,11 +84,11 @@ void editCommand(char* path, Game* game) {
 /*
 * the function response to "mark_errors" command, the x parameter is 1 for display mark errors in the board and 0 otherwise.
 */
-void markErrorsCommand(char* input, Game* game, int maxNum) {
-	if (strcmp(input, '1') == 0) {
+void markErrorsCommand(char* input, Game* game) {
+	if (strcmp(input, "1") == 0) {
 		game->markErrors = true;
 	}
-	else if (strcmp(input, '0') == 0) {
+	else if (strcmp(input, "0") == 0) {
 		game->markErrors = false;
 	}
 	else {
@@ -112,12 +112,11 @@ void printCommand(Game* game) {
  * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
  */
 int setCommand(Game* game, int row, int col, int val) {
-	int prevVal, N, solved;
+	int prevVal, solved;
 	index ind;
 	linkedList* move;
 	ind.col = col;
 	ind.row = row;
-	N = game->board->blocksize.m * game->board->blocksize.n;
 	prevVal = game->board->cells[row][col].value;
 	if (game->mode == solveMode) {
 		if (game->board->cells[row][col].fixed == true) {
@@ -494,8 +493,8 @@ void guessHintCommand(Game* game, char* x, char* y) {
 
 int numSolution(Game* game) {
 	int count,N;
-	count= 0;
 	Board* copyBoard;
+	count= 0;
 	copyBoard = initialize(game->board->blocksize);
 	makeCopyBoard(game->board, copyBoard);
 	N = game->board->blocksize.m * game->board->blocksize.n;

@@ -26,7 +26,7 @@ void editCommand(char* path, Game* game);
 /*
 * the function response to "mark_errors" command, the x parameter is 1 for display mark errors in the board and 0 otherwise.
 */
-void markErrorsCommand(char* input, Game* game, int maxNum);
+void markErrorsCommand(char* input, Game* game);
 
 /*
 * the function response to "print_board" command and prints the board.

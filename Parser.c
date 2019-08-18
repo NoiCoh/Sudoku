@@ -47,7 +47,6 @@ void readUser(Game* game) {
 	char ch, input[256], * move[256], delimiter[] = " \t\r\n";
 	int i;
 	i = 0;
-	//fflush(stdin);
 	printf("Enter your command:\n");
 	while ((ch = fgetc(stdin)) != '\n') {
 		if (i > 256) {
@@ -67,7 +66,7 @@ void readUser(Game* game) {
 		i++;
 		move[i] = strtok(NULL, delimiter);
 	}
-	checkString(game, &move);
+	checkString(game, move);
 	fflush(stdin);
 }
 
@@ -93,7 +92,7 @@ void checkString(Game* game, char* move[]) {
 		}
 		else if (strcmp(move[0], "mark_errors") == 0) {
 			if (validateMarkErrors(move, game)) {
-				markErrorsCommand(move[1], game, 1);
+				markErrorsCommand(move[1], game);
 			}
 			printBoard(game);
 		}
@@ -151,7 +150,7 @@ void checkString(Game* game, char* move[]) {
 		}
 		else if ((strcmp(move[0], "hint") == 0)) {
 			if (validateHintAndGuessHint(move, game, 1)) {
-				hintCommand(game, atoi(move[1]), atoi(move[2]));
+				hintCommand(game, move[1], move[2]);
 			}
 			printBoard(game);
 		}

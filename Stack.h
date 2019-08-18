@@ -8,11 +8,13 @@ typedef struct {
 	int row;
 }index;
 
-typedef struct {
+typedef struct cellMem cellMem;
+
+struct cellMem {
 	index ix;
 	int val;
-	struct cellMem* next;
-}cellMem;
+	cellMem* next;
+};
 
 typedef struct {
 	cellMem* top;
