@@ -114,8 +114,8 @@ void checkString(Game* game, char* move[]) {
 		else if ((strcmp(move[0], "validate") == 0)) {
 			if (validateValidate(move, game)) {
 				validateCommand(game);
+				printBoard(game);
 			}
-			printBoard(game);
 		}
 		else if ((strcmp(move[0], "guess") == 0)) {
 			if (validateGuess(move, game)) {
@@ -179,14 +179,13 @@ void checkString(Game* game, char* move[]) {
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "exit") == 0) {
-		if (validateNumSolAndExitAndReset(move, game, exitCommand)) {
-			exiting(game);
+			if (validateNumSolAndExitAndReset(move, game, exitCommand)) {
+				exiting(game);
+			}
 		}
-		printBoard(game);
-		}
-	}
-	else {
+		else {
 		printf("Error: invalid command\n");
+		}
 	}
 }
 

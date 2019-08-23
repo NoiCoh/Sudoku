@@ -20,6 +20,7 @@ typedef struct cell {
 	bool userInput;
 	int* options;
 	int optionsSize;
+	int* ixMap;
 } Cell;
 
 typedef struct Board {
@@ -30,8 +31,7 @@ typedef struct Board {
 
 typedef struct {
 	int solvable;
-	Board* solBoard;
-	double*** scores;
+	double* solBoard;
 }LPsol;
 
 typedef struct Game {
@@ -68,7 +68,9 @@ int argsNum(char* move[]);
 
 int isFloat(char* num);
 
-int isNum(char* move);
+int isNums(char* move);
+
+int isNum(char move);
 
 void printlegalRange(char* type, char* param, int minNum, int maxNum);
 
@@ -167,7 +169,7 @@ int FindHowMuchEmptyCells(Game* game);
 
 int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues);
 
-double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues);
+double* getScoresOfLegalValue(Game* game,LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues);
 
 int getRandIndex(int numOflegalValues, double* scores);
 

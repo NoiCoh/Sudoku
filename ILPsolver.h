@@ -3,23 +3,21 @@
 #include "gurobi_c.h"
 #include "Solver.h"
 
-LPsol* LPsolver(Game* game, bool intSol);
-
-LPsol* initLpSol();
+LPsol* LPsolver(Game* game, bool integarSol);
 
 int initLpVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype, double* objective);
 
-void initObjective(double* objective, int varsNum, bool intSol);
+void initObjective(double* objective, int varsNum, bool integarSol);
 
 void initVals(double* val, int N);
 
 void initInd(int* ind, int N);
 
-void initVtype(int N, char* vType);
+void initVtype(int varNums, char* vType);
 
 void initSol(int N, double* sol);
 
-int initVars(GRBenv* env, GRBmodel* model, int N, char* vtype);
+int initVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype);
 
 int getVarsNum(int N, Game* game);
 
@@ -47,7 +45,7 @@ int thirdConstraint(Game* game, GRBenv* env, GRBmodel* model, int N, int* ind, d
 /**
 each value appears once in every block
 **/
-int forthConstraint(GRBenv* env, GRBmodel* model, int N, int n, int m, int* ind, double* val);
+int forthConstraint(Game* game,GRBenv* env, GRBmodel* model, int N, int n, int m, int* ind, double* val);
 
 /**
 fixed cells are already known
@@ -65,8 +63,6 @@ int optimizeStatus(GRBenv* env, GRBmodel* model, int optimstatus);
 /* get the solution - the assignment to each variable
  * sol is 3D matrix that includes the cell's score*/
 int getSol(GRBenv* env, GRBmodel* model, int optimstatus, int varsNum, double* sol);
-
-void updateBoard(Board* solBoard, double* sol, int N);
 
 void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol, double* objective);
 #endif 

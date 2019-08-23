@@ -5,7 +5,11 @@ void printExtraParams() {
 }
 
 void printlegalRange(char* param, char* type,int minNum,int maxNum) {
-	printf("Error:The %s parameter should be %s in range [%d-%d].\n",param,type,minNum, maxNum);
+	printf("Error: The %s parameter should be %s in range [%d-%d].\n",param,type,minNum, maxNum);
+}
+
+void printBoardNotInit() {
+	printf("Error: Board is not initilize\n");
 }
 
 void printErrorMode(char* mode) {
@@ -79,8 +83,12 @@ Board* initialize(blocksize block) {
 			arrayBoard[i][j].error = false;
 			arrayBoard[i][j].userInput = false;
 			arrayBoard[i][j].optionsSize = 0;
-			arrayBoard[i][j].options = calloc(sizeOfRow, sizeof(int));
+			arrayBoard[i][j].options = (int *)calloc(sizeOfRow, sizeof(int));
+			arrayBoard[i][j].ixMap = (int *)calloc(sizeOfRow, sizeof(int));
 			if (!arrayBoard[i][j].options) {
+				funcFailed("calloc");
+			}
+			if (!arrayBoard[i][j].ixMap) {
 				funcFailed("calloc");
 			}
 		}
@@ -97,7 +105,7 @@ Board* initialize(blocksize block) {
 }
 
 Game* initializeGame() {
-	Game* game = malloc(sizeof(Game));
+	Game* game = (Game *)malloc(sizeof(Game));
 	if (!game) {
 		funcFailed("malloc");
 	}
@@ -230,32 +238,38 @@ int FindHowMuchEmptyCells(Game* game) {
 }
 
 int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, int* legalValues) {
-	int numOflegalValues, N, val;
+	int numOflegalValues, N, val, ix;
 	index ind;
 	numOflegalValues = 0;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	ind.col = col;
 	ind.row = row;
-	for (val = 0; val < N; val++) {
-		if (lpSol->scores[row][col][val] >= threshold) {
-			if (isValidOption(game, ind, val, false)) {
-				legalValues[numOflegalValues++] = val;
+	for (val = 1; val <= N; val++) {
+		ix = game->board->cells[row][col].ixMap[val - 1] - 1;
+		if (ix >= 0) {
+			if (lpSol->solBoard[ix] >= threshold) {
+				if (isValidOption(game, ind, val, false)) {
+					legalValues[numOflegalValues++] = val;
+				}
 			}
 		}
 	}
 	return numOflegalValues;
 }
 
-double* getScoresOfLegalValue(LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues) {
-	int i, val;
+double* getScoresOfLegalValue(Game* game, LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues) {
+	int i, val, ix;
 	double* scores;
-	scores = malloc(numOflegalValues * sizeof(float));
+	scores = malloc(numOflegalValues * sizeof(double));
 	if (!scores) {
 		funcFailed("malloc");
 	}
 	for (i = 0; i < numOflegalValues; i++) {
 		val = legalValues[i];
-		scores[i] = lpsol->scores[row][col][val];
+		if (val > 0) {
+			ix = game->board->cells[row][col].ixMap[val - 1] - 1;
+			scores[i] = lpsol->solBoard[ix];
+		}
 	}
 	return scores;
 }
@@ -323,9 +337,9 @@ and this parameter is optional.\n If no parameter is supplied, the default board
 		printf("The correct syntax for print_board command: print_board (with no extra parameters).\n");
 	}
 	if (c == set) {
-		printf("The correct syntax for set command: set x y z.\n (sets the value of cell<x,y> to z).\n");
-		printf("X and y are integers between 1 to %d.\n", maxVal);
-		printf("Z is an integer between 0 to %d.\n", maxVal);
+		printf("The correct syntax for set command: set x y z (sets the value of cell<x,y> to z).\n");
+		printf("x and y are integers between 1 to %d.\n", maxVal);
+		printf("z is an integer between 0 to %d.\n", maxVal);
 	}
 	if (c == validate) {
 		printf("The correct syntax for validate command:validate (with no extra parameters).\n");
@@ -397,26 +411,25 @@ int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal) {
 }
 
 int isFloat(char* num) {
-	int i, flag;
-	i = 1;
-	flag = 0;
-	while (num[i++] != '\0') {
-		if ((!isNum(&num[i])) && (!num[i] == '.')) {
+	int i;
+	i = 0;
+	while (num[i] != '\0') {
+		if (!(isNum(num[i]) || (num[i] == '.'))) {
 			return 0;
 		}
-		if (num[i] == '.') {
-			flag++;
-		}
-	}if (flag == 1) {
+		i++;
+	}
+	if(num[0] == '0' && num[1] == '.'){
 		return 1;
 	}
 	return 0;
 }
 
-int isNum(char* move) {
-	int i = 0;
+int isNums(char* move) {
+	int i;
+	i = 0;
 	while (move[i] != '\0') {
-		if (!(move[i] >= '0' && move[i] <= '9')) {
+		if (isNum(move[i]) == 0) {
 			return 0;
 		}
 		i++;
@@ -424,8 +437,14 @@ int isNum(char* move) {
 	return 1;
 }
 
-int isInRange(int value, int max, int min)
-{
+int isNum(char c) {
+	if (c >= '0' && c <= '9') {
+		return 1;
+	}
+	return 0;
+}
+
+int isInRange(int value, int max, int min) {
 	if (value <= max && value >= min){
 		return 1;
 	}
@@ -515,18 +534,15 @@ int isValidSetParams(char* x, char* y, char* z, Game* game) {
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	maxValue = n * m;
-	if (!isNum(x) && isInRange(atoi(x), maxValue, 1))
-	{
+	if (! (isNums(x)  && isInRange(atoi(x), maxValue, 1))) {
 		printlegalRange("first", "integer", 1, maxValue);
 		return 0;
 	}
-	if (!isNum(y) && isInRange(atoi(y), maxValue, 1))
-	{
+	if (!(isNums(y) && isInRange(atoi(y), maxValue, 1))) {
 		printlegalRange("second", "integer", 1, maxValue);
 		return 0;
 	}
-	if (!isNum(z) && isInRange(atoi(z), maxValue, 0))
-	{
+	if (!(isNums(z) && isInRange(atoi(z), maxValue, 0))) {
 		printlegalRange("third", "integer", 0, maxValue);
 		return 0;
 	}
@@ -539,6 +555,10 @@ int validateValidate(char* move[], Game* game) {
 		printErrorMode("init");
 		return 0;
 	}
+	if (game->board == NULL) {
+		printBoardNotInit();
+		return 0;
+	}
 	paramsNum = argsNum(move);
 	checkparamsnum = checkParamsNum(1, paramsNum, validate, 0);
 	if (!checkparamsnum) {
@@ -548,7 +568,7 @@ int validateValidate(char* move[], Game* game) {
 }
 
 int validateGuess(char* move[],Game* game) {
-	int paramsNum, checkparamsnum,x;
+	int paramsNum, checkparamsnum, x;
 	if (game->mode != solveMode) {
 		if (game->mode == editMode) {
 			printErrorMode("edit");
@@ -604,12 +624,12 @@ int validateGenerate(char* move[], Game* game) {
 }
 
 int isValidTwoParams(char* x, char* y, int minValue, int maxValue) {
-	if (!isNum(x) && isInRange(atoi(x), maxValue, minValue))
+	if (!isNums(x) && isInRange(atoi(x), maxValue, minValue))
 	{
 		printlegalRange("first", "integer", minValue, maxValue);
 		return 0;
 	}
-	if (!isNum(y) && isInRange(atoi(y), maxValue, minValue))
+	if (!isNums(y) && isInRange(atoi(y), maxValue, minValue))
 	{
 		printlegalRange("second", "integer", minValue, maxValue);
 		return 0;
@@ -666,10 +686,10 @@ int validateHintAndGuessHint(char* move[], Game* game, int isHint) {
 	}
 	paramsNum = argsNum(move);
 	if (isHint) {
-		checkparamsnum = checkParamsNum(2, paramsNum, hint, maxValue);
+		checkparamsnum = checkParamsNum(3, paramsNum, hint, maxValue);
 	}
 	else {
-		checkparamsnum = checkParamsNum(2, paramsNum, guess_hint, maxValue);
+		checkparamsnum = checkParamsNum(3, paramsNum, guess_hint, maxValue);
 	}
 	if (!checkparamsnum) {
 		return 0;
@@ -723,6 +743,7 @@ int validateNumSolAndExitAndReset(char* move[], Game* game, Command c) {
 
 void markErroneous(Game* game) {
 	int i, j, n, m, val;
+	bool check;
 	index ind;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
@@ -732,7 +753,10 @@ void markErroneous(Game* game) {
 			if (val != 0) {
 				ind.row = i;
 				ind.col = j;
-				isValidOption(game, ind, val , true);
+				check = isValidOption(game, ind, val , true);
+				if (check == true) {
+					game->board->cells[i][j].error = false;
+				}
 			}
 		}
 	}
@@ -795,12 +819,13 @@ bool checkInBox(Game* game, index box, index ind, int value, bool mark) {
 	n = game->board->blocksize.n;
 	for (i = 0; i < m; i++) {
 		for (j = 0; j < n; j++) {
-			if ((box.row + i) != ind.row && (box.col + j) != ind.col) {
-				valBox = game->board->cells[box.row + i][box.col + j].value;
-				if (valBox == value) {
-					res = false;
-					game->board->cells[box.row + i][box.col + j].error = mark;
-				}
+			if (((box.row + i) == ind.row) && ((box.col + j) == ind.col)) {
+				continue;
+			}
+			valBox = game->board->cells[box.row + i][box.col + j].value;
+			if (valBox == value) {
+				res = false;
+				game->board->cells[box.row + i][box.col + j].error = mark;
 			}
 		}
 	}
