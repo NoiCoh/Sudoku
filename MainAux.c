@@ -237,18 +237,19 @@ int FindHowMuchEmptyCells(Game* game) {
 	return count;
 }
 
-int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, int* legalValues) {
+int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, int* legalValues, double* scores){
 	int numOflegalValues, N, val, ix;
 	index ind;
 	numOflegalValues = 0;
 	N = game->board->blocksize.m * game->board->blocksize.n;
-	ind.col = col;
 	ind.row = row;
+	ind.col = col;
 	for (val = 1; val <= N; val++) {
 		ix = game->board->cells[row][col].ixMap[val - 1] - 1;
 		if (ix >= 0) {
 			if (lpSol->solBoard[ix] >= threshold) {
 				if (isValidOption(game, ind, val, false)) {
+					scores[numOflegalValues] = lpSol->solBoard[ix];
 					legalValues[numOflegalValues++] = val;
 				}
 			}
@@ -257,43 +258,27 @@ int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, in
 	return numOflegalValues;
 }
 
-double* getScoresOfLegalValue(Game* game, LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues) {
-	int i, val, ix;
-	double* scores;
-	scores = malloc(numOflegalValues * sizeof(double));
-	if (!scores) {
-		funcFailed("malloc");
-	}
-	for (i = 0; i < numOflegalValues; i++) {
-		val = legalValues[i];
-		if (val > 0) {
-			ix = game->board->cells[row][col].ixMap[val - 1] - 1;
-			scores[i] = lpsol->solBoard[ix];
-		}
-	}
-	return scores;
-}
-
 int getRandIndex(int numOflegalValues, double* scores) {
 	int i;
 	double random;
 	float sum, accumulative;
 	accumulative = 0;
 	sum = 0;
-	if (numOflegalValues == 1) {
+	if (numOflegalValues == 1) { /* Only one legal value, so we chose it */
 		return 0;
 	}
 	for (i = 0; i < numOflegalValues; i++) {
 		sum += scores[i];
 	}
+
 	if (sum == 0) { /* all scores equal to zero then pick randomly */
 		random = rand() % numOflegalValues;
 		return random;
 	}
-	for (i = 0; i < numOflegalValues; i++) {/* make score's sum equal to 1 */
+	for (i = 0; i < numOflegalValues; i++) {
 		scores[i] = scores[i] / sum;
 	}
-	random = (double)rand() / (float)(RAND_MAX)+1; /* random must be in range [0,1] */
+	random = ((double)rand()) / ((float)(RAND_MAX)+1) ; /* random must be in range [0,1] */
 
 	for (i = 0; i < numOflegalValues; i++) { 
 		accumulative += scores[i]; 

@@ -295,7 +295,7 @@ int firstConstraint(Game* game, GRBenv *env, GRBmodel *model, int N, int* ind, d
 				findOptionsCell(game, ix);
 				nums = game->board->cells[i][j].optionsSize;
 				if (nums == 0) {
-					printf("Error:No legal value for cell <%d,%d>/n", i + 1, j + 1);
+					printf("Error: No legal value for cell <%d,%d> \n", i + 1, j + 1);
 					return 1;
 				}
 				for (k = 0; k < nums; k++) {

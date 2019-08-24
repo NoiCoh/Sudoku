@@ -184,9 +184,7 @@ int validateCommand(Game* game) {
 * if the board is erroneous the function prints error and the command is not executed.
 */
 int guessCommand(Game* game, float threshold) {
-	int i, j, N, numOflegalValues, * legalValues, randIndex,newVal;
-	index ind;
-	bool checkValid;
+	int i, j, N, numOflegalValues, * legalValues, randIndex, newVal, k;
 	linkedList* move;
 	LPsol* sol;
 	double* scores;
@@ -205,37 +203,35 @@ int guessCommand(Game* game, float threshold) {
 	if (!legalValues) { /* check if malloc succeseed */
 		funcFailed("malloc");
 	}
+	scores = malloc(N * sizeof(double));
+	if (!scores) { /* check if malloc succeseed */
+		funcFailed("malloc");
+	}
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
-			checkValid = false;
 			newVal = 0;
 			if (game->board->cells[i][j].value != 0) {
 				continue;
 			}
-			ind.col = j;
-			ind.row = i;
 			/* get valid options for cell without erroneous*/
-			numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues); 
-			while (!checkValid) {
-				if (numOflegalValues == 0) { /* if there is no option avaliable for this cell, continue*/
-					newVal = 0;
-					break;
-				}
-				scores = getScoresOfLegalValue(game, sol, i, j, numOflegalValues, legalValues);
-				if (legalValues != NULL) {
-					randIndex = getRandIndex(numOflegalValues, scores);
-					newVal = legalValues[randIndex];
-					checkValid = isValidOption(game, ind, newVal, false);
-					legalValues[randIndex] = 0;
-					numOflegalValues--;
-				}
+			numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues, scores); 
+
+			if (numOflegalValues == 0) { /* if there is no option avaliable for this cell, continue*/
+				newVal = 0;
+				continue;
 			}
-			setValue(game, i, j, newVal);
+
+			if (legalValues != NULL) {
+				randIndex = getRandIndex(numOflegalValues, scores);
+				newVal = legalValues[randIndex];
+			}
+			setValue(game, j, i, newVal);
 			insertLast(move, i, j, newVal, 0);
 		}
 	}
 	checkIfBoardSolved(game);
 	free(legalValues);
+	free(scores);
 	if (move->size > 0) {
 		addMove(game, move);
 	}

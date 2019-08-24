@@ -167,9 +167,7 @@ Count how many empty cells in board's game
 **/
 int FindHowMuchEmptyCells(Game* game);
 
-int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues);
-
-double* getScoresOfLegalValue(Game* game,LPsol* lpsol, int row, int col, int numOflegalValues, int* legalValues);
+int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues, double* scores);
 
 int getRandIndex(int numOflegalValues, double* scores);
 
