@@ -216,6 +216,7 @@ SudokuSolved deterministicBacktrackingWithStack(Game* game, int N) {
 			prevCellMem = pop(&stack); /* previous index we handle in the stack */
 			game->board->cells[prevCellMem->ix.row][prevCellMem->ix.col].value = 0; 
 			val = prevCellMem->val;
+			val = val + 1;
 		}
 	}
 	return solved;

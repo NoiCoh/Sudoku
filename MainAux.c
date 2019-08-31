@@ -1,11 +1,8 @@
 #include "MainAux.h"
 
-void printExtraParams() {
-	printf("Error: Too many parameters.\n");
-}
-
-void printlegalRange(char* param, char* type,int minNum,int maxNum) {
-	printf("Error: The %s parameter should be %s in range [%d-%d].\n",param,type,minNum, maxNum);
+/*------------------------Error printing------------------------*/
+void printlegalRange(char* param, char* type, int minNum, int maxNum) {
+	printf("Error: The %s parameter should be %s in range [%d-%d].\n", param, type, minNum, maxNum);
 }
 
 void printBoardNotInit() {
@@ -13,17 +10,25 @@ void printBoardNotInit() {
 }
 
 void printErrorMode(char* mode) {
-	printf("Error: This command is unavailable in %s mode.\n",mode);
-}
-
-void printWelcome() {
-	printf("Welcome to N&I Sudoku Game!\n");
+	printf("Error: This command is unavailable in %s mode.\n", mode);
 }
 
 void printErroneousBoardError() {
 	printf("Error: The board is erroneous!\n");
 }
 
+/**
+ * If a standard failure or memory error occurs (failure of malloc, scanf, etc.)
+ * the program prints "Error: <function-name> has failed" and exits.
+ */
+void funcFailed(char* str) {
+	printf("Error: %s has failed\n", str);
+	exit(0);
+}
+
+/*--------------------------------------------------------------*/
+
+/*an auxilary function for printing the board*/
 void printNTimes(int n) {
 	int i;
 	for (i = 0; i < n; i++) {
@@ -32,6 +37,7 @@ void printNTimes(int n) {
 	putchar('\n');
 }
 
+/*if the user' command is "edit" with no edditional parameter (path), the user gets an empty 9X9 board*/
 Board* createDefaultBoard(){
 	blocksize block;
 	Board* board;
@@ -41,6 +47,7 @@ Board* createDefaultBoard(){
 	return board;
 }
 
+/*if the board is solved, notify the user and enter init mode. else- notify that the board is errornous*/
 int checkIfBoardSolved(Game* game) {
 	int N;
 	N = game->board->blocksize.m * game->board->blocksize.n;
@@ -51,6 +58,7 @@ int checkIfBoardSolved(Game* game) {
 		}
 		else {
 			printf("Puzzle solved successfully!\n");
+			printBoard(game);
 			UpdateGame(game, NULL , initMode);
 			return 1;
 		}
@@ -104,6 +112,7 @@ Board* initialize(blocksize block) {
 	return board;
 }
 
+/*initialize struct game and allocate memory */
 Game* initializeGame() {
 	Game* game = (Game *)malloc(sizeof(Game));
 	if (!game) {
@@ -111,17 +120,18 @@ Game* initializeGame() {
 	}
 	game->board = NULL;
 	game->userMoves=initializeDoublyLinkedList();
-	game->curMove = NULL;
+	doublyInsertLast(game->userMoves, NULL);
+	game->curMove = game->userMoves->head;
 	game->mode = initMode;
 	game->markErrors = true;
 	return game;
 }
 
+/*update game's mode or board*/
 void UpdateGame(Game* game, Board *userBoard, modes mode){
 	game->mode = mode;
 	game->board = userBoard;
 }
-
 
 /**
  * Prints the current state of @param board
@@ -178,23 +188,17 @@ void makeCopyBoard(Board* board, Board* copyBorad) {
         }
     }
 }
+
 /**
- * If a standard failure or memory error occurs (failure of malloc, scanf, etc.)
- * the program prints "Error: <function-name> has failed" and exits.
- */
-void funcFailed(char* str){
-    printf("Error: %s has failed\n", str);
-    exit(0);
-}
-/**
- *check if board has cell that mark as erroneous
+ *check if board has a cell that marked as erroneous.
  */
 bool isBoardErroneous(Board* board){
-    int n,m,i,j;
+    int n,m,i,j,N;
     m=board->blocksize.m;
     n=board->blocksize.n;
-    for(i = 0; i < n; i++){
-        for (j = 0; j < m ; j++) {
+	N = m * n;
+    for(i = 0; i < N; i++){
+        for (j = 0; j < N ; j++) {
             if(board->cells[i][j].error==true){
                 return true;
             }
@@ -237,6 +241,7 @@ int FindHowMuchEmptyCells(Game* game) {
 	return count;
 }
 
+
 int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, int* legalValues, double* scores){
 	int numOflegalValues, N, val, ix;
 	index ind;
@@ -258,6 +263,7 @@ int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, in
 	return numOflegalValues;
 }
 
+/*weighted random selection from the scores array */
 int getRandIndex(int numOflegalValues, double* scores) {
 	int i;
 	double random;
@@ -289,6 +295,7 @@ int getRandIndex(int numOflegalValues, double* scores) {
 	return 0;
 }
 
+/*creates a linked list with all of the board's changes after calling "generate" command.*/
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
 	int i, j, row, col, newVal, prevVal;
 	linkedList* move;
@@ -307,6 +314,7 @@ linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
 	return move;
 }
 
+/*prints the correct syntaxt of a command*/
 void printCommandSyntax(Command c, int maxVal) {
 	if (c == solve) {
 		printf("The correct syntax for solve command is: solve x.\nx should include a full or relative path to the file.\n");
@@ -368,7 +376,8 @@ and this parameter is optional.\n If no parameter is supplied, the default board
 
 }
 
-int argsNum(char** move) {
+/*counts how many arguments the user entered while writing a command*/
+int argsNum(char* move[]) {
 	int cnt, i;
 	cnt= 0;
 	i = 0;
@@ -378,7 +387,8 @@ int argsNum(char** move) {
 	}
 	return cnt;
 }
-
+/*checks if the number of parameters that the user entered fits the syntax of the command.
+*if no, prints an error and notify the user the correct syntax of the command*/
 int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal) {
 	if (paramsNum == validNum) {
 		return 1;
@@ -395,6 +405,7 @@ int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal) {
 
 }
 
+/*checks if a the number's type is a float*/
 int isFloat(char* num) {
 	int i;
 	i = 0;
@@ -410,6 +421,15 @@ int isFloat(char* num) {
 	return 0;
 }
 
+/*checks if a digit is an integer in the range [0-9]*/
+int isNum(char c) {
+	if (c >= '0' && c <= '9') {
+		return 1;
+	}
+	return 0;
+}
+
+/*checks if a string @move is a number*/
 int isNums(char* move) {
 	int i;
 	i = 0;
@@ -422,13 +442,7 @@ int isNums(char* move) {
 	return 1;
 }
 
-int isNum(char c) {
-	if (c >= '0' && c <= '9') {
-		return 1;
-	}
-	return 0;
-}
-
+/*checks if the @value param is in the range [@min,@max]*/
 int isInRange(int value, int max, int min) {
 	if (value <= max && value >= min){
 		return 1;
@@ -437,7 +451,7 @@ int isInRange(int value, int max, int min) {
 		return 0;
 	}
 }
-
+/*-----validate the command's syntax, number of parameters, parameter's type and range-----*/
 int validateSolve(char* move[]) {
 	int paramsNum, checkparamsnum;
 	paramsNum= argsNum(move);
@@ -448,7 +462,7 @@ int validateSolve(char* move[]) {
 	return 1;
 }
 
-int validateEdit(char** move) {
+int validateEdit(char* move[]) {
 	int paramsNum;
 	paramsNum = argsNum(move);
 
@@ -494,14 +508,15 @@ int validatePrintBoard(char* move[], Game* game) {
 }
 
 int validateSet(char* move[],Game* game) {
-	int paramsNum, checkparamsnum,n,m,maxValue;
-	n = game->board->blocksize.n;
-	m = game->board->blocksize.m;
-	maxValue = n * m;
+	int paramsNum, checkparamsnum, n, m, maxValue;
 	if (game->mode == initMode) {
 		printErrorMode("init");
 		return 0;
-}
+	}
+	n = game->board->blocksize.n;
+	m = game->board->blocksize.m;
+	maxValue = n * m;
+
 	paramsNum = argsNum(move);
 	checkparamsnum = checkParamsNum(4, paramsNum, set, maxValue);
 	if (!checkparamsnum) {
@@ -725,8 +740,10 @@ int validateNumSolAndExitAndReset(char* move[], Game* game, Command c) {
 	}
 	return 1;
 }
+/*---------------------------------------------------------------------------------------*/
 
-void markErroneous(Game* game) {
+/*marks cells which are errornous*/
+void markErroneousCells(Game* game) {
 	int i, j, n, m, val;
 	bool check;
 	index ind;
@@ -741,6 +758,9 @@ void markErroneous(Game* game) {
 				check = isValidOption(game, ind, val , true);
 				if (check == true) {
 					game->board->cells[i][j].error = false;
+				}
+				if (check == false) {
+					game->board->cells[i][j].error = true;
 				}
 			}
 		}

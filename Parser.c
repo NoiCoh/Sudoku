@@ -5,43 +5,8 @@
 #include <ctype.h>
 
 
-
 /**
- * The game starts by asking the user to enter the number of cells to fill.
- * The user then enters a number between [0-80]. This is the number of "fixed" cells, cells with
- * values that never change throughout the game.
- */
-int getNumCells(blocksize block) {
-	int num, ok, m, n, N;
-	num = 0;
-	n = block.n;
-	m = block.m;
-	N = n * m;
-	printf("Please enter the number of cells to fill [0-%d]:\n", (N * N) - 1);
-	ok = scanf("%d", &num);
-	checkEOF();
-	num = checkVaild(num, N, block);
-	if (ok <= 0) {
-		printf("Error: not a number\n");
-		printf("Exiting...\n");
-		return 0;
-	}
-	return num;
-}
-
-/**
- * If the user enters an invalid number, the program prints an error message: "Error: invalid
- * number of cells to fill (should be between 0 and 80)", and lets the user try again.
- */
-int checkVaild(int num, int N, blocksize block) {
-	if (num > N || num < 0) {
-		printf("Error: invalid number of cells to fill (should be between 0 and %d)\n", N);
-		return getNumCells(block);
-	}
-	return num;
-}
-/**
- * the function wait for the user command.
+ * the function reads the user's command.
  */
 void readUser(Game* game) {
 	char ch, input[256], * move[256], delimiter[] = " \t\r\n";
@@ -70,13 +35,12 @@ void readUser(Game* game) {
 	fflush(stdin);
 }
 
-
 /**
- * The function checks the user's command and execute one of the following commands: set, hint, validate, restart and exit.
- * if the user enters a command that doesn't match any of the commands defined the program prints "Error: invalid command".
+ * The function checks the user's command. if it is a valid command, execute it. 
+ * if the user enters a command that doesn't match any of the commands defined,  the program prints an error.
  */
 void checkString(Game* game, char* move[]) {
-	int row, col, val;
+	int row, col, val ,res;
 	if (move[0] != NULL) {
 		if (strcmp(move[0], "solve") == 0) {
 			if (validateSolve(move)) {
@@ -107,9 +71,10 @@ void checkString(Game* game, char* move[]) {
 				row = atoi(move[1]) - 1;
 				col = atoi(move[2]) - 1;
 				val = atoi(move[3]);
-				setCommand(game, row, col, val);
+				setCommand(game, row, col, val,true);
+				printBoard(game);
 			}
-			printBoard(game);
+			
 		}
 		else if ((strcmp(move[0], "validate") == 0)) {
 			if (validateValidate(move, game)) {
@@ -125,13 +90,13 @@ void checkString(Game* game, char* move[]) {
 		}
 		else if ((strcmp(move[0], "generate") == 0)) {
 			if (validateGenerate(move, game)) {
-				generateCammand(game, atoi(move[1]), atoi(move[2]));
+				generateCommand(game, atoi(move[1]), atoi(move[2]));
 			}
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "undo") == 0) {
 			if (validateUndoAndRedo(move, game, 1)) {
-				undoCommand(game, false);
+				undoCommand(game,true);
 			}
 			printBoard(game);
 		}
@@ -173,6 +138,9 @@ void checkString(Game* game, char* move[]) {
 				printBoard(game);
 		}
 		else if ((strcmp(move[0], "reset") == 0)) {
+			if (game->curMove == game->userMoves->head) {
+				printf("The Board is already in its original loaded state\n");
+			}
 			if (validateNumSolAndExitAndReset(move, game, reset)) {
 				resetCommand(game);
 			}
@@ -194,19 +162,8 @@ void checkString(Game* game, char* move[]) {
  */
 void restart(){
 	Game *game;
-	printWelcome();
+	printf("Welcome to N&I Sudoku Game!\n");
 	game=initializeGame();
-    /*int num;
-    Board* SolutionBoard;
-    Board* userBoard;
-
-    blocksize block = getBoardSize();
-    SolutionBoard = initialize(block);
-    num = getNumCells(block);
-    RandBacktracking(SolutionBoard);
-    userBoard = makeUserBoard(SolutionBoard,num,block);
-    printBoard(userBoard);
-	*/
 	while (1) {
 		readUser(game);
 	}

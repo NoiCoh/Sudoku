@@ -7,6 +7,11 @@
 typedef enum { solved, unsolved } SudokuSolved;
 
 typedef struct {
+	int num;
+	int fixed;
+}data;
+
+typedef struct {
 	int n;
 	int m;
 }blocksize;
@@ -62,72 +67,43 @@ typedef enum {
 	exitCommand
 }Command;
 
-void printCommandSyntax(Command c, int maxVal);
-
-int argsNum(char* move[]);
-
-int isFloat(char* num);
-
-int isNums(char* move);
-
-int isNum(char move);
-
+/*------------------------Error printing------------------------*/
 void printlegalRange(char* type, char* param, int minNum, int maxNum);
 
-int isValidSetParams(char* x, char* y, char* z, Game* game);
-
-int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
-
-int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal);
-
-int validateSolve(char* move[]);
-
-int validateEdit(char* move[]);
-
-int validateMarkErrors(char* move[], Game* game);
-
-int validatePrintBoard(char* move[], Game* game);
-
-int validateSet(char* move[], Game* game);
-
-int validateValidate(char* move[], Game* game);
-
-int validateGuess(char* move[], Game* game);
-
-int validateGenerate(char* move[], Game* game);
-
-int validateSave(char* move[], Game* game);
-
-int validateUndoAndRedo(char* move[], Game* game, int isUndo);
-
-int validateHintAndGuessHint(char* move[], Game* game, int isHint);
-
-int validateAutofill(char* move[], Game* game);
-
-int validateNumSolAndExitAndReset(char* move[], Game* game, Command c);
-
-void printExtraParams();
+void printBoardNotInit();
 
 void printErrorMode(char* mode);
 
 void printErroneousBoardError();
 
+/**
+ * If a standard failure or memory error occurs (failure of malloc, scanf, etc.)
+ * the program prints "Error: <function-name> has failed" and exits.
+ */
+void funcFailed(char* str);
+
+/*--------------------------------------------------------------*/
+
+/*an auxilary function for printing the board*/
+void printNTimes(int n);
+
+/*if the user' command is "edit" with no edditional parameter (path), the user gets an empty 9X9 board*/
 Board* createDefaultBoard();
 
+/*if the board is solved, notify the user and enter init mode. else- notify that the board is errornous*/
 int checkIfBoardSolved(Game* game);
-
-Game* initializeGame();
-
-void UpdateGame(Game* game, Board *userBoard, modes mode);
-
-void printWelcome();
-
-void printNTimes(int n);
 
 /**
  * initialize board values and params to zero.
  */
 Board* initialize(blocksize block);
+
+/*initialize struct game and allocate memory */
+Game* initializeGame();
+
+
+/*updates game's mode or board*/
+void UpdateGame(Game* game, Board *userBoard, modes mode);
 
 /**
  * Prints the current state of @param board. if the markErrors parameter is true-
@@ -141,13 +117,7 @@ void printBoard(Game* game);
 void makeCopyBoard(Board* borad, Board* copyBorad);
 
 /**
- * If a standard failure or memory error occurs (failure of malloc, scanf, etc.)
- * the program prints "Error: <function-name> has failed" and exits.
- */
-void funcFailed(char* str);
-
-/**
- *check if board has a cell that marked as an error.
+ *check if board has a cell that marked as erroneous.
  */
 bool isBoardErroneous(Board* board);
 
@@ -155,7 +125,6 @@ bool isBoardErroneous(Board* board);
  *  If we reach EOF, the program prints "Exiting…" and terminates.
  */
 void checkEOF();
-
 
 /*
 * set value in board's game
@@ -169,11 +138,68 @@ int FindHowMuchEmptyCells(Game* game);
 
 int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues, double* scores);
 
+/*weighted random selection from the scores array */
 int getRandIndex(int numOflegalValues, double* scores);
 
+/*creates a linked list with all of the board's changes after calling "generate" command.*/
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard);
 
-void markErroneous(Game* game);
+/*prints the correct syntaxt of a command*/
+void printCommandSyntax(Command c, int maxVal);
+
+/*counts how many arguments the user entered while writing a command*/
+int argsNum(char* move[]);
+
+/*checks if the number of parameters that the user entered fits the syntax of the command.
+*if no, prints an error and notify the user the correct syntax of the command*/
+int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal);
+
+/*checks if a the number's type is a float*/
+int isFloat(char* num);
+
+/*checks if a digit is an integer in the range [0-9]*/
+int isNum(char move);
+
+/*checks if a string @move is a number*/
+int isNums(char* move);
+
+/*checks if the @value param is in the range [@min,@max]*/
+int isInRange(int value, int max, int min);
+
+/*-----validate the command's syntax, number of parameters, parameter's type and range-----*/
+int validateSolve(char* move[]);
+
+int validateEdit(char* move[]);
+
+int validateMarkErrors(char* move[], Game* game);
+
+int validatePrintBoard(char* move[], Game* game);
+
+int validateSet(char* move[], Game* game);
+
+int isValidSetParams(char* x, char* y, char* z, Game* game);
+
+int validateValidate(char* move[], Game* game);
+
+int validateGuess(char* move[], Game* game);
+
+int validateGenerate(char* move[], Game* game);
+
+int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
+
+int validateUndoAndRedo(char* move[], Game* game, int isUndo);
+
+int validateSave(char* move[], Game* game);
+
+int validateHintAndGuessHint(char* move[], Game* game, int isHint);
+
+int validateAutofill(char* move[], Game* game);
+
+int validateNumSolAndExitAndReset(char* move[], Game* game, Command c);
+/*---------------------------------------------------------------------------------------*/
+
+/*marks cells which are errornous*/
+void markErroneousCells(Game* game);
 
 /**
  * the function checks if there is an empty cell in the board.

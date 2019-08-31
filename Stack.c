@@ -1,5 +1,16 @@
 #include "Stack.h"
 
+
+/*initializes a stackNode and allocates memory.*/
+cellMem* createNewNode(index ix, int val) {
+	cellMem* stackNode = (cellMem*)malloc(sizeof(cellMem));
+	stackNode->ix = ix;
+	stackNode->val = val;
+	stackNode->next = NULL;
+	return stackNode;
+}
+
+/*push a new node to the top of the stack .*/
 void push(index ix, int val, Stack* stack) {
 	cellMem *newCell, *prevTop;
 	prevTop = stack->top;
@@ -9,14 +20,7 @@ void push(index ix, int val, Stack* stack) {
 	stack->size++;
 }
 
-cellMem* createNewNode(index ix, int val) {
-	cellMem* stackNode = (cellMem*)malloc(sizeof(cellMem));
-	stackNode->ix = ix;
-	stackNode->val = val;
-	stackNode->next = NULL;
-	return stackNode;
-}
-
+/*is the stack is empty- returns 1, else -0. .*/
 int stackIsEmpty(Stack* stack) {
 	if (stack->size == 0) {
 		return 1;
@@ -24,6 +28,7 @@ int stackIsEmpty(Stack* stack) {
 	return 0;
 }
 
+/*pops the top of the stack and returns it*/
 cellMem* pop(Stack* stack) {
 	cellMem* prevTop;
 	prevTop = stack->top;
@@ -33,6 +38,7 @@ cellMem* pop(Stack* stack) {
 	return prevTop;
 }
 
+/*initialize a struct stack and it's veraibles. */
 void initStack(Stack* stack) {
 	stack->top = NULL;
 	stack->size = 0;

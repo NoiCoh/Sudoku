@@ -1,28 +1,8 @@
 #include "Game.h"
 
-/**
- * the function returns user board with random fixed cells from the solution board and empty cells.
- * the number of fixed cell is according to the user's input (@param hint).
- 
-Board* makeUserBoard(Board* solvedBoard,int hint,blocksize block){
-    int count, x, y;
-    Board* userBoard;
-    count =0;
-    userBoard = initialize(block);
-    while(count<hint){
-        x= rand()%9;
-        y= rand()%9;
-        if(userBoard->cells[y][x].fixed==false){
-            userBoard->cells[y][x].value=solvedBoard->cells[y][x].value;
-            userBoard->cells[y][x].fixed=true;
-            count++;
-        }
-    }
-    return userBoard;
-}*/
-
 /*
-* the function response to "solve" command, move to solve state and upload board
+* the function response to "solve" command, enters solve mode and upload the board from
+* the user's path.
 */
 void solveCommand(char* path, Game* game) {
 	Board* userBoard;
@@ -30,46 +10,146 @@ void solveCommand(char* path, Game* game) {
 	UpdateGame(game, userBoard, solveMode);
 }
 
+int countInFile(FILE *ptr, int N) {
+	int count = 0;
+	char* elem;
+	while (fscanf(ptr, "%s", &elem) != EOF) {
+		count++;
+		if (count > N * N + 2 ) { 
+			break;
+		}
+	}
+	rewind(ptr);
+	return count;
+}
+
+int isFileEmpty(FILE* ptr) {
+	int size;
+	fseek(ptr, 0, SEEK_END);
+	size = ftell(ptr);
+	if (size == 0) {
+		return 1;
+	}
+	rewind(ptr);
+	return 0;
+}
+
+data* checkInput(char* input, int N) {
+	int num , i = 0, fixed = 0;
+	data* d;
+	d = (data*)calloc(1, sizeof(data));
+	while (input[i] != '\0') {
+		if (!isNum(input[i])) {
+			if (input[i] == '.' && input[i + 1] == '\0') {
+				fixed = 1;
+				break;
+			}
+			return NULL;
+		}
+		i++;
+	}
+	num = atoi(input);
+	if (num == 0 && fixed == 1) { 
+		return NULL;
+	}
+	if (num < 0 || num > N) {
+		return NULL;
+	}
+	d->num = num;
+	d->fixed = fixed;
+
+	return d;
+}
+
 /*
-* upload board from path
+* an auxilary function that uploads the board from a given path.
 */
 Board* getUserBoard(Game* game, char* path) {
-	int i, j, boardSize, num;
+	int i, j, count, N;
+	data* d;
+	char* m;
+	char* n;
+	char* input;
 	FILE* ptr;
 	blocksize block;
+	input = malloc((256) * sizeof(char));
+	n= malloc((256) * sizeof(char));
+	m= malloc((256) * sizeof(char));
 	ptr = fopen(path, "r");
 	if (ptr == NULL) {
 		printf("Error: File cannot be opened\n");
 		return NULL;
 	}
-	else {
-		block.m = fgetc(ptr) - '0';
-		fgetc(ptr);
-		block.n = fgetc(ptr) - '0';
-		boardSize = block.n * block.m;
-		if (boardSize > 99) {
-			printf("Error: Block size is too big\n");
+	if (isFileEmpty(ptr)) {
+			printf("file is empty\n");
 			return NULL;
+	}
+	if (fscanf(ptr, "%s", m) == -1) {
+		printf("Error:file format is not valid\n");
+		return NULL;
 		}
-		game->board = initialize(block);
-		game->board->blocksize.m = block.m;
-		game->board->blocksize.n = block.n;
-		for (i = 0; i < boardSize; i++) {
-			for (j = 0; j < boardSize; j++) {
-				fscanf(ptr, "%d", &num);
-				game->board->cells[i][j].value = num;
-				if (fgetc(ptr) == '.') {
-					game->board->cells[i][j].fixed = 1;
-				}
+	if (fscanf(ptr, "%s", n) == -1) {
+		printf("Error:file format is not valid\n");
+		return NULL;
+		}
+	if (!(isNums(n) && isNums(m))) {
+		printf("Error:file format is not valid\n");
+		return NULL;
+	}
+	block.m = atoi(m);
+	block.n = atoi(n);
+	if (block.n == 0 || block.m == 0) {
+		printf("Error:file format is not valid\n");
+		return NULL;
+	}
+
+	N = block.n * block.m;
+	if (N > 99) {
+		printf("Error: Block size is too big\n");
+		return NULL;
+	}
+
+	game->board = initialize(block);
+	game->board->blocksize.m = block.m;
+	game->board->blocksize.n = block.n;
+
+	count = countInFile(ptr, N);
+	if (count > N*N || count < N*N) {
+		printf("Error:file format is not valid\n");
+		return NULL;
+	}
+	fscanf(ptr, "%s", n);
+	fscanf(ptr, "%s", m);
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			fscanf(ptr, "%s", input);
+			d= checkInput(input, N);
+			if (d == NULL) {
+				printf("Error:file format is not valid\n");
+				return NULL;
+			}
+			else {
+				game->board->cells[i][j].value = d->num;
+				game->board->cells[i][j].fixed = d->fixed;
 			}
 		}
 	}
-	markErroneous(game);
+	
+	markErroneousCells(game);
 	game->board->erroneous = isBoardErroneous(game->board);
+	if (game->board->erroneous) {
+		printErroneousBoardError();
+		return NULL;
+	}
 	fclose(ptr);
 	return game->board;
 }
 
+
+/*
+* the function response to "edit" command, enters edit mode and upload the board from
+* the user's path. if no path is given, the function enters edit mode with an empty 9X9 board.
+*/
 void editCommand(char* path, Game* game) {
 	Board* userBoard;
 	if (path == NULL) {
@@ -106,58 +186,56 @@ void printCommand(Game* game) {
 
 
 /**
+ * the function response to "set" command.
  * set the value val in cell <col,row> according to user's command.
- * if the user tries to set a fixed cell, the function prints - "Error: cell is fixed"
- * if the user value is invalid (the value is already in the same box, row or column),
- * the function prints -"Error: value is invalid"
- * if the user set the last empty cell correctly the function prints- "Puzzle solved successfully"
+ * in solve mode -if the user sets the last empty cell correctly, the function prints- "Puzzle solved successfully"
+ * and enters init mode. if it is an errornous value, the function prints-"Error: The board is erroneous!".
+ * the user may set a value into a fixed cell only in edit mode.
  */
-int setCommand(Game* game, int col, int row, int val) {
+int setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
 	int prevVal, solved;
 	index ind;
 	linkedList* move;
 	ind.col = col;
 	ind.row = row;
 	prevVal = game->board->cells[row][col].value;
+
+	/* in solve mode - fixed cells may not be updated */
 	if (game->mode == solveMode) {
 		if (game->board->cells[row][col].fixed == true) {
 			printf("Error: cell is fixed, you can't change this cell\n");
 			return 0;
 		}
 	}
-	if (val == 0) { /* empty this cell */
-		if (game->board->cells[row][col].error == true) {
-			game->board->cells[row][col].error = false;
-		}
+	game->board->cells[row][col].value = val;
+	markErroneousCells(game);
+	game->board->erroneous = isBoardErroneous(game->board);
+
+	if (val == 0) {/*empty this cell*/
 		game->board->cells[row][col].userInput = false;
 	}
 	else {
+		game->board->cells[row][col].userInput = true;
 		if (game->mode == solveMode) {
 			solved = checkIfBoardSolved(game);
 			if (solved == 1) {
 				return 1;
 			}
 		}
-		if (!isValidOption(game, ind, val, true)) {
-			game->board->cells[row][col].error = true;
-			game->board->erroneous = true;
-		}else {
-			game->board->cells[row][col].error = false;
-		}
-		game->board->cells[row][col].userInput = true;
 	}
-	game->board->cells[row][col].value = val;
-	markErroneous(game);
-	game->board->erroneous = isBoardErroneous(game->board);
-	move = initializeLinkedList();
-	insertLast(move, row, col, val, prevVal);
-	addMove(game, move);
+	
+	if (addToMoveList) {
+		move = initializeLinkedList();
+		insertLast(move, row, col, val, prevVal);
+		addMove(game, move);
+	}
 	return 1;
 }
 
 /**
+ * the function response to "validate" command.
  * validates that the current state of the board is solvable.
- * solved the generated board with deterministic backtracking.
+ * solve the generated board with the deterministic backtracking algorithm.
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
  */
@@ -180,11 +258,12 @@ int validateCommand(Game* game) {
 }
 
 /*
-* the function guesses a solution to the current board using LP with thershold.
-* if the board is erroneous the function prints error and the command is not executed.
+* the function response to "guess" command.
+* the function guesses a solution to the current board using LP with a thershold.
+* if the board is erroneous, the function prints an error and the command is not executed.
 */
 int guessCommand(Game* game, float threshold) {
-	int i, j, N, numOflegalValues, * legalValues, randIndex, newVal, k;
+	int i, j, N, numOflegalValues, * legalValues, randIndex, newVal;
 	linkedList* move;
 	LPsol* sol;
 	double* scores;
@@ -243,11 +322,11 @@ int guessCommand(Game* game, float threshold) {
 
 /*
 * the function response to "generate" command.
-* the function generate a board by randomly choose x cells to fill and solved to board and then fill only y cells and empty all other cells
-* if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution the function reset the board back to the original state
-* and repeat previous step. After 1000 such iteratons, treat this as an error in the puzzle genetartor.
+* the function generate a board by randomly filling x empty cells with legal values, running ILP to solve the board, and then clearing all but y random cells .
+* if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution- the function reset the board back to the original state
+* and repeat previous step. After 1000 such iteratons, treat this as an error in the Soduko genetartor.
 */
-void generateCammand(Game* game, int x, int y) {
+void generateCommand(Game* game, int x, int y) {
 		int i, t, m, n, N, val, emptyCells, randCol, randRow, var, j;
 		index ind;
 		linkedList* move;
@@ -340,59 +419,77 @@ void generateCammand(Game* game, int x, int y) {
 }
 
 
-/* Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), the redo
-* part of the list is cleared, i.e., all items beyond the current pointer are removed, the new
-* move is added to the end of the list and marked as the current move, i.e., the pointer is
-* updated to point to it.
+/* the function adds the user's move to a moves list that tracks user's moves in order to undo\redo them .
+* Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), all items beyond the current move pointer are removed, the new
+* move is added to the end of the list and marked as the current move.
 */
 void addMove(Game* game, linkedList* move) {
 	doublyDeleteAllAfter(game->userMoves, game->curMove);
 	doublyInsertLast(game->userMoves, move);
 	game->curMove = doublyGetLast(game->userMoves);
 }
-/*undo a previous move done by the user. This command is only availble
-in solve and edit modes */
-int undoCommand(Game* game, bool print) {
-
+/*
+* the function response to "undo" command.
+* undo a previous move done by the user.
+*/
+int undoCommand(Game* game,bool print) {
+	int col, row, newVal, prevVal;
 		linkedList* dataToUndo;
 		node* i;
-		if (game->curMove == NULL) {
-			printf("Error: No moves to undo");
+		if ((game->curMove==NULL)||(game->curMove == game->userMoves->head)) {
+			if (print) {
+				printf("Error: No moves to undo\n");
+			}
 			return 0;
 		}
 		dataToUndo = game->curMove->move;
 		game->curMove = game->curMove->prev;
-		for (i = dataToUndo->head; i != NULL; i = i->next) {
-			if (print == true) {
-				printf("Undo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->newVal, i->prevVal);
+		i = dataToUndo->head;
+		while (i != NULL) {
+			col = i->col ;
+			row = i->row;
+			newVal = i->newVal;
+			prevVal = i->prevVal;
+			if (print) {
+				printf("Undo cell %d,%d: from %d to %d\n", col + 1, row + 1, newVal, prevVal);
 			}
-			setCommand(game, i->row, i->col, i->prevVal);
+			setCommand(game, col, row, prevVal,false);
+			i = i->next;
 		}
 	
 	return 1;
 }
-/*redo a move previously undone by the user . This command is only availble
-in solve and edit modes*/
+
+/*
+* the function response to "redo" command.
+* redo a move previously undone by the user.
+*/
 int redoCommand(Game* game) {
+	int col, row, newVal, prevVal;
 		linkedList* dataToRedo;
 		node* i;
 		if ((game->curMove == NULL) || (game->curMove->next == NULL)) {
-			printf("Error: No moves to redo");
+			printf("Error: No moves to redo\n");
 			return 0;
 		}
 		game->curMove = game->curMove->next;
 		dataToRedo = game->curMove->move;
-
-		for (i = dataToRedo->head; i != NULL; i = i->next) {
-			printf("Redo cell %d,%d: from %d to %d\n", i->row + 1, i->col + 1, i->prevVal, i->newVal);
-			setCommand(game, i->row, i->col, i->newVal);
+		i = dataToRedo->head;
+		while ( i != NULL ) {
+			col = i->col;
+			row = i->row;
+			newVal = i->newVal;
+			prevVal = i->prevVal;
+			printf("Redo cell %d,%d: from %d to %d\n", col + 1, row + 1, prevVal, newVal);
+			setCommand(game, col, row, newVal, false);
+			i = i->next;
 		}
 
 	return 1;
 }
 
 /*
-* the function response to "save" command and save the board to a path.
+* the function response to "save" command and saves the board to a given path.
 * errorneous board or board without a solution may not be saved.
 */
 void saveGame(Game* game, char* path) {
@@ -449,8 +546,8 @@ void saveGame(Game* game, char* path) {
 	fclose(fp);
 }
 /*
- * gives a hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
- * hint is given according to the solved board, and it is given even if it is incorrect for the current state of the board.
+ * the function response to "hint" command and gives a hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
+ * hint is given according to the solved board even if it is incorrect for the current state of the board.
  */
 void hintCommand(Game* game, char* x, char* y) {
 	int row, col, N, i, ix;
@@ -465,7 +562,7 @@ void hintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell is fixed\n");
 	}
 	else if (game->board->cells[row][col].value != 0) {
-		printf("Error: cell contain a value\n");
+		printf("Error: cell contains a value\n");
 	}
 	else {
 		sol = LPsolver(game, true);
@@ -484,8 +581,9 @@ void hintCommand(Game* game, char* x, char* y) {
 }
 
 /*
- * gives a guess hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
- * hint is given according to the scores Matrix calculate with LP Solver
+ * the function response to "guess_hint" command.
+ * the function gives a guess hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
+ * hint is given according to the scores Matrix calculated with the LP Solver algorithm.
  */
 void guessHintCommand(Game* game, char* x, char* y) {
 	int row, col, val, m, n, ix;
@@ -501,7 +599,7 @@ void guessHintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell is fixed\n");
 	}
 	else if (game->board->cells[row][col].value != 0) {
-		printf("Error: cell contain a value\n");
+		printf("Error: cell contains a value\n");
 	}
 	else {
 		sol = LPsolver(game,false);
@@ -521,6 +619,11 @@ void guessHintCommand(Game* game, char* x, char* y) {
 	}
 }
 
+/*
+ * the function response to "num_solutions" command and prints the number of solutions for the current board.
+ * the function uses the exhaustive backtracking algorithm to count all options to solve the board.
+ * if the board is errornous it is an error.
+ */
 int numSolution(Game* game) {
 	int count,N;
 	Board* copyBoard;
@@ -530,9 +633,15 @@ int numSolution(Game* game) {
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	count = exhaustiveBacktracking(game,N);
 	free(copyBoard);
+	printf("The number of solutions for the current board: %d\n",count);
 	return count;
 }
 
+/*
+ * the function response to "autofill" command.
+ * the function fill cells which contains a single legal value.
+ * if the board is errornous it is an error.
+ */
 void autofillCommand(Game* game) {
 	int i, j, m, n, N, val;
 	index ind;
@@ -564,9 +673,9 @@ void autofillCommand(Game* game) {
 					if (res == false) {
 						game->board->cells[i][j].error = true;
 					}
-					game->board->cells[i][j].value = val;
-					printf("Cell <%d,%d> autofilled to %d\n", i + 1, j + 1, val);
-					insertLast(move, i+1, j+1, val, 0);
+					setValue(game, j, i, val);
+					printf("Cell <%d,%d> autofilled to %d\n", j + 1, i + 1, val);
+					insertLast(move, i, j, val, 0);
 				}
 			}
 		}
@@ -590,19 +699,13 @@ void autofillCommand(Game* game) {
 * the function goes over the entire undo/redo list and revert all moves.
 */
 void resetCommand(Game* game) {
-	if (game->mode == initMode) {
-		if (game->mode == initMode) {
-			printErrorMode("init");
-			return;
+		while (game->curMove!=game->userMoves->head) {
+			undoCommand(game,false);
 		}
-		while (game->curMove != NULL) {
-			undoCommand(game, false);
-		}
-	}
 }
 
 /**
- * the function prints "Exiting..." , frees all memory resources and exits.
+ * the function prints "Exiting..." , frees all memory resources and terminates the program .
  */
 void exiting(Game* game) {
 	printf("Exiting...\n");
@@ -612,6 +715,9 @@ void exiting(Game* game) {
 	exit(0);
 }
 
+/**
+ * an auxilary function that free the board memory 
+ */
 void freeBoard(Board* currentBoard) {
 	int k, l, m, n;
 	m = currentBoard->blocksize.m;
@@ -634,23 +740,3 @@ void freeBoard(Board* currentBoard) {
 		free(currentBoard);
 	}
 }
-
-/**
- * check if the value is invalid (if the value is already in the same box, row or column).
- * if the value is valid returns true, else returns false.
- */
- /**
-bool isValidSet(Board* userBoard,index ind, int val){
-	int i,value;
-	findOptionsCell(userBoard,ind);
-	value=userBoard->cells[ind.row][ind.col].value;
-	if(value!=0){
-		userBoard->cells[ind.row][ind.col].options[userBoard->cells[ind.row][ind.col].optionsSize]= value;
-	}
-	for(i=0;i<9;i++){
-	  if(userBoard->cells[ind.row][ind.col].options[i]==val){
-		  return true;
-	  }
-	}
-	return false;
-}**/

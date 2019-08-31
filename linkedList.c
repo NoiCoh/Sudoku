@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include "MainAux.h"
 
+/*
+* initializes node and it's variables.
+*/
 node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
 	node* newNode;
 	newNode = (node*)malloc(sizeof(node));
@@ -17,16 +20,21 @@ node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
 	return newNode;
 }
 
+/*
+* initializes linkedList and return it.
+*/
 linkedList* initializeLinkedList() {
-	linkedList* newNode;
-	newNode = (linkedList*)calloc(1, sizeof(linkedList));
-	if (newNode == NULL) {
+	linkedList* newList;
+	newList = (linkedList*)calloc(1, sizeof(linkedList));
+	if (newList == NULL) {
 		funcFailed("calloc");
 	}
-	return newNode;
+	return newList;
 }
 
-
+/*
+* if the linked list is empty-returns 1, otherwise -returns 0.
+*/
 int isEmpty(linkedList *list) {
 	if (list->size == 0) {
 		return 1;
@@ -34,6 +42,9 @@ int isEmpty(linkedList *list) {
 	return 0;
 }
 
+/*
+* inserts a node to the end of the linked list.
+*/
 void insertLast(linkedList *list,int row,  int col,  int Newval,  int prevVal) {
 	node *newNode, *head, *tail, * lastNode;
 	newNode = initializeNode(row, col, Newval, prevVal);
@@ -53,6 +64,9 @@ void insertLast(linkedList *list,int row,  int col,  int Newval,  int prevVal) {
 	list->size++;
 }
 
+/*
+* deletes the first node of the linked list .
+*/
 void deleteFirst(linkedList* list) {
 	node* next, *head;
 	head = list->head;
@@ -68,6 +82,9 @@ void deleteFirst(linkedList* list) {
 	}
 }
 
+/*
+* frees memory resources allocated for the linked list.
+*/
 void freeList(linkedList* list) {
 	while (!isEmpty(list)) {
 		deleteFirst(list);
@@ -75,6 +92,9 @@ void freeList(linkedList* list) {
 	free(list);
 }
 
+/*
+* initializes a doubly node for the doubly linked list.
+*/
 doublyNode* initializeDoublyNode(linkedList *move) {
 	doublyNode* newNode;
 	newNode = (doublyNode*)calloc(1, sizeof(doublyNode));
@@ -85,6 +105,9 @@ doublyNode* initializeDoublyNode(linkedList *move) {
 	return newNode;
 }
 
+/*
+* initializes a doubly linked list.
+*/
 doublyLinkedList* initializeDoublyLinkedList() {
 	doublyLinkedList* newNode;
 	newNode = (doublyLinkedList*)calloc(1, sizeof(doublyLinkedList));
@@ -94,6 +117,9 @@ doublyLinkedList* initializeDoublyLinkedList() {
 	return newNode;
 }
 
+/*
+* if the doubly linked list is empty-returns 1, otherwise -returns 0.
+*/
 int doublyIsEmpty(doublyLinkedList *list) {
 	if (list->size == 0) {
 		return 1;
@@ -101,6 +127,9 @@ int doublyIsEmpty(doublyLinkedList *list) {
 	return 0;
 }
 
+/*
+* inserts a node to the end of the doubly linked list.
+*/
 void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
 	doublyNode *newNode, *head, *tail, * prevNode;
 	newNode = initializeDoublyNode(move);
@@ -121,6 +150,9 @@ void doublyInsertLast(doublyLinkedList *list, linkedList *move) {
 	list->size++;
 }
 
+/*
+* deletes all nodes after the curMove pointer.
+*/
 void doublyDeleteAllAfter(doublyLinkedList* list, doublyNode *curMove) {
 	doublyNode* tmp;
 	tmp = doublyGetLast(list);
@@ -132,6 +164,9 @@ void doublyDeleteAllAfter(doublyLinkedList* list, doublyNode *curMove) {
 	}
 }
 
+/*
+* gets the last node in the doubly linked list.
+*/
 doublyNode* doublyGetLast(doublyLinkedList* list) {
 	if (doublyIsEmpty(list)) {
 		return NULL;
@@ -142,6 +177,9 @@ doublyNode* doublyGetLast(doublyLinkedList* list) {
 	return list->tail;
 }
 
+/*
+* deletes the last node of the doubly linked list.
+*/
 void doublyDeleteLast(doublyLinkedList *list) {
 	doublyNode *last, *prev;
 	last = doublyGetLast(list);
@@ -165,6 +203,9 @@ void doublyDeleteLast(doublyLinkedList *list) {
 	}
 }
 
+/*
+* frees memory resources allocated for the doubly linked list.
+*/
 void doublyFree(doublyLinkedList* list) {
 	while (!doublyIsEmpty(list)) {
 		doublyDeleteLast(list);

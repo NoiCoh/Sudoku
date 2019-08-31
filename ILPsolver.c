@@ -1,6 +1,11 @@
 #include "ILPsolver.h"
 
-LPsol* LPsolver(Game* game,bool integarSol) {
+/*
+* if integerSol=true, the function solves the board using integer linear programming algorithm.
+* if integerSol=false , the function uses linear programming algorithm in order to solve the board.
+* the function returns LPsol struct which contains the solution's information.
+*/
+LPsol* LPsolver(Game* game,bool integerSol) {
 	int m, n, N, error, varsNum, optimstatus, i;
 	double* objective=NULL;
 	LPsol* lpSol;
@@ -34,7 +39,7 @@ LPsol* LPsolver(Game* game,bool integarSol) {
 		funcFailed("calloc");
 	}
 	for (i = 0; i < varsNum; i++) {
-		if (integarSol == true) {
+		if (integerSol == true) {
 			objective[i] = 0;
 		}
 		else {
@@ -61,8 +66,7 @@ LPsol* LPsolver(Game* game,bool integarSol) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
 	}
-
-	if (integarSol == true) {
+	if (integerSol == true) {
 		error = initVars(env, model, varsNum, vType);
 	} else {
 		error = initLpVars(env, model, varsNum, vType, objective);
@@ -123,6 +127,9 @@ LPsol* LPsolver(Game* game,bool integarSol) {
 	return lpSol;
 }
 
+/*
+* initialize variables to be continuous and update model.
+*/
 int initLpVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype, double* objective) {
 	int error, i;
 	for (i = 0; i < varsNum; i++) {
@@ -153,52 +160,30 @@ int initLpVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype, double* o
 	return 0;
 }
 
-void initObjective(double* objective, int varsNum,bool integarSol) {
+/*
+* the function creates the objective function.
+* if integerSol=true, the objective function is zero .
+* if integerSol=false , each varible get a random weight from 1 to 10.
+*/
+void initObjective(double* objective, int varsNum,bool integerSol) {
 	int i ;
 	objective = malloc(varsNum * sizeof(double));
 	if (!objective) {
 		funcFailed("calloc");
 	}
 	for (i = 0; i < varsNum; i++) {
-		if (integarSol == true) {
+		if (integerSol == true) {
 			objective[i] = 0;
 		}
 		else {
 			objective[i] = 1.0 + rand() % 10;
 		}
 	}
-	
 }
 
-void initVals(double* val, int N) {
-	val = (double*)malloc(N * sizeof(double));
-	if (val == NULL) {
-		funcFailed("malloc");
-	}
-}
-void initInd(int* ind, int N) {
-	ind = (int*)malloc(N * sizeof(int));
-	if (ind == NULL) {
-		funcFailed("malloc");
-	}
-}
-
-/*void initVtype(int varNums, char* vType) {
-	vType = (char*)malloc(varNums * sizeof(char));
-	if (vType == NULL) {
-		funcFailed("malloc");
-	}
-}*/
-
-void initSol(int N, double* sol) {
-	int N3 = N * N * N;
-	sol = (double*)calloc(N3, sizeof(double));
-	if (sol == NULL) {
-		funcFailed("calloc");
-	}
-}
-
-
+/*
+* initialize variables type as binary type and update model.
+*/
 int initVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype) {
 	unsigned int error;
 	int i;
@@ -226,7 +211,9 @@ int initVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype) {
 	}
 	return 0;
 }
-
+/*
+* this function returns the numbers of varibles that participate in the algorithm by counting all the legal values that can be filled in the empty cells.
+*/
 int getVarsNum(int N, Game* game) {
 	int i, j, varsNum;
 	index ind;
@@ -247,7 +234,9 @@ int getVarsNum(int N, Game* game) {
 	}
 	return varsNum;
 }
-
+/*
+* creates environment -"sudoku.log".
+*/
 int creaetEnv(GRBenv *env, GRBmodel *model) {
 	int error;
 	error = GRBloadenv(&env, "sudoku.log");
@@ -270,12 +259,6 @@ int creaetEnv(GRBenv *env, GRBmodel *model) {
 		return 0;
 	}
 	return 1;
-}
-
-int calculateIndex(int row, int col, int k, int N) {
-	int res;
-	res = k + N * (col + N * row) ;
-	return res;
 }
 
 
@@ -451,6 +434,9 @@ fixed cells are already known
 	return 0;
 }*/
 
+/**
+check if all consraints exist.
+**/
 int allConstraints(Game* game, GRBenv *env, GRBmodel *model, int n, int m) {
 	double *val=NULL;
 	int *ind=NULL;
@@ -480,7 +466,8 @@ int allConstraints(Game* game, GRBenv *env, GRBmodel *model, int n, int m) {
 	free(ind);
 	return error;
 }
-	/* Optimize model - need to call this before calculation */
+
+/* Optimize model - need to call this before calculation */
 int optimize(GRBenv *env, GRBmodel *model) {
 	int error;
 	error = GRBoptimize(model);
@@ -491,7 +478,7 @@ int optimize(GRBenv *env, GRBmodel *model) {
 	return 0;
 }
 
-	/* Get solution information */
+/* Get solution information */
 /*int optimizeStatus(GRBenv *env, GRBmodel *model,int optimstatus) {
 	int error;
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
@@ -501,7 +488,6 @@ int optimize(GRBenv *env, GRBmodel *model) {
 	}
 	return 0;
 }*/
-
 
 /* get the solution - the assignment to each variable
  * sol is 3D matrix that includes the cell's score*/
@@ -517,10 +503,53 @@ int getSol(GRBenv *env, GRBmodel *model, int optimstatus,int varsNum, double *so
 	return 0;
 }
 
+/*
+* free all memory resources and environment.
+*/
 void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol, double* objective) {
 	GRBfreemodel(model);
 	GRBfreeenv(env);
 	free(sol);
 	free(vType);
 	free(objective);
+}
+
+/*
+*calculate the index of a varible participating in the LP algorithm.
+*/
+int calculateIndex(int row, int col, int k, int N) {
+	int res;
+	res = k + N * (col + N * row);
+	return res;
+}
+
+/*--------allocate memory functions-------- */
+
+void initVals(double* val, int N) {
+	val = (double*)malloc(N * sizeof(double));
+	if (val == NULL) {
+		funcFailed("malloc");
+	}
+}
+
+void initInd(int* ind, int N) {
+	ind = (int*)malloc(N * sizeof(int));
+	if (ind == NULL) {
+		funcFailed("malloc");
+	}
+}
+
+void initVtype(int varNums, char* vType) {
+	vType = (char*)malloc(varNums * sizeof(char));
+	if (vType == NULL) {
+		funcFailed("malloc");
+	}
+}
+
+void initSol(int N, double* sol) {
+	int N3 = N * N * N;
+	sol = (double*)calloc(N3, sizeof(double));
+	if (sol == NULL) {
+		funcFailed("calloc");
+	}
 }

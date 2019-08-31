@@ -9,7 +9,6 @@
 int main() {
 	Game* game;
 	game = initializeGame();
-	game->mode = solve;
 	restart();
 	return 0;
 }
