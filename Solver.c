@@ -36,7 +36,7 @@ void findOptionsCell(Game* game,index ind){
     m=game->board->blocksize.m;
     n=game->board->blocksize.n;
     for(val=1;val<=n*m;val++){
-        if(isValidOption(game,ind,val,false)){
+        if(isValidOption(game,ind,val,false,false)){
             game->board->cells[ind.row][ind.col].options[count]=val;
             count++;
         }
@@ -113,7 +113,7 @@ SudokuSolved deterministicBacktracking(Game* game, int N) {
 	else {
 		ind = FindEmptyCell(game->board, N);
 	}for (val = 1; val <= N;val++) {
-		if (isValidOption(game, ind, val, false)) {
+		if (isValidOption(game, ind, val, false,false)) {
 			game->board->cells[ind.row][ind.col].value = val;
 			if (deterministicBacktracking(game, N) == solved) {
 				return solved;
@@ -140,7 +140,7 @@ SudokuSolved deterministicBacktrackingWithStack(Game* game, int N) {
 		ix = FindEmptyCell(game->board, N);
 		tried_all = true;
 		for (; val <= N; val++) {
-			if (isValidOption(game, ix, val, false)) {
+			if (isValidOption(game, ix, val, false,false)) {
 				game->board->cells[ix.row][ix.col].value = val;
 				push(ix,val,&stack);
 				tried_all = false;
@@ -192,7 +192,7 @@ int exhaustiveBacktracking(Game* game, int N) {
 			for (k = val + 1; k <= N; k++) {
 				ind.col = j;
 				ind.row = i;
-				if (isValidOption(game, ind, k, false)) {
+				if (isValidOption(game, ind, k, false,false)) {
 					game->board->cells[i][j].value = k;
 					doneGoBack = true;
 					break;

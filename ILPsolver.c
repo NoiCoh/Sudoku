@@ -36,7 +36,7 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 	}
 	objective = (double*)malloc(varsNum * sizeof(double));
 	if (!objective) {
-		funcFailed("calloc");
+		funcFailed("malloc");
 	}
 	for (i = 0; i < varsNum; i++) {
 		if (integerSol == true) {
@@ -169,7 +169,7 @@ void initObjective(double* objective, int varsNum,bool integerSol) {
 	int i ;
 	objective = malloc(varsNum * sizeof(double));
 	if (!objective) {
-		funcFailed("calloc");
+		funcFailed("malloc");
 	}
 	for (i = 0; i < varsNum; i++) {
 		if (integerSol == true) {

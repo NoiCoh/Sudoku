@@ -261,7 +261,7 @@ int getLegalGuess(Game* game,LPsol* lpSol, int row, int col, float threshold, in
 		ix = game->board->cells[row][col].ixMap[val - 1] - 1;
 		if (ix >= 0) {
 			if (lpSol->solBoard[ix] >= threshold) {
-				if (isValidOption(game, ind, val, false)) {
+				if (isValidOption(game, ind, val, false,false)) {
 					scores[numOflegalValues] = lpSol->solBoard[ix];
 					legalValues[numOflegalValues++] = val;
 				}
@@ -766,7 +766,7 @@ void markErroneousCells(Game* game) {
 			if (val != 0) {
 				ind.row = i;
 				ind.col = j;
-				check = isValidOption(game, ind, val , true);
+				check = isValidOption(game, ind, val , true,false);
 				if (check == true) {
 					game->board->cells[i][j].error = false;
 				}
@@ -800,17 +800,42 @@ bool IsThereEmptyCell(Board* board, int N) {
  * if mark=true we mark erroneous cells, if mark=false we unmark erroneous cells
  * (for example,when setting a cell to zero).
  */
-bool isValidOption(Game* game, index ind, int value, bool mark) {
+bool isValidOption(Game* game, index ind, int value, bool mark, bool checkOnlyFixed) {
 	bool checkBox, checkRowCol;
 	index box;
 	box = findBoxIndex(game, ind);
-	checkBox = checkInBox(game, box, ind, value, mark);
-	checkRowCol = checkInRowAndCol(game, ind, value, mark);
+	checkBox = checkInBox(game, box, ind, value, mark, checkOnlyFixed);
+	checkRowCol = checkInRowAndCol(game, ind, value, mark, checkOnlyFixed);
 	if (checkBox && checkRowCol) {
 		return true;
 	}
 	return false;
 }
+
+/*
+* the function checks if the board contains a fixed cell that is errornous.
+*/
+int isFixedErrornous(Game* game) {
+	int i, j, n, m, val;
+	index ind;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	for (i = 0; i < m*n; i++) {
+		for (j = 0; j < m*n; j++) {
+			ind.row = i;
+			ind.col = j;
+			val = game->board->cells[i][j].value;
+			if ((game->board->cells[i][j].error) && (game->board->cells[i][j].fixed)) {
+				if (!isValidOption(game, ind, val, true, true)) {
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+
 /**
  * the function finds the starting cell index of the the block that @param index belongs to.
  */
@@ -827,9 +852,10 @@ index findBoxIndex(Game* game, index ind) {
  * the function checks if the @param value is in the block starting at @param index block. if mark=true ,
  * the function marks errornous cells in the same block.
  */
-bool checkInBox(Game* game, index box, index ind, int value, bool mark) {
+bool checkInBox(Game* game, index box, index ind, int value, bool mark, bool checkOnlyFixed) {
 	int i, j, valBox, m, n;
-	bool res;
+	bool res,fixedOk;
+	fixedOk = true;
 	res = true;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
@@ -839,11 +865,18 @@ bool checkInBox(Game* game, index box, index ind, int value, bool mark) {
 				continue;
 			}
 			valBox = game->board->cells[box.row + i][box.col + j].value;
+			
 			if (valBox == value) {
+				if (checkOnlyFixed && game->board->cells[box.row + i][box.col + j].fixed) {
+					fixedOk = false;
+				}
 				res = false;
 				game->board->cells[box.row + i][box.col + j].error = mark;
 			}
 		}
+	}
+	if (checkOnlyFixed) {
+		return fixedOk;
 	}
 	return res;
 }
@@ -852,16 +885,20 @@ bool checkInBox(Game* game, index box, index ind, int value, bool mark) {
  *  if so returns false. else, returns true. if mark=true ,
  *  the function marks errornous cells in the same row and column.
  */
-bool checkInRowAndCol(Game* game, index index, int value, bool mark) {
+bool checkInRowAndCol(Game* game, index index, int value, bool mark ,bool checkOnlyFixed) {
 	int valRow, valCol, i, n, m;
-	bool res;
+	bool res, fixedOk;
 	res = true;
+	fixedOk = true;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	for (i = 0; i < n * m; i++) {
 		if (i != index.row) {
 			valCol = game->board->cells[i][index.col].value;
 			if (valCol == value) {
+				if (checkOnlyFixed && game->board->cells[i][index.col].fixed) {
+					fixedOk = false;
+				}
 				res = false;
 				game->board->cells[i][index.col].error = mark;
 			}
@@ -869,10 +906,16 @@ bool checkInRowAndCol(Game* game, index index, int value, bool mark) {
 		if (i != index.col) {
 			valRow = game->board->cells[index.row][i].value;
 			if (valRow == value) {
+				if (checkOnlyFixed && game->board->cells[index.row][i].fixed) {
+					fixedOk = false;
+				}
 				res = false;
 				game->board->cells[index.row][i].error = mark;
 			}
 		}
+	}
+	if (checkOnlyFixed) {
+		return fixedOk;
 	}
 	return res;
 }

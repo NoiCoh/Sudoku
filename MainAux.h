@@ -213,7 +213,12 @@ bool IsThereEmptyCell(Board* board, int N);
  * if mark=true we mark erroneous cells, if mark=false we unmark erroneous cells
  * (for example,when setting a cell to zero).
  */
-bool isValidOption(Game* game, index ind, int value, bool mark);
+bool isValidOption(Game* game, index ind, int value, bool mark, bool checkOnlyFixed);
+
+/*
+* the function checks if the board contains a fixed cell that is errornous.
+*/
+int isFixedErrornous(Game* game);
 
 /**
  * the function finds the starting cell index of the the block that @param index belongs to.
@@ -224,14 +229,14 @@ index findBoxIndex(Game* game, index index);
  * the function checks if the @param value is in the block starting at @param index block. if mark=true ,
  * the function marks errornous cells in the same block.
  */
-bool checkInBox(Game* game, index box, index ind, int value, bool mark);
+bool checkInBox(Game* game, index box, index ind, int value, bool mark, bool checkOnlyFixed);
 
 /**
  * the function check if @param value is in the same row and column.
  *  if so returns false. else, returns true. if mark=true ,
  *  the function marks errornous cells in the same row and column.
  */
-bool checkInRowAndCol(Game* game, index index, int value, bool mark);
+bool checkInRowAndCol(Game* game, index index, int value, bool mark, bool checkOnlyFixed);
 
 
 #endif

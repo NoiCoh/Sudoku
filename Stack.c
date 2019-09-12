@@ -4,6 +4,9 @@
 /*initializes a stackNode and allocates memory.*/
 cellMem* createNewNode(index ix, int val) {
 	cellMem* stackNode = (cellMem*)malloc(sizeof(cellMem));
+	if (!stackNode) { /* check if malloc succeseed */
+		funcFailed("malloc");
+	}
 	stackNode->ix = ix;
 	stackNode->val = val;
 	stackNode->next = NULL;

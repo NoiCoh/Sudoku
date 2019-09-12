@@ -7,6 +7,7 @@
 void solveCommand(char* path, Game* game) {
 	Board* userBoard;
 	int solved;
+	game->mode = solveMode;
 	userBoard = getUserBoard(game, path);
 	UpdateGame(game, userBoard, solveMode);
 	if (game->board != NULL) {
@@ -14,6 +15,9 @@ void solveCommand(char* path, Game* game) {
 		doublyInsertLast(game->userMoves, NULL);
 		game->curMove = game->userMoves->head;
 		solved = checkIfBoardSolved(game, 1);
+	}
+	else {
+		UpdateGame(game, userBoard, initMode);
 	}
 }
 
@@ -23,6 +27,9 @@ void solveCommand(char* path, Game* game) {
 int countInFile(FILE *ptr, int N) {
 	int count = 0;
 	char* elem = malloc(256 * sizeof(char));
+	if (!elem) { /* check if malloc succeseed */
+		funcFailed("malloc");
+	}
 	while (fscanf(ptr, "%s",elem) != EOF) {
 		count++;
 		if (count > N * N + 2 ) { 
@@ -54,6 +61,9 @@ data* checkInput(char* input, int N) {
 	int num , i = 0, fixed = 0;
 	data* d;
 	d = (data*)calloc(1, sizeof(data));
+	if (!d) { /* check if malloc succeseed */
+		funcFailed("calloc");
+	}
 	while (input[i] != '\0') {
 		if (!isNum(input[i])) {
 			if (input[i] == '.' && input[i + 1] == '\0') {
@@ -91,6 +101,9 @@ Board* getUserBoard(Game* game, char* path) {
 	input = malloc((256) * sizeof(char));
 	n= malloc((256) * sizeof(char));
 	m= malloc((256) * sizeof(char));
+	if (!(input&&n&&m)) { /* check if malloc succeseed */
+		funcFailed("malloc");
+	}
 	ptr = fopen(path, "r");
 	if (ptr == NULL) {
 		printf("Error: File cannot be opened\n");
@@ -154,11 +167,19 @@ Board* getUserBoard(Game* game, char* path) {
 	
 	markErroneousCells(game);
 	game->board->erroneous = isBoardErroneous(game->board);
-	if (game->board->erroneous) {
-		printErroneousBoardError();
+
+	if (game->mode == solveMode) {
+		if (isFixedErrornous(game)) {
+			printErroneousBoardError();
+			return NULL;
+		}
+	}
+	
+	if (fclose(ptr) == EOF) {
+		printf("Error: File was not successfully closed,please try another file\n ");
 		return NULL;
 	}
-	fclose(ptr);
+	
 	return game->board;
 }
 
@@ -169,6 +190,7 @@ Board* getUserBoard(Game* game, char* path) {
 */
 void editCommand(char* path, Game* game) {
 	Board* userBoard;
+	game->mode = editMode;
 	if (path == NULL) {
 		userBoard = createDefaultBoard();
 	}
@@ -181,6 +203,9 @@ void editCommand(char* path, Game* game) {
 		game->userMoves = initializeDoublyLinkedList();
 		doublyInsertLast(game->userMoves, NULL);
 		game->curMove = game->userMoves->head;
+	}
+	else {
+		UpdateGame(game, userBoard, initMode);
 	}
 }
 
@@ -530,6 +555,10 @@ void saveGame(Game* game, char* path) {
 		if (!validateCommand(game)) return;
 	}
 	fp = fopen(path, "w");
+	if (fp == NULL) {
+		printf("Error: File cannot be opened,please try another file\n");
+		return;
+	}
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	value = 0;
@@ -563,8 +592,11 @@ void saveGame(Game* game, char* path) {
 			value = game->board->cells[i][boardSize - 1].fixed == true;
 		}
 	}
+	if (fclose(fp) == EOF) {
+		printf("Error: File was not successfully closed,please try another file\n ");
+		return ;
+	}
 	printf("File saved succussfully!\n");
-	fclose(fp);
 }
 /*
  * the function response to "hint" command and gives a hint to the user by showing a possible legal value for a single cell <x,y> (x is the column and y is the row).
@@ -690,7 +722,7 @@ void autofillCommand(Game* game) {
 				ind.col = j;
 				if ((game->board->cells[i][j].optionsSize == 1) && (game->board->cells[i][j].value == 0)) {
 					val = game->board->cells[i][j].options[0];
-					res = isValidOption(game, ind, val, true);
+					res = isValidOption(game, ind, val, true,false);
 					if (res == false) {
 						game->board->cells[i][j].error = true;
 					}
