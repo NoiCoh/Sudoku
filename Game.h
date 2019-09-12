@@ -12,6 +12,21 @@
 void solveCommand(char* path, Game* game);
 
 /*
+* the function counts the number of elements in the file.
+*/
+int countInFile(FILE *ptr, int N);
+
+/*
+* the function checks whether the file is empty.
+*/
+int isFileEmpty(FILE* ptr);
+
+/*
+* the function checks if the file includes a valid sudoku board (if all of the elements are numbers in the right range
+*/
+data* checkInput(char* input, int N);
+
+/*
 * an auxilary function that uploads the board from a given path.
 */
 Board* getUserBoard(Game* game, char* path);

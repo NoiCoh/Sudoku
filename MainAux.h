@@ -91,7 +91,7 @@ void printNTimes(int n);
 Board* createDefaultBoard();
 
 /*if the board is solved, notify the user and enter init mode. else- notify that the board is errornous*/
-int checkIfBoardSolved(Game* game);
+int checkIfBoardSolved(Game* game,int isSolveCommand);
 
 /**
  * initialize board values and params to zero.
@@ -195,7 +195,7 @@ int validateHintAndGuessHint(char* move[], Game* game, int isHint);
 
 int validateAutofill(char* move[], Game* game);
 
-int validateNumSolAndExitAndReset(char* move[], Game* game, Command c);
+int validateNumSolAndExitAndReset(char* move[], Game* game, Command c, int isExit);
 /*---------------------------------------------------------------------------------------*/
 
 /*marks cells which are errornous*/

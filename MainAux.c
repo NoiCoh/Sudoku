@@ -48,7 +48,7 @@ Board* createDefaultBoard(){
 }
 
 /*if the board is solved, notify the user and enter init mode. else- notify that the board is errornous*/
-int checkIfBoardSolved(Game* game) {
+int checkIfBoardSolved(Game* game, int isSolveCommand) {
 	int N;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	if (!IsThereEmptyCell(game->board, N)) {
@@ -57,7 +57,12 @@ int checkIfBoardSolved(Game* game) {
 			return 0;
 		}
 		else {
-			printf("Puzzle solved successfully!\n");
+			if (isSolveCommand) {
+				printf("This puzzle is already solved. Please load another file or edit this one using edit command\n ");
+			}
+			else {
+				printf("Puzzle solved successfully!\n");
+			}
 			printBoard(game);
 			UpdateGame(game, NULL , initMode);
 			return 1;
@@ -185,6 +190,8 @@ void makeCopyBoard(Board* board, Board* copyBorad) {
             copyBorad->cells[i][j].value = board->cells[i][j].value;
             copyBorad->cells[i][j].fixed = board->cells[i][j].fixed;
             copyBorad->cells[i][j].userInput = board->cells[i][j].userInput;
+			copyBorad->cells[i][j].error = board->cells[i][j].userInput;
+
         }
     }
 }
@@ -227,12 +234,13 @@ void setValue(Game* game, int col, int row, int value) {
 Count how many empty cells in board's game
 **/
 int FindHowMuchEmptyCells(Game* game) {
-	int m, n, i, j, count;
+	int m, n, i, j, count, N;
 	count = 0;
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < m; j++) {
+	N = n * m;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
 			if (game->board->cells[i][j].value == 0) {
 				count++;
 			}
@@ -297,13 +305,14 @@ int getRandIndex(int numOflegalValues, double* scores) {
 
 /*creates a linked list with all of the board's changes after calling "generate" command.*/
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
-	int i, j, row, col, newVal, prevVal;
+	int i, j, row, col, newVal, prevVal, N;
 	linkedList* move;
 	move = initializeLinkedList();
 	row = orignalBoard->blocksize.n;
 	col = orignalBoard->blocksize.m;
-	for (i = 0; i < row; i++) {
-		for (j = 0; j < col; j++) {
+	N = col * row;
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
 			prevVal = orignalBoard->cells[i][j].value;
 			newVal = newBoard->cells[i][j].value;
 			if (prevVal != newVal) {
@@ -719,11 +728,13 @@ int validateAutofill(char* move[], Game* game) {
 	return 1;
 }
 
-int validateNumSolAndExitAndReset(char* move[], Game* game, Command c) {
+int validateNumSolAndExitAndReset(char* move[], Game* game, Command c, int isExit) {
 	int paramsNum, checkparamsnum;
-	if (game->mode == initMode) {
-		printErrorMode("init");
-		return 0;
+	if (isExit==0){
+		if (game->mode == initMode) {
+			printErrorMode("init");
+			return 0;
+		}
 	}
 	paramsNum = argsNum(move);
 	if (c == num_solutions) {

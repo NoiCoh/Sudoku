@@ -7,8 +7,6 @@
 
 
 int main() {
-	Game* game;
-	game = initializeGame();
 	restart();
 	return 0;
 }

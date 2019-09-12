@@ -6,14 +6,24 @@
 */
 void solveCommand(char* path, Game* game) {
 	Board* userBoard;
+	int solved;
 	userBoard = getUserBoard(game, path);
 	UpdateGame(game, userBoard, solveMode);
+	if (game->board != NULL) {
+		game->userMoves = initializeDoublyLinkedList();
+		doublyInsertLast(game->userMoves, NULL);
+		game->curMove = game->userMoves->head;
+		solved = checkIfBoardSolved(game, 1);
+	}
 }
 
+/*
+* the function counts the number of elements in the file.
+*/
 int countInFile(FILE *ptr, int N) {
 	int count = 0;
-	char* elem;
-	while (fscanf(ptr, "%s", &elem) != EOF) {
+	char* elem = malloc(256 * sizeof(char));
+	while (fscanf(ptr, "%s",elem) != EOF) {
 		count++;
 		if (count > N * N + 2 ) { 
 			break;
@@ -23,6 +33,9 @@ int countInFile(FILE *ptr, int N) {
 	return count;
 }
 
+/*
+* the function checks whether the file is empty.
+*/
 int isFileEmpty(FILE* ptr) {
 	int size;
 	fseek(ptr, 0, SEEK_END);
@@ -34,6 +47,9 @@ int isFileEmpty(FILE* ptr) {
 	return 0;
 }
 
+/*
+* the function checks if the file includes a valid sudoku board (if all of the elements are numbers in the right range 
+*/
 data* checkInput(char* input, int N) {
 	int num , i = 0, fixed = 0;
 	data* d;
@@ -109,15 +125,16 @@ Board* getUserBoard(Game* game, char* path) {
 		return NULL;
 	}
 
-	game->board = initialize(block);
-	game->board->blocksize.m = block.m;
-	game->board->blocksize.n = block.n;
-
 	count = countInFile(ptr, N);
 	if (count > N*N || count < N*N) {
 		printf("Error:file format is not valid\n");
 		return NULL;
 	}
+
+	game->board = initialize(block);
+	game->board->blocksize.m = block.m;
+	game->board->blocksize.n = block.n;
+
 	fscanf(ptr, "%s", n);
 	fscanf(ptr, "%s", m);
 	for (i = 0; i < N; i++) {
@@ -160,6 +177,11 @@ void editCommand(char* path, Game* game) {
 		userBoard = getUserBoard(game, path);
 	}
 	UpdateGame(game, userBoard, editMode);
+	if (game->board != NULL) {
+		game->userMoves = initializeDoublyLinkedList();
+		doublyInsertLast(game->userMoves, NULL);
+		game->curMove = game->userMoves->head;
+	}
 }
 
 /*
@@ -194,10 +216,7 @@ void printCommand(Game* game) {
  */
 int setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
 	int prevVal, solved;
-	index ind;
 	linkedList* move;
-	ind.col = col;
-	ind.row = row;
 	prevVal = game->board->cells[row][col].value;
 
 	/* in solve mode - fixed cells may not be updated */
@@ -217,7 +236,7 @@ int setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
 	else {
 		game->board->cells[row][col].userInput = true;
 		if (game->mode == solveMode) {
-			solved = checkIfBoardSolved(game);
+			solved = checkIfBoardSolved(game,0);
 			if (solved == 1) {
 				return 1;
 			}
@@ -308,7 +327,7 @@ int guessCommand(Game* game, float threshold) {
 			insertLast(move, i, j, newVal, 0);
 		}
 	}
-	checkIfBoardSolved(game);
+	checkIfBoardSolved(game,0);
 	free(legalValues);
 	free(scores);
 	if (move->size > 0) {
@@ -337,6 +356,7 @@ void generateCommand(Game* game, int x, int y) {
 		emptyCells = FindHowMuchEmptyCells(game);
 		if (x > emptyCells) {
 			printf("Error: Board does not contain %d empty cells\n", x);
+			return;
 		}
 		makeCopyBoard(game->board, orignalBoard); /* save a copy of the orignal board*/
 		m = game->board->blocksize.m;
@@ -363,6 +383,7 @@ void generateCommand(Game* game, int x, int y) {
 					setValue(game, ind.col, ind.row, val);
 				}
 			}
+
 			if (succeedSet) {
 				solve = LPsolver(game,true);
 				if (solve->solvable == true) {
@@ -375,23 +396,26 @@ void generateCommand(Game* game, int x, int y) {
 				}
 			}
 		}
+		
 		if (!generateSolvableBoard) {
 			makeCopyBoard(orignalBoard, game->board);
 			printf("Error: Can't generate solvable board with parameters %d and %d \n", x, y);
 			return;
 		}
+
 		newBoard = initialize(game->board->blocksize);
-		if (y == N) { /* check if the board solved */
+		if (y == N*N){/* check if the board solved */
 			makeCopyBoard(game->board, newBoard); /*all values in solved board is chosen for the new board*/
 			printf("Puzzle solved successfully\n");
 			UpdateGame(game, game->board, initMode);
+			return;
 		}
 		else {
 			for (i = 0; i < y; i++) {
 				randCol = rand() % N;
 				randRow = rand() % N;
 				if (newBoard->cells[randRow][randCol].value != 0) {
-					y--;
+					i--;
 					continue;
 				}
 				else {
@@ -400,6 +424,7 @@ void generateCommand(Game* game, int x, int y) {
 						if (var >= 0) {
 							if (solve->solBoard[var] == 1) {
 								newBoard->cells[randRow][randCol].value = j;
+								break;
 							}
 						}
 					}
@@ -497,10 +522,6 @@ void saveGame(Game* game, char* path) {
 	int m, n, value, boardSize, i, j;
 	char* regCellFormat;
 	char* lastCellFormat;
-	if (game->mode == initMode) {
-		printErrorMode("init");
-		return;
-	}
 	if (game->mode == editMode) {
 		if (game->board->erroneous) {
 			printErroneousBoardError();
@@ -685,7 +706,7 @@ void autofillCommand(Game* game) {
 		else {
 			freeList(move);
 		}
-		checkIfBoardSolved(game);
+		checkIfBoardSolved(game,0);
 	}
 	else {
 		if(game->mode==initMode) printErrorMode("init");

@@ -6,20 +6,6 @@
 
 
 /**
- * the random recursive algorithm to solve a sudoku board.
- * the function checks if the board is solvable. if the board is solvable return solved,
- * else return unsolved.
- */
-SudokuSolved RandBacktracking(Game* game);
-
-/**
- * an auxiliary function for the random backtracking algorithm.
- * if there is no valid options for a specific cell, the algorithm leaves the cell blank
- * and moves back (backtracks) to the previous cell.
- */
-SudokuSolved goBackRand(Game* game, index ind);
-
-/**
  * the deterministic recursive algorithm to solve a Sudoku board.
  * the function checks if the board is solvable. if the board is solvable return solved,
  * else return unsolved.

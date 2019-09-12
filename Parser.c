@@ -40,7 +40,7 @@ void readUser(Game* game) {
  * if the user enters a command that doesn't match any of the commands defined,  the program prints an error.
  */
 void checkString(Game* game, char* move[]) {
-	int row, col, val ,res;
+	int row, col, val;
 	if (move[0] != NULL) {
 		if (strcmp(move[0], "solve") == 0) {
 			if (validateSolve(move)) {
@@ -132,7 +132,7 @@ void checkString(Game* game, char* move[]) {
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "num_solutions") == 0) {
-			if (validateNumSolAndExitAndReset(move,game,num_solutions)){
+			if (validateNumSolAndExitAndReset(move,game,num_solutions,0)){
 				numSolution(game);
 			}
 				printBoard(game);
@@ -141,13 +141,13 @@ void checkString(Game* game, char* move[]) {
 			if (game->curMove == game->userMoves->head) {
 				printf("The Board is already in its original loaded state\n");
 			}
-			if (validateNumSolAndExitAndReset(move, game, reset)) {
+			if (validateNumSolAndExitAndReset(move, game, reset,0)) {
 				resetCommand(game);
 			}
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "exit") == 0) {
-			if (validateNumSolAndExitAndReset(move, game, exitCommand)) {
+			if (validateNumSolAndExitAndReset(move, game, exitCommand,1)) {
 				exiting(game);
 			}
 		}

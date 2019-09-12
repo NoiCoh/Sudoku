@@ -1,68 +1,6 @@
 #include "Solver.h"
 #include <time.h>
 
-/**
- * the random recursive algorithm to solve a sudoku board.
- * the function checks if the board is solvable. if the board is solvable return solved,
- * else return unsolved.
- */
-SudokuSolved RandBacktracking(Game* game){
-    int val,N;
-    index ind;
-	N = game->board->blocksize.m * game->board->blocksize.n;
-    if(!IsThereEmptyCell(game->board,N)){
-        return solved;
-    }else{
-        ind = FindEmptyCell(game->board,N);
-    }
-    findOptionsCell(game,ind);
-    val=getRandValue(game->board,ind);
-    if (val!=0){
-        game->board->cells[ind.row][ind.col].value=val;
-        if(RandBacktracking(game)==solved){
-            return solved;
-        }else{
-            return unsolved;
-        }
-    }else {
-        if(goBackRand(game, ind)==solved){
-            return solved;
-        }else{
-            return unsolved;
-        }
-    }
-}
-/**
- * an auxiliary function for the random backtracking algorithm.
- * if there is no valid options for a specific cell, the algorithm leaves the cell blank
- * and moves back (backtracks) to the previous cell.
- */
-SudokuSolved goBackRand(Game* game, index ind){
-    int row,col,val;
-    row= ind.row;
-    col= ind.col;
-    while ( col+row !=0) {
-        if (col == 0) {
-            row = row - 1;
-            col = 8;
-        } else {
-            col = col - 1;
-        }
-        ind.col = col;
-        ind.row = row;
-        val  = getRandValue(game->board, ind);
-        if (game->board->cells[ind.row][ind.col].fixed == false && game->board->cells[ind.row][ind.col].userInput == false) {
-            if (val != 0) { /**if val==0 there is no option for cell **/
-                game->board->cells[ind.row][ind.col].value = val;
-                RandBacktracking(game);
-                return solved;
-            }else {
-                game->board->cells[ind.row][ind.col].value = 0;
-            }
-        }
-    }
-    return unsolved;
-}
 
 /**
  * the function chooses a random value from the options array of a specific cell.
