@@ -1,5 +1,5 @@
 #include "Stack.h"
-
+#include "MainAux.h"
 
 /*initializes a stackNode and allocates memory.*/
 cellMem* createNewNode(index ix, int val) {
@@ -13,7 +13,7 @@ cellMem* createNewNode(index ix, int val) {
 	return stackNode;
 }
 
-/*push a new node to the top of the stack .*/
+/*push a new node to the top of the stack*/
 void push(index ix, int val, Stack* stack) {
 	cellMem *newCell, *prevTop;
 	prevTop = stack->top;

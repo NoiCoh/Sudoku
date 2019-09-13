@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include "Parser.h"
 #include "Game.h"
 #include "Solver.h"
@@ -7,6 +8,7 @@
 
 
 int main() {
+	srand(time(NULL));
 	restart();
 	return 0;
 }

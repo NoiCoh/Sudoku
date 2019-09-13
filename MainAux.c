@@ -182,18 +182,22 @@ void printBoard(Game* game) {
  * Make a deep copy of @param board to @param copyBorad.
  */
 void makeCopyBoard(Board* board, Board* copyBorad) {
-    int i, j, m ,n;
+	int i, j, m, n, N;
     n= board->blocksize.n;
     m= board->blocksize.m;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
+	N = n * m;
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             copyBorad->cells[i][j].value = board->cells[i][j].value;
             copyBorad->cells[i][j].fixed = board->cells[i][j].fixed;
             copyBorad->cells[i][j].userInput = board->cells[i][j].userInput;
 			copyBorad->cells[i][j].error = board->cells[i][j].userInput;
-
+			copyBorad->cells[i][j].options = board->cells[i][j].options;
+			copyBorad->cells[i][j].optionsSize = board->cells[i][j].optionsSize;
+			copyBorad->cells[i][j].ixMap = board->cells[i][j].ixMap;
         }
     }
+	copyBorad->erroneous = board->erroneous;
 }
 
 /**
@@ -918,5 +922,36 @@ bool checkInRowAndCol(Game* game, index index, int value, bool mark ,bool checkO
 		return fixedOk;
 	}
 	return res;
+}
+
+/*
+* calculate size of a row/col in the sudoku game board from block size.
+*/
+int calculateNfromGame(Game* game) {
+	int m, n;
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	return  n * m;
+}
+
+/*
+* generate solved board from the Lp solve.
+*/
+void makeSolBoard(Game* game, LPsol* solve) {
+	int i, j, val, var, N;
+	N = calculateNfromGame(game);
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			for (val = 1; val <= N; val++) {
+				var = (game->board->cells[i][j].ixMap[val - 1] - 1);
+				if (var >= 0) {
+					if (solve->solBoard[var] == 1) {
+						game->board->cells[i][j].value = val;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 

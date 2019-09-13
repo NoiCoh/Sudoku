@@ -238,5 +238,14 @@ bool checkInBox(Game* game, index box, index ind, int value, bool mark, bool che
  */
 bool checkInRowAndCol(Game* game, index index, int value, bool mark, bool checkOnlyFixed);
 
+/*
+* calculate size of a row/col in the sudoku game board from block size.
+*/
+int calculateNfromGame(Game* game);
+
+/*
+* generate solved board from the Lp solve.
+*/
+void makeSolBoard(Game* game, LPsol* solve);
 
 #endif

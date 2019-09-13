@@ -4,98 +4,80 @@
 #include "Solver.h"
 
 /*
+* The function using Gurobi Optimizer Linear programming solver to solve a sudoku board.
 * if integerSol=true, the function solves the board using integer linear programming algorithm.
 * if integerSol=false , the function uses linear programming algorithm in order to solve the board.
-* the function returns LPsol struct which contains the solution's information.
+* return value : the function returns LPsol struct which contains the solution's information.
 */
 LPsol* LPsolver(Game* game, bool integerSol);
 
 /*
-* initialize variables to be continuous and update model.
+* The function initialize variables to be continuous for linear programming and update model.
+* The function add variables to model, change objective sense to maximization and update the model.
+* return value : 1 - if one of the initializations failed, 0 -  otherwise.
 */
 int initLpVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype, double* objective);
 
 /*
-* the function creates the objective function.
-* if integerSol=true, the objective function is zero .
-* if integerSol=false , each varible get a random weight from 1 to 10.
+* The function initialize variables type as binary type for intager linear programming and update model.
+* The function add variables to model, change objective sense to maximization and update the model.
+* return value : 1 - if one of the initializations failed, 0 -  otherwise.
 */
-void initObjective(double* objective, int varsNum, bool integerSol);
+int initILPVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype);
 
 /*
-* initialize variables type as binary type and update model.
-*/
-int initVars(GRBenv* env, GRBmodel* model, int varsNum, char* vtype);
-
-/*
-* this function returns the numbers of varibles that participate in the algorithm by counting all the legal values that can be filled in the empty cells.
+* The function sums the number of legal values of all empty cells.
+* return value :  the numbers of varibles that participate in the algorithm
 */
 int getVarsNum(int N, Game* game);
 
 /*
-* creates environment -"sudoku.log".
+* FIRST CONSTRAINT in the linear programming constrints:
+* Every cell has one value and the sum of every cell's scores is 1.0.
+* return value : 0 if adding the constraint succeed and 1 otherwise.
 */
-int creaetEnv(GRBenv* env, GRBmodel* model);
-
-/**
-every cell has one value and every cell's scores's sum is 1.0
-**/
 int firstConstraint(Game* game, GRBenv* env, GRBmodel* model, int N, int* ind, double* val);
 
-/**
-each value appears once in every row
-**/
+/*
+* SECOND CONSTRAINT in the linear programming constrints:
+* Each value appears once in every row of the sudoku
+* return value : 0 if adding the constraint succeed and 1 otherwise.
+*/
 int secConstraint(Game* game, GRBenv* env, GRBmodel* model, int N, int* ind, double* val);
 
-/**
-each value appears once in every column
-**/
+/*
+* THIRD CONSTRAINT in the linear programming constrints:
+* Each value appears once in every column of the sudoku
+* return value : 0 if adding the constraint succeed and 1 otherwise.
+*/
 int thirdConstraint(Game* game, GRBenv* env, GRBmodel* model, int N, int* ind, double* val);
 
-/**
-each value appears once in every block
-**/
+/*
+* FORTH CONSTRAINT in the linear programming constrints:
+* Each value appears once in every block of the sudoku
+* return value : 0 if adding the constraint succeed and 1 otherwise.
+*/
 int forthConstraint(Game* game,GRBenv* env, GRBmodel* model, int N, int n, int m, int* ind, double* val);
 
-/**
-fixed cells are already known
-**/
-int fifthConstraint(GRBenv* env, GRBmodel* model, Board* board, int N);
-
-/**
-check if all consraints exist.
-**/
+/*
+* The function adding all constraints to the linear programming.
+* return value : 1 if adding one of the constraint failed and 0 otherwise.
+*/
 int allConstraints(Game* game, GRBenv* env, GRBmodel* model, int n, int m);
 
-/* Optimize model - need to call this before calculation */
+/*
+* The function calculate the optimize value for every variable using Gurobi Optimizer.
+* return value : 1 - if the Gurobi Optimizer failed, 0 - otherwise.
+*/
 int optimize(GRBenv* env, GRBmodel* model);
 
-/* Get solution information */
-int optimizeStatus(GRBenv* env, GRBmodel* model, int optimstatus);
-
-/* get the solution - the assignment to each variable
- * sol is 3D matrix that includes the cell's scores
- */
-int getSol(GRBenv* env, GRBmodel* model, int optimstatus, int varsNum, double* sol);
-
 /*
-* free all memory resources and environment.
+* The function free all memory resources and environment.
 */
 void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol, double* objective);
 
 /*
-*calculate the index of a varible participating in the LP algorithm.
+* The function init the mapping of every cell.
 */
-int calculateIndex(int row, int col, int k, int N);
-
-
-/*--------allocate memory functions-------- */ 
-
-void initVals(double* val, int N);
-
-void initInd(int* ind, int N);
-
-void initVtype(int varNums, char* vType);
-
-void initSol(int N, double* sol);
+void initMap(Game* game);
 #endif 

@@ -6,7 +6,6 @@
 */
 void solveCommand(char* path, Game* game) {
 	Board* userBoard;
-	int solved;
 	game->mode = solveMode;
 	userBoard = getUserBoard(game, path);
 	UpdateGame(game, userBoard, solveMode);
@@ -14,7 +13,7 @@ void solveCommand(char* path, Game* game) {
 		game->userMoves = initializeDoublyLinkedList();
 		doublyInsertLast(game->userMoves, NULL);
 		game->curMove = game->userMoves->head;
-		solved = checkIfBoardSolved(game, 1);
+		checkIfBoardSolved(game, 1);
 	}
 	else {
 		UpdateGame(game, userBoard, initMode);
@@ -365,28 +364,32 @@ int guessCommand(Game* game, float threshold) {
 }
 
 /*
+* the function only excute in EDIT mode.
 * the function response to "generate" command.
 * the function generate a board by randomly filling x empty cells with legal values, running ILP to solve the board, and then clearing all but y random cells .
 * if one of the X randomly-chosen cells has no legal value available or the resulting board has no solution- the function reset the board back to the original state
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the Soduko genetartor.
 */
 void generateCommand(Game* game, int x, int y) {
-		int i, t, m, n, N, val, emptyCells, randCol, randRow, var, j;
+	int i, t, N, val, emptyCells, randCol, randRow;
 		index ind;
 		linkedList* move;
 		Board *orignalBoard, *newBoard;
 		LPsol *solve = NULL;
 		bool succeedSet, generateSolvableBoard;
+		if (game->mode != editMode) { /* checks if we are in EDIT mode */
+			if (game->mode == initMode) printErrorMode("init");
+			if (game->mode == editMode) printErrorMode("edit");
+			return;
+		}
 		orignalBoard = initialize(game->board->blocksize);
-		emptyCells = FindHowMuchEmptyCells(game);
+		emptyCells = FindHowMuchEmptyCells(game);/*checks if we have enough empty cells*/
 		if (x > emptyCells) {
 			printf("Error: Board does not contain %d empty cells\n", x);
 			return;
 		}
-		makeCopyBoard(game->board, orignalBoard); /* save a copy of the orignal board*/
-		m = game->board->blocksize.m;
-		n = game->board->blocksize.n;
-		N = n * m;
+		makeCopyBoard(game->board, orignalBoard);/* save a copy of the orignal board*/
+		N = calculateNfromGame(game);
 		for (t = 0; t < 1000; t++) {
 			succeedSet = true;
 			generateSolvableBoard = false;
@@ -408,7 +411,6 @@ void generateCommand(Game* game, int x, int y) {
 					setValue(game, ind.col, ind.row, val);
 				}
 			}
-
 			if (succeedSet) {
 				solve = LPsolver(game,true);
 				if (solve->solvable == true) {
@@ -421,42 +423,26 @@ void generateCommand(Game* game, int x, int y) {
 				}
 			}
 		}
-		
+
 		if (!generateSolvableBoard) {
 			makeCopyBoard(orignalBoard, game->board);
 			printf("Error: Can't generate solvable board with parameters %d and %d \n", x, y);
 			return;
 		}
+		makeSolBoard(game,solve);
 
+		/* make a new board with only y cells filled*/
 		newBoard = initialize(game->board->blocksize);
-		if (y == N*N){/* check if the board solved */
-			makeCopyBoard(game->board, newBoard); /*all values in solved board is chosen for the new board*/
-			printf("Puzzle solved successfully\n");
-			UpdateGame(game, game->board, initMode);
-			return;
-		}
-		else {
-			for (i = 0; i < y; i++) {
-				randCol = rand() % N;
-				randRow = rand() % N;
-				if (newBoard->cells[randRow][randCol].value != 0) {
-					i--;
-					continue;
-				}
-				else {
-					for (j = 1; j <= N;j++) {
-						var = (game->board->cells[randRow][randCol].ixMap[j-1] - 1);
-						if (var >= 0) {
-							if (solve->solBoard[var] == 1) {
-								newBoard->cells[randRow][randCol].value = j;
-								break;
-							}
-						}
-					}
-				}
+		for (i = 0; i < y; i++) {
+			randCol = rand() % N;
+			randRow = rand() % N;
+			if (newBoard->cells[randRow][randCol].value != 0) {
+				i--;
+				continue;
 			}
-			makeCopyBoard(newBoard, game->board); /*game board is now the new board that we generate*/
+			newBoard->cells[randRow][randCol].value = game->board->cells[randRow][randCol].value;
 		}
+		makeCopyBoard(newBoard, game->board); /*game board is now the new board that we generate*/
 		move = createGenerateMoveList(newBoard, orignalBoard);
 		if (move->size > 0) {
 			addMove(game, move);
