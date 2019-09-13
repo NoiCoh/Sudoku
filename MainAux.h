@@ -4,20 +4,28 @@
 #include "Stack.h"
 #include "linkedList.h"
 
+/* the enum represents a sudoku solved status*/
 typedef enum { solved, unsolved } SudokuSolved;
 
+/* the enum represents the game current mode*/
+typedef enum { editMode, solveMode, initMode } modes;
+
+/* the struct represents a data of a cell - value and if the cell is fixed*/
 typedef struct {
 	int num;
 	int fixed;
 }data;
 
+/* the struct represents a block size */
 typedef struct {
 	int n;
 	int m;
 }blocksize;
 
-typedef enum { editMode, solveMode, initMode } modes;
-
+/* the struct represents a cell in the board
+* the struct contains : value, if it is fixed, if the cell is errorneous, if the user sets this value,
+* the list of valid value options for thie cell and it's size, and the mapping list for solution.
+*/
 typedef struct cell {
 	int value;
 	bool fixed;
@@ -28,17 +36,25 @@ typedef struct cell {
 	int* ixMap;
 } Cell;
 
+/* the struct represents the game's board
+* the struct contains : the cells, it's size and if it is erroneous or not.
+*/
 typedef struct Board {
 	Cell** cells;
 	bool erroneous;
 	blocksize blocksize;
 } Board;
 
+/* the struct represents the solution from LP algorithm */
 typedef struct {
 	int solvable;
 	double* solBoard;
 }LPsol;
 
+/* the struct represents the game.
+* the struct contains : the board, a list of the user moves and a pointer to the current move, the game current mode,
+* and if the game should show the user the errors
+*/
 typedef struct Game {
 	doublyLinkedList* userMoves;
 	doublyNode* curMove;
@@ -47,6 +63,7 @@ typedef struct Game {
 	Board* board;
 }Game;
 
+/* the enum represents all the valid commands in the game */
 typedef enum {
 	solve,
 	edit,
@@ -67,13 +84,23 @@ typedef enum {
 	exitCommand
 }Command;
 
+/**
+ * restart the game by starting over with the initialization procedure.
+ */
+void restart();
+
 /*------------------------Error printing------------------------*/
+
+/* prints error and informs the user which parameter is not valid and it's legal range and type */
 void printlegalRange(char* type, char* param, int minNum, int maxNum);
 
+/* prints error if the board is not initilized */
 void printBoardNotInit();
 
+/* prints error if the command is unavailable in a specific mode*/
 void printErrorMode(char* mode);
 
+/* prints error if the board is erroneous*/
 void printErroneousBoardError();
 
 /**
@@ -84,21 +111,12 @@ void funcFailed(char* str);
 
 /*--------------------------------------------------------------*/
 
-/*an auxilary function for printing the board*/
-void printNTimes(int n);
-
-/*if the user' command is "edit" with no edditional parameter (path), the user gets an empty 9X9 board*/
-Board* createDefaultBoard();
-
-/*if the board is solved, notify the user and enter init mode. else- notify that the board is errornous*/
-int checkIfBoardSolved(Game* game,int isSolveCommand);
-
 /**
- * initialize board values and params to zero.
+ * initialize board values and params to zero and returns the initialized board.
  */
 Board* initialize(blocksize block);
 
-/*initialize struct game and allocate memory */
+/* initialize struct game and allocate memory and returns the initialize game */
 Game* initializeGame();
 
 
@@ -111,6 +129,9 @@ void UpdateGame(Game* game, Board *userBoard, modes mode);
  */
 void printBoard(Game* game);
 
+/*an auxilary function for printing the board*/
+void printNTimes(int n);
+
 /**
  * Make a deep copy of @param board to @param copyBorad.
  */
@@ -120,83 +141,6 @@ void makeCopyBoard(Board* borad, Board* copyBorad);
  *check if board has a cell that marked as erroneous.
  */
 bool isBoardErroneous(Board* board);
-
-/**
- *  If we reach EOF, the program prints "Exiting…" and terminates.
- */
-void checkEOF();
-
-/*
-* set value in board's game
-*/
-void setValue(Game* game, int col, int row, int value);
-
-/*
-Count how many empty cells in board's game
-**/
-int FindHowMuchEmptyCells(Game* game);
-
-int getLegalGuess(Game* game, LPsol* lpSol, int row, int col, float threshold, int* legalValues, double* scores);
-
-/*weighted random selection from the scores array */
-int getRandIndex(int numOflegalValues, double* scores);
-
-/*creates a linked list with all of the board's changes after calling "generate" command.*/
-linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard);
-
-/*prints the correct syntaxt of a command*/
-void printCommandSyntax(Command c, int maxVal);
-
-/*counts how many arguments the user entered while writing a command*/
-int argsNum(char* move[]);
-
-/*checks if the number of parameters that the user entered fits the syntax of the command.
-*if no, prints an error and notify the user the correct syntax of the command*/
-int checkParamsNum(int validNum, int paramsNum, Command c, int maxVal);
-
-/*checks if a the number's type is a float*/
-int isFloat(char* num);
-
-/*checks if a digit is an integer in the range [0-9]*/
-int isNum(char move);
-
-/*checks if a string @move is a number*/
-int isNums(char* move);
-
-/*checks if the @value param is in the range [@min,@max]*/
-int isInRange(int value, int max, int min);
-
-/*-----validate the command's syntax, number of parameters, parameter's type and range-----*/
-int validateSolve(char* move[]);
-
-int validateEdit(char* move[]);
-
-int validateMarkErrors(char* move[], Game* game);
-
-int validatePrintBoard(char* move[], Game* game);
-
-int validateSet(char* move[], Game* game);
-
-int isValidSetParams(char* x, char* y, char* z, Game* game);
-
-int validateValidate(char* move[], Game* game);
-
-int validateGuess(char* move[], Game* game);
-
-int validateGenerate(char* move[], Game* game);
-
-int isValidTwoParams(char* x, char* y, int minValue, int maxValue);
-
-int validateUndoAndRedo(char* move[], Game* game, int isUndo);
-
-int validateSave(char* move[], Game* game);
-
-int validateHintAndGuessHint(char* move[], Game* game, int isHint);
-
-int validateAutofill(char* move[], Game* game);
-
-int validateNumSolAndExitAndReset(char* move[], Game* game, Command c, int isExit);
-/*---------------------------------------------------------------------------------------*/
 
 /*marks cells which are errornous*/
 void markErroneousCells(Game* game);
@@ -216,7 +160,8 @@ bool IsThereEmptyCell(Board* board, int N);
 bool isValidOption(Game* game, index ind, int value, bool mark, bool checkOnlyFixed);
 
 /*
-* the function checks if the board contains a fixed cell that is errornous.
+* the function checks if the board contains at least 2 fixed cells with the same value in the same row, colunm or box.
+* return value: 1 - if there is an errornous in a fixed cell, 0 - otherwise.
 */
 int isFixedErrornous(Game* game);
 
@@ -239,13 +184,31 @@ bool checkInBox(Game* game, index box, index ind, int value, bool mark, bool che
 bool checkInRowAndCol(Game* game, index index, int value, bool mark, bool checkOnlyFixed);
 
 /*
-* calculate size of a row/col in the sudoku game board from block size.
+* calculate size of a row/col in the sudoku game board from block size and returns it.
 */
 int calculateNfromGame(Game* game);
 
-/*
-* generate solved board from the Lp solve.
-*/
-void makeSolBoard(Game* game, LPsol* solve);
+/**
+ * an auxilary function that free the board memory
+ */
+void freeBoard(Board* currentBoard);
+
+/**
+ * an auxilary function that free the game memory
+ */
+void freeGame(Game* game);
+
+/**
+ * the function creates an array of valid options for a specific cell.
+ */
+void findOptionsCell(Game* game, index ind);
+
+/**
+ * the function removes zero elements from option array.
+ */
+void removeZeroFromOptions(Game* game, index ind);
+
+
+
 
 #endif

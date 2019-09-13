@@ -3,33 +3,14 @@
 #include "Solver.h"
 #include "Parser.h"
 #include "ILPsolver.h"
-
+#include "FileAux.h"
+#include "GameAux.h"
 
  /*
  * the function response to "solve" command, enters solve mode and upload the board from
  * the user's path.
  */
 void solveCommand(char* path, Game* game);
-
-/*
-* the function counts the number of elements in the file.
-*/
-int countInFile(FILE *ptr, int N);
-
-/*
-* the function checks whether the file is empty.
-*/
-int isFileEmpty(FILE* ptr);
-
-/*
-* the function checks if the file includes a valid sudoku board (if all of the elements are numbers in the right range
-*/
-data* checkInput(char* input, int N);
-
-/*
-* an auxilary function that uploads the board from a given path.
-*/
-Board* getUserBoard(Game* game, char* path);
 
 /*
 * the function response to "edit" command, enters edit mode and upload the board from
@@ -54,14 +35,15 @@ void printCommand(Game* game);
  * and enters init mode. if it is an errornous value, the function prints-"Error: The board is erroneous!".
  * the user may set a value into a fixed cell only in edit mode.
  */
-int setCommand(Game* game, int row, int col, int val,bool addToMoveList);
+void setCommand(Game* game, int row, int col, int val,bool addToMoveList);
 
 /**
  * the function response to "validate" command.
  * validates that the current state of the board is solvable.
- * solve the generated board with the deterministic backtracking algorithm.
+ * solve the generated board with the Linear programming algorithm.
  * if no solution is found prints: "Validation failed: board is unsolvable"
  * else, prints "Validation passed: board is solvable"
+ * return value: 1 - if validation passed, 0 - otherwise.
  */
 int validateCommand(Game* game);
 
@@ -69,6 +51,7 @@ int validateCommand(Game* game);
 * the function response to "guess" command.
 * the function guesses a solution to the current board using LP with a thershold.
 * if the board is erroneous, the function prints an error and the command is not executed.
+* return value: 1 - guess command succeeded , 0 - otherwise.
 */
 int guessCommand(Game* game, float threshold);
 
@@ -79,12 +62,6 @@ int guessCommand(Game* game, float threshold);
 * and repeat previous step. After 1000 such iteratons, treat this as an error in the Soduko genetartor.
 */
 void generateCommand(Game* game, int x, int y);
-
-/* the function adds the user's move to a moves list that tracks user's moves in order to undo\redo them .
-* Whenever the user makes a move (via "set,", "autofill", "generate", or "guess"), all items beyond the current move pointer are removed, the new
-* move is added to the end of the list and marked as the current move.
-*/
-void addMove(Game* game, linkedList* move);
 
 /*
 * the function response to "undo" command.
@@ -137,14 +114,10 @@ void autofillCommand(Game* game);
 */
 void resetCommand(Game* game);
 
-/**
- * the function prints "Exiting..." , frees all memory resources and terminates the program .
- */
+/*
+* the function response to "exit" command.
+* the function prints "Exiting..." , frees all memory resources and terminates the program .
+*/
 void exiting(Game* game);
-
-/**
- * an auxilary function that free the board memory
- */
-void freeBoard(Board* currentBoard);
 
 #endif

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-
 /**
  * the function reads the user's command.
  */
@@ -154,18 +153,6 @@ void checkString(Game* game, char* move[]) {
 		else {
 		printf("Error: invalid command\n");
 		}
-	}
-}
-
-/**
- * restart the game by starting over with the initialization procedure.
- */
-void restart(){
-	Game *game;
-	printf("Welcome to N&I Sudoku Game!\n");
-	game=initializeGame();
-	while (1) {
-		readUser(game);
 	}
 }
 

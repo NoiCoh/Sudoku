@@ -2,6 +2,7 @@
 #define PARSER_H
 #include "Game.h"
 #include <string.h>
+#include "ParserAux.h"
 
 /**
  * the function reads the user's command.
@@ -13,11 +14,6 @@ void readUser(Game * game);
  * if the user enters a command that doesn't match any of the commands defined,  the program prints an error.
  */
 void checkString(Game * game,char* move[]);
-
-/**
- * restart the game by starting over with the initialization procedure.
- */
-void restart();
 
 
 #endif

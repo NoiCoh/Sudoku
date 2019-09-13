@@ -1,7 +1,10 @@
 #include "Stack.h"
 #include "MainAux.h"
 
-/*initializes a stackNode and allocates memory.*/
+/*
+* the function initializes a stack node and allocates memory.
+* return value: initialized stack node.
+*/
 cellMem* createNewNode(index ix, int val) {
 	cellMem* stackNode = (cellMem*)malloc(sizeof(cellMem));
 	if (!stackNode) { /* check if malloc succeseed */
@@ -13,7 +16,9 @@ cellMem* createNewNode(index ix, int val) {
 	return stackNode;
 }
 
-/*push a new node to the top of the stack*/
+/*
+* the function pushes a new node to the top of the stack
+*/
 void push(index ix, int val, Stack* stack) {
 	cellMem *newCell, *prevTop;
 	prevTop = stack->top;
@@ -23,7 +28,10 @@ void push(index ix, int val, Stack* stack) {
 	stack->size++;
 }
 
-/*is the stack is empty- returns 1, else -0. .*/
+/*
+* the function checks if the stack is empty.
+* return value: if the stack is empty- returns 1, else -0
+*/
 int stackIsEmpty(Stack* stack) {
 	if (stack->size == 0) {
 		return 1;
@@ -31,7 +39,9 @@ int stackIsEmpty(Stack* stack) {
 	return 0;
 }
 
-/*pops the top of the stack and returns it*/
+/* 
+* the function pops the top of the stack and returns it.
+*/
 cellMem* pop(Stack* stack) {
 	cellMem* prevTop;
 	prevTop = stack->top;
@@ -41,7 +51,9 @@ cellMem* pop(Stack* stack) {
 	return prevTop;
 }
 
-/*initialize a struct stack and it's veraibles. */
+/*
+* the function initializes a struct stack and it's veraibles.
+*/
 void initStack(Stack* stack) {
 	stack->top = NULL;
 	stack->size = 0;

@@ -5,6 +5,7 @@
 
 /*
 * initializes node and it's variables.
+* return value: initialize node.
 */
 node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
 	node* newNode;
@@ -21,7 +22,7 @@ node* initializeNode(int row,  int col,  int newVal,  int prevVal) {
 }
 
 /*
-* initializes linkedList and return it.
+* initializes linkedList and returns it.
 */
 linkedList* initializeLinkedList() {
 	linkedList* newList;
@@ -33,7 +34,8 @@ linkedList* initializeLinkedList() {
 }
 
 /*
-* if the linked list is empty-returns 1, otherwise -returns 0.
+* The function checks if the linked list is empty.
+* return value : if the linked list is empty-returns 1, otherwise - 0.
 */
 int isEmpty(linkedList *list) {
 	if (list->size == 0) {
@@ -94,6 +96,7 @@ void freeList(linkedList* list) {
 
 /*
 * initializes a doubly node for the doubly linked list.
+* return value : initialized doubly node
 */
 doublyNode* initializeDoublyNode(linkedList *move) {
 	doublyNode* newNode;
@@ -106,7 +109,7 @@ doublyNode* initializeDoublyNode(linkedList *move) {
 }
 
 /*
-* initializes a doubly linked list.
+* initializes a doubly linked list and returns it.
 */
 doublyLinkedList* initializeDoublyLinkedList() {
 	doublyLinkedList* newNode;
@@ -118,7 +121,8 @@ doublyLinkedList* initializeDoublyLinkedList() {
 }
 
 /*
-* if the doubly linked list is empty-returns 1, otherwise -returns 0.
+* The function checks if the linked list is empty.
+* return value : if the doubly linked list is empty-returns 1, otherwise - 0.
 */
 int doublyIsEmpty(doublyLinkedList *list) {
 	if (list->size == 0) {
@@ -165,7 +169,7 @@ void doublyDeleteAllAfter(doublyLinkedList* list, doublyNode *curMove) {
 }
 
 /*
-* gets the last node in the doubly linked list.
+* the function gets the last node in the doubly linked list and returns it.
 */
 doublyNode* doublyGetLast(doublyLinkedList* list) {
 	if (doublyIsEmpty(list)) {
@@ -178,7 +182,7 @@ doublyNode* doublyGetLast(doublyLinkedList* list) {
 }
 
 /*
-* deletes the last node of the doubly linked list.
+* The function deletes the last node of the doubly linked list.
 */
 void doublyDeleteLast(doublyLinkedList *list) {
 	doublyNode *last, *prev;

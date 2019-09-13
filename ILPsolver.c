@@ -6,28 +6,31 @@
 * if integerSol=false , the function uses linear programming algorithm in order to solve the board.
 * return value : the function returns LPsol struct which contains the solution's information.
 */
-LPsol* LPsolver(Game* game,bool integerSol) {
+LPsol* LPsolver(Game* game, bool integerSol) {
 	int m, n, N, error, varsNum, optimstatus, i;
-	double* objective=NULL;
+	double* objective = NULL;
 	LPsol* lpSol;
-	GRBenv *env = NULL;
-	GRBmodel *model = NULL;
-	double*	sol = NULL;
+	GRBenv* env = NULL;
+	GRBmodel* model = NULL;
+	double* sol = NULL;
 	char* vType = NULL;
+	printf("inside function LPSOLVER \n");
 	m = game->board->blocksize.m;
 	n = game->board->blocksize.n;
 	N = n * m;
+	printf("n = %d , m= %d\n", n, m);
 	/*---------initilaize variables---------*/
 	error = 0;
 	optimstatus = 0;
 	initMap(game);
-	lpSol = (LPsol *)malloc(sizeof(LPsol));
+	lpSol = (LPsol*)malloc(sizeof(LPsol));
 	if (!lpSol) {
 		funcFailed("malloc");
 	}
 	lpSol->solvable = 0;
-	lpSol->solBoard= NULL;
+	lpSol->solBoard = NULL;
 	varsNum = getVarsNum(N, game);
+	printf("varsNums : %d\n", varsNum);
 	vType = (char*)malloc(varsNum * sizeof(char));
 	if (vType == NULL) {
 		funcFailed("malloc");
@@ -36,34 +39,35 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 	if (sol == NULL) {
 		funcFailed("calloc");
 	}
-	objective = (double*)malloc(varsNum * sizeof(double));
+	objective = (double*)calloc(varsNum, sizeof(double));
 	if (!objective) {
-		funcFailed("malloc");
+		funcFailed("calloc");
 	}
-	for (i = 0; i < varsNum; i++) {
-		if (integerSol == true) {
-			objective[i] = 0;
-		}
-		else {
+	if (integerSol != true) {
+		for (i = 0; i < varsNum; i++) {
 			objective[i] = 1.0 + rand() % 10;
 		}
 	}
+	printf("Finish initilize\n");
 	/*----------------------------------*/
 	error = GRBloadenv(&env, "sudoku.log");
 	if (error) {
 		printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
 		return 0;
 	}
+	printf("finish load\n");
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
 	if (error) {
 		printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
 		return 0;
 	}
+	printf("finish set int param\n");
 	/* Create an empty model named "sudoku" */
 	error = GRBnewmodel(env, &model, "sudoku", 0, NULL, NULL, NULL, NULL, NULL);
 	if (error) {
 		printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
 	}
+	printf("finish new model\n");
 	if (error) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
@@ -73,6 +77,7 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 	} else {
 		error = initLpVars(env, model, varsNum, vType, objective);
 	}
+	printf("int solution\n");
 	if (error) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
@@ -82,17 +87,20 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
 	}
+	printf("adding constriants\n");
 	error = optimize(env, model);
 	if (error) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
 	}
+	printf("optimize\n");
 	error = GRBwrite(model, "sudoku.lp");
 	if (error) {
 		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
 	}
+	printf("write to model\n");
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
@@ -110,6 +118,7 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 		freeLpSolver(env, model, vType, sol, objective);
 		return lpSol;
 	}
+	printf("finish GRBgetdblattrarray\n");
 	if (optimstatus == GRB_OPTIMAL) {
 		lpSol->solvable = 1;
 		lpSol->solBoard = (double*)calloc(varsNum, sizeof(double));
@@ -120,6 +129,7 @@ LPsol* LPsolver(Game* game,bool integerSol) {
 			lpSol->solBoard[i] = sol[i];
 		}
 	}
+	printf("finish all\n");
 	freeLpSolver(env, model, vType, sol, objective);
 	return lpSol;
 }
