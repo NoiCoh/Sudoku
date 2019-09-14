@@ -74,7 +74,7 @@ int optimize(GRBenv* env, GRBmodel* model);
 /*
 * The function free all memory resources and environment.
 */
-void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* objective);
+void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* objective, double* values);
 
 /*
 * the function free LPsol struct.

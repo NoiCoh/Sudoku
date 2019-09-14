@@ -5,9 +5,14 @@
 * the user's path.
 */
 void solveCommand(char* path, Game* game) {
-	Board* userBoard;
+	Board* userBoard = NULL;
 	game->mode = solveMode;
-	userBoard = getUserBoard(game, path);
+	if (game->board != NULL) {
+		freeBoard(game->board);
+	}
+	if (path != NULL) {
+		userBoard = getUserBoard(game, path);
+	}
 	UpdateGame(game, userBoard, solveMode);
 	if (game->board != NULL) {
 		doublyFree(game->userMoves);
@@ -27,11 +32,13 @@ void solveCommand(char* path, Game* game) {
 */
 void editCommand(char* path, Game* game) {
 	Board* userBoard;
+	if (game->board != NULL) {
+		freeBoard(game->board);
+	}
 	if (path == NULL) {
 		userBoard = createDefaultBoard();
 	}
-	else
-	{
+	else{
 		userBoard = getUserBoard(game, path);
 	}
 	UpdateGame(game, userBoard, editMode);

@@ -52,13 +52,13 @@ Board* initialize(blocksize block) {
 	Cell** arrayBoard;
 	Board* board;
 	sizeOfRow = block.n * block.m;
-	arrayBoard = malloc(sizeOfRow * sizeof(Cell*));
+	arrayBoard = (Cell**)malloc(sizeOfRow * sizeof(Cell*));
 	if (!arrayBoard) {
 		funcFailed("malloc");
 	}
 	for (i = 0;i < sizeOfRow;i++)
 	{
-		arrayBoard[i] = malloc(sizeof(Cell) * sizeOfRow);
+		arrayBoard[i] = (Cell *)malloc(sizeof(Cell) * sizeOfRow);
 		if (!arrayBoard[i]) {
 			funcFailed("malloc");
 		}
@@ -80,7 +80,7 @@ Board* initialize(blocksize block) {
 			}
 		}
 	}
-	board = malloc(sizeof(Board));
+	board = (Board *)malloc(sizeof(Board));
 	if (!board) {
 		funcFailed("malloc");
 	}
@@ -384,21 +384,20 @@ int calculateNfromGame(Game* game) {
  * an auxilary function that free the board memory
  */
 void freeBoard(Board* currentBoard) {
-	int k, l, m, n;
+	int k, l, m, n , N;
 	m = currentBoard->blocksize.m;
 	n = currentBoard->blocksize.n;
+	N = n * m;
 	if (currentBoard) {
-		for (k = 0;k < n;k++) {
-			for (l = 0;l < m;l++) {
+		for (k = 0;k < N;k++) {
+			for (l = 0;l < N;l++) {
 				if (currentBoard->cells[k][l].options) {
 					free(currentBoard->cells[k][l].options);
 					currentBoard->cells[k][l].options = NULL;
-
 				}
 				if (currentBoard->cells[k][l].ixMap) {
 					free(currentBoard->cells[k][l].ixMap);
 					currentBoard->cells[k][l].ixMap = NULL;
-
 				}
 			}
 			if (currentBoard->cells[k])
