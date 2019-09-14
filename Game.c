@@ -27,7 +27,6 @@ void solveCommand(char* path, Game* game) {
 */
 void editCommand(char* path, Game* game) {
 	Board* userBoard;
-	game->mode = editMode;
 	if (path == NULL) {
 		userBoard = createDefaultBoard();
 	}
@@ -128,6 +127,7 @@ int validateCommand(Game* game) {
 	solve = LPsolver(game, true);
 	if (solve->solvable == 1) {
 		printf("Validation passed: board is solvable\n");
+		freeLpSol(solve);
 		return 1;
 	}
 	else {
@@ -146,15 +146,15 @@ int validateCommand(Game* game) {
 int guessCommand(Game* game, float threshold) {
 	int i, j, N, numOflegalValues, * legalValues, randIndex, newVal;
 	linkedList* move;
-	LPsol* sol;
+	LPsol* lpSol;
 	double* scores;
 	N = game->board->blocksize.m * game->board->blocksize.n;
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 		return 0;
 	}
-	sol = LPsolver(game, false);
-	if (sol->solvable == 0) {
+	lpSol = LPsolver(game, false);
+	if (lpSol->solvable == 0) {
 		printf("Error: the board is unsolvable\n");
 		return 0;
 	}
@@ -174,7 +174,7 @@ int guessCommand(Game* game, float threshold) {
 				continue;
 			}
 			/* get valid options for cell without erroneous*/
-			numOflegalValues = getLegalGuess(game, sol, i, j, threshold, legalValues, scores); 
+			numOflegalValues = getLegalGuess(game, lpSol, i, j, threshold, legalValues, scores); 
 
 			if (numOflegalValues == 0) { /* if there is no option avaliable for this cell, continue*/
 				newVal = 0;
@@ -191,6 +191,7 @@ int guessCommand(Game* game, float threshold) {
 	checkIfBoardSolved(game,0);
 	free(legalValues);
 	free(scores);
+	freeLpSol(lpSol);
 	if (move->size > 0) {
 		addMove(game, move);
 	}
@@ -212,7 +213,7 @@ void generateCommand(Game* game, int x, int y) {
 		index ind;
 		linkedList* move;
 		Board *orignalBoard, *newBoard;
-		LPsol *solve = NULL;
+		LPsol *lpSol = NULL;
 		bool succeedSet, generateSolvableBoard;
 		orignalBoard = initialize(game->board->blocksize);
 		emptyCells = FindHowMuchEmptyCells(game);/*checks if we have enough empty cells*/
@@ -248,8 +249,8 @@ void generateCommand(Game* game, int x, int y) {
 			printf("finish part A \n");
 			printBoard(game);
 			if (succeedSet) {
-				solve = LPsolver(game,true);
-				if (solve->solvable == true) {
+				lpSol = LPsolver(game,true);
+				if (lpSol->solvable == 1) {
 					printf("found solvable board!\n");
 					generateSolvableBoard = true;
 					break;
@@ -266,7 +267,7 @@ void generateCommand(Game* game, int x, int y) {
 			return;
 		}
 		printf("tries to generate sol board!\n");
-		makeSolBoard(game,solve);
+		makeSolBoard(game,lpSol);
 		printBoard(game);
 		/* make a new board with only y cells filled*/
 		newBoard = initialize(game->board->blocksize);
@@ -287,9 +288,9 @@ void generateCommand(Game* game, int x, int y) {
 		else {
 			freeList(move);
 		}
+		freeLpSol(lpSol);
 		free(newBoard);
 		free(orignalBoard);
-
 }
 
 /*
@@ -417,7 +418,7 @@ void saveGame(Game* game, char* path) {
  */
 void hintCommand(Game* game, char* x, char* y) {
 	int row, col, N, i, ix;
-	LPsol* sol;
+	LPsol* lpSol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
 	N = game->board->blocksize.m * game->board->blocksize.n;
@@ -431,17 +432,20 @@ void hintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell contains a value\n");
 	}
 	else {
-		sol = LPsolver(game, true);
-		if (sol->solvable == false) {
+		lpSol = LPsolver(game, true);
+		if (lpSol->solvable == 0 ) {
 			printf("Error: board is unsolvable\n");
 		}
 		else {
 			for (i = 1; i <= N; i++) {
 				ix = game->board->cells[row][col].ixMap[i - 1] - 1;
-				if (sol->solBoard[ix] == 1) {
-					printf("Hint: set cell to %d\n", i);
+				if (ix >= 0) {
+					if (lpSol->solBoard[ix] == 1) {
+						printf("Hint: set cell to %d\n", i);
+					}
 				}
 			}
+			freeLpSol(lpSol);
 		}
 	}
 }
@@ -453,7 +457,7 @@ void hintCommand(Game* game, char* x, char* y) {
  */
 void guessHintCommand(Game* game, char* x, char* y) {
 	int row, col, val, m, n, ix;
-	LPsol* sol;
+	LPsol* lpSol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
 	m = game->board->blocksize.m;
@@ -468,20 +472,21 @@ void guessHintCommand(Game* game, char* x, char* y) {
 		printf("Error: cell contains a value\n");
 	}
 	else {
-		sol = LPsolver(game,false);
-		if (sol->solvable == false) {
+		lpSol = LPsolver(game,false);
+		if (lpSol->solvable == false) {
 			printf("Error: board is unsolvable\n");
 		}
 		else {
 			for (val = 1; val <= n * m; val++) {
 				ix = game->board->cells[row][col].ixMap[val - 1] - 1;
 				if (ix >= 0) {
-					if (sol->solBoard[ix] != 0) {
-						printf("value: %d , score: %f\n", val, sol->solBoard[ix]);
+					if (lpSol->solBoard[ix] != 0) {
+						printf("value: %d , score: %f\n", val, lpSol->solBoard[ix]);
 					}
 				}
 			}
 		}
+		freeLpSol(lpSol);
 	}
 }
 

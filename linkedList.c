@@ -194,7 +194,9 @@ void doublyDeleteLast(doublyLinkedList *list) {
 		if (prev != NULL) { 
 			prev->next = NULL;
 		}
-		freeList(last->move);
+		if (last->move != NULL) {
+			freeList(last->move);
+		}
 		free(last);
 
 		list->size--;

@@ -69,7 +69,7 @@ LPsol* LPsolver(Game* game, bool integerSol) {
 	}
 	printf("finish new model\n");
 	if (error) {
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	if (integerSol == true) {
@@ -79,43 +79,43 @@ LPsol* LPsolver(Game* game, bool integerSol) {
 	}
 	printf("int solution\n");
 	if (error) {
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	error = allConstraints(game, env, model, n, m);
 	if (error) {
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	printf("adding constriants\n");
 	error = optimize(env, model);
 	if (error) {
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	printf("optimize\n");
 	error = GRBwrite(model, "sudoku.lp");
 	if (error) {
 		printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	printf("write to model\n");
 	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
 	if (error) {
 		printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, objective);
 	if (error) {
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, varsNum, sol);
 	if (error) {
 		printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-		freeLpSolver(env, model, vType, sol, objective);
+		freeLpSolver(env, model, vType, objective);
 		return lpSol;
 	}
 	printf("finish GRBgetdblattrarray\n");
@@ -130,7 +130,7 @@ LPsol* LPsolver(Game* game, bool integerSol) {
 		}
 	}
 	printf("finish all\n");
-	freeLpSolver(env, model, vType, sol, objective);
+	freeLpSolver(env, model, vType, objective);
 	return lpSol;
 }
 
@@ -428,25 +428,31 @@ int optimize(GRBenv *env, GRBmodel *model) {
 /*
 * The function free all memory resources and environment.
 */
-void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* sol, double* objective) {
+void freeLpSolver(GRBenv* env, GRBmodel* model, char* vType, double* objective) {
 	GRBfreemodel(model);
 	GRBfreeenv(env);
-	free(sol);
 	free(vType);
 	free(objective);
+}
+
+/*
+* the function free LPsol struct.
+*/
+void freeLpSol(LPsol* lpSol) {
+	free(lpSol->solBoard);
+	free(lpSol);
 }
 
 /*
 * The function init the mapping of every cell.
 */
 void initMap(Game* game) {
-	int i, j, N;
+	int i, j, v, N;
 	N = calculateNfromGame(game);
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
-			game->board->cells[i][j].ixMap = (int*)calloc(N, sizeof(int));
-			if (!game->board->cells[i][j].ixMap) {
-				funcFailed("calloc");
+			for (v = 0; v < N; v++) {
+				game->board->cells[i][j].ixMap[v] = 0;
 			}
 		}
 	}
