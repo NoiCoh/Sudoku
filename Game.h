@@ -45,7 +45,7 @@ void setCommand(Game* game, int row, int col, int val,bool addToMoveList);
  * else, prints "Validation passed: board is solvable"
  * return value: 1 - if validation passed, 0 - otherwise.
  */
-int validateCommand(Game* game);
+int validateCommand(Game* game, int isSave);
 
 /*
 * the function response to "guess" command.

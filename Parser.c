@@ -77,7 +77,7 @@ void checkString(Game* game, char* move[]) {
 		}
 		else if ((strcmp(move[0], "validate") == 0)) {
 			if (validateValidate(move, game)) {
-				validateCommand(game);
+				validateCommand(game,0);
 				printBoard(game);
 			}
 		}
@@ -137,12 +137,15 @@ void checkString(Game* game, char* move[]) {
 				printBoard(game);
 		}
 		else if ((strcmp(move[0], "reset") == 0)) {
-			if (game->curMove == game->userMoves->head) {
-				printf("The Board is already in its original loaded state\n");
-			}
 			if (validateNumSolAndExitAndReset(move, game, reset,0)) {
-				resetCommand(game);
+				if (game->curMove == game->userMoves->head) {
+					printf("The Board is already in its original loaded state\n");
+				}
+				else {
+					resetCommand(game);
+				}
 			}
+
 			printBoard(game);
 		}
 		else if (strcmp(move[0], "exit") == 0) {

@@ -125,7 +125,7 @@ void setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
  * else, prints "Validation passed: board is solvable"
  * return value: 1 - if validation passed, 0 - otherwise.
  */
-int validateCommand(Game* game) {
+int validateCommand(Game* game,int isSave) {
 	LPsol* solve;
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
@@ -133,12 +133,16 @@ int validateCommand(Game* game) {
 	}
 	solve = LPsolver(game, true);
 	if (solve->solvable == 1) {
-		printf("Validation passed: board is solvable\n");
+		if (!isSave) {
+			printf("Validation passed: board is solvable\n");
+		}
 		freeLpSol(solve);
 		return 1;
 	}
 	else {
-		printf("Validation failed: board is unsolvable\n");
+		if (!isSave) {
+			printf("Validation failed: board is unsolvable\n");
+		}
 		return 0;
 	}
 	return 0;
@@ -228,7 +232,7 @@ void generateCommand(Game* game, int x, int y) {
 			printf("Error: Board does not contain %d empty cells\n", x);
 			return;
 		}
-		printf("num of empty cell : %d\n", emptyCells);
+		
 		makeCopyBoard(game->board, orignalBoard);/* save a copy of the orignal board*/
 		N = calculateNfromGame(game);
 		for (t = 0; t < 1000; t++) {
@@ -237,13 +241,11 @@ void generateCommand(Game* game, int x, int y) {
 			for (i = 0; i < x; i++) {
 				ind.col = rand() % N;
 				ind.row = rand() % N;
-				printf("random cell: <%d,%d>\n", ind.col, ind.row);
 				if (game->board->cells[ind.row][ind.col].value != 0) {
 					i--;
 					continue;
 				}
 				val = getRandValue(game, ind);
-				printf("val= %d\n", val);
 				if (val == 0) { /*There is no valid value for this cell*/
 					makeCopyBoard(orignalBoard, game->board);
 					succeedSet = false;
@@ -253,12 +255,9 @@ void generateCommand(Game* game, int x, int y) {
 					setValue(game, ind.col, ind.row, val);
 				}
 			}
-			printf("finish part A \n");
-			printBoard(game);
 			if (succeedSet) {
 				lpSol = LPsolver(game,true);
 				if (lpSol->solvable == 1) {
-					printf("found solvable board!\n");
 					generateSolvableBoard = true;
 					break;
 				}
@@ -270,12 +269,12 @@ void generateCommand(Game* game, int x, int y) {
 		}
 		if (!generateSolvableBoard) {
 			makeCopyBoard(orignalBoard, game->board);
+			markErroneousCells(game);
 			printf("Error: Can't generate solvable board with parameters %d and %d \n", x, y);
 			return;
 		}
-		printf("tries to generate sol board!\n");
+		
 		makeSolBoard(game,lpSol);
-		printBoard(game);
 		/* make a new board with only y cells filled*/
 		newBoard = initialize(game->board->blocksize);
 		for (i = 0; i < y; i++) {
@@ -288,6 +287,7 @@ void generateCommand(Game* game, int x, int y) {
 			newBoard->cells[randRow][randCol].value = game->board->cells[randRow][randCol].value;
 		}
 		makeCopyBoard(newBoard, game->board); /*game board is now the new board that we generate*/
+		markErroneousCells(game);
 		move = createGenerateMoveList(newBoard, orignalBoard);
 		if (move->size > 0) {
 			addMove(game, move);
@@ -371,9 +371,14 @@ void saveGame(Game* game, char* path) {
 	if (game->mode == editMode) {
 		if (game->board->erroneous) {
 			printErroneousBoardError();
+			printf("File was not saved\n");
 			return;
 		}
-		if (!validateCommand(game)) return;
+		if (!validateCommand(game,1)) {
+			printf("board is unsolvable\n");
+			printf("File was not saved\n");
+			return;
+		}
 	}
 	fp = fopen(path, "w");
 	if (fp == NULL) {
@@ -530,6 +535,7 @@ void autofillCommand(Game* game) {
 		bool errornous = isBoardErroneous(game->board);
 		if (errornous == true) {
 			printErroneousBoardError();
+			return;
 		}
 		n = game->board->blocksize.n;
 		m = game->board->blocksize.m;
