@@ -1,6 +1,6 @@
 /*
  * FileAux:
- * This module handle files, loading and saving board's game.
+ * This module handles files, loading and saving board's game.
  */
 #ifndef FILEAUX_H
 #define FILEAUX_H

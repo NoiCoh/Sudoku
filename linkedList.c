@@ -1,7 +1,7 @@
 /*
  * linkedlist:
  * This module implements a linked-list.
- * we using this module for undo and redo commands.
+ * we are using this module for undo and redo commands.
  */
 #include "linkedList.h"
 #include <stdio.h>

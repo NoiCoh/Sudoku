@@ -1,6 +1,6 @@
 /*
  * FileAux:
- * This module handle files, loading and saving board's game.
+ * This module handles files, loading and saving board's game.
  */
 #include "FileAux.h"
 

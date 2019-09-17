@@ -1,3 +1,8 @@
+/*
+ * Solver:
+ * This module implements backtracking algorithm to count the number of solution for board's game.
+ */
+
 #ifndef SOLVER_H
 #define SOLVER_H
 #include "linkedList.h"

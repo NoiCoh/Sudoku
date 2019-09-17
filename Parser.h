@@ -1,6 +1,6 @@
 /*
  * Parser:
- * This module handle receiving input from the user and parse it.
+ * This module handles receiving input from the user and parse it.
  */
 #ifndef PARSER_H
 #define PARSER_H

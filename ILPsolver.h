@@ -5,7 +5,8 @@
  *
  *	LP Solver:
  *	the variables represent a valid cell and value option.
- *	The target function choose a random coefficient between [1 - N] to every valid variable.
+ *	The target function choose a random coefficient between [1 - N] to every valid variable.This target 
+ *  function was chosen after a lot of tests which showed that this function delivered the best results.
  */
 
 #ifndef SUD_ILPSOLVER_H
