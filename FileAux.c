@@ -1,7 +1,12 @@
+/*
+ * FileAux:
+ * This module handle files, loading and saving board's game.
+ */
 #include "FileAux.h"
 
 /*
 * the function counts the number of elements in the file.
+* return value: returns count.
 */
 int countInFile(FILE* ptr, int N) {
 	int count = 0;

@@ -1,3 +1,8 @@
+/*
+ * linkedlist:
+ * This module implements a linked-list.
+ * we using this module for undo and redo commands.
+ */
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 

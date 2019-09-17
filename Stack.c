@@ -1,3 +1,7 @@
+/*
+ * Stack:
+ * This module implements a stack.
+ */
 #include "Stack.h"
 #include "MainAux.h"
 

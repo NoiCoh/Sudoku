@@ -1,3 +1,7 @@
+/*
+ * Parser:
+ * This module handle receiving input from the user and parse it.
+ */
 #ifndef PARSER_H
 #define PARSER_H
 #include "Game.h"

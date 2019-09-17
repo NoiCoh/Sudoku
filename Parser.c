@@ -1,3 +1,7 @@
+/*
+ * Parser:
+ * This module handle receiving input from the user and parse it.
+ */
 #include "Parser.h"
 #include <stdio.h>
 #include <stdlib.h>

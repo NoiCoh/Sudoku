@@ -1,3 +1,9 @@
+/*
+ * Game:
+ * This module handle commands during the game.
+ * The legal commands of the game: solve, edit, mark_errors, print_board, set, validate, guess, generate,
+ * undo, redo, save, hint, guess_hint, num_solutions, autofill, reset, exit.
+ */
 #include "Game.h"
 
 /*

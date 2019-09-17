@@ -1,3 +1,8 @@
+/*
+ * MainAux:
+ * This module contains generality auxiliary functions and error printing functions.
+ * Also, This module implements structs and enums for the game.
+ */
 #include "MainAux.h"
 #include "Parser.h"
 
@@ -152,7 +157,9 @@ void printBoard(Game* game) {
 	}
 }
 
-/*an auxilary function for printing the board*/
+/*
+* an auxilary function for printing the board
+*/
 void printNTimes(int n) {
 	int i;
 	for (i = 0; i < n; i++) {

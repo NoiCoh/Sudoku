@@ -1,9 +1,14 @@
+/*
+ * ParserAux:
+ * This module contains auxiliary functions for Parser module.
+ */
 #ifndef PARSERAUX
 #define PARSERAUX
 #include "MainAux.h"
 
 /*
-* counts how many arguments the user entered while writing a command and returns the count.
+* counts how many arguments the user entered while writing a command.
+* return value: returns the count.
 */
 int argsNum(char* move[]);
 

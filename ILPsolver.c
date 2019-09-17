@@ -1,3 +1,12 @@
+/*
+ * ILPsolver:
+ * This module uses Gurobi Optimizer Linear programming solver to solve a sudoku board.
+ * This module implements integer linear programming algorithm and linear programming algorithm.
+ *
+ *	LP Solver:
+ *	the variables represent a valid cell and value option.
+ *	The target function choose a random coefficient between [1 - N] to every valid variable.
+ */
 #include "ILPsolver.h"
 
 /*
@@ -42,7 +51,7 @@ LPsol* LPsolver(Game* game, bool integerSol) {
 	}
 	if (integerSol != true) {
 		for (i = 0; i < varsNum; i++) {
-			objective[i] = 1.0 + rand() % 10;
+			objective[i] = 1.0 + rand() % N;
 		}
 	}
 	/*----------------------------------*/

@@ -1,3 +1,8 @@
+/*
+ * MainAux:
+ * This module contains generality auxiliary functions and error printing functions.
+ * Also, This module implements structs and enums for the game.
+ */
 #ifndef MAINAUX_H
 #define MAINAUX_H
 #include <stdbool.h>

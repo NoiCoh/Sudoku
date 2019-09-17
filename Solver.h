@@ -5,13 +5,14 @@
 #include "Stack.h"
 
 /**
- * the deterministic algorithm to solve a Sudoku board with a stack implementation.
+ * The function implements a deterministic backtracking algorithm to solve a Sudoku board with a stack.
  * return value: SudokuSolved struct that indicates if the sudoku board is solved.
  */
 SudokuSolved deterministicBacktrackingWithStack(Game* game, int N);
 
 /*
- * count the number of solutions of the current board using backtracking algorithm and returns it.
+ * the function count the number of solutions of the current board using backtracking algorithm.
+ * return value: returns the count.
  */
 int exhaustiveBacktracking(Game* game, int N);
 

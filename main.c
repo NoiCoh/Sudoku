@@ -1,19 +1,21 @@
+/*
+ * main:
+ * This module starts the game.
+ */
+
 #include <stdio.h>
+#include <time.h>
 #include "Parser.h"
 #include "Game.h"
 #include "Solver.h"
 #include "MainAux.h"
 
-
-/**
+/*
  * Authors: Inbal Avivi and Noi Cohen 
+ * Main function that starts the game and initilizes the seed for the functions that use random.
  */
-int main(int argc, char *argv[]) {
-if (argc>1){
-srand(atoi(argv[1]));
-}else{
-srand(0);
-}
+int main() {
+	srand(time(0));
     restart();
-    return (argc);
+    return 1;
 }

@@ -1,7 +1,12 @@
+/*
+ * ParserAux:
+ * This module contains auxiliary functions for Parser module.
+ */
 #include "ParserAux.h"
 
 /*
-* counts how many arguments the user entered while writing a command and returns the count.
+* counts how many arguments the user entered while writing a command.
+* return value: returns the count.
 */
 int argsNum(char* move[]) {
 	int cnt, i;
@@ -102,6 +107,7 @@ void checkEOF() {
 		exit(0);
 	}
 }
+
 /*-----validate the command's syntax, number of parameters, parameter's type and range-----*/
 
 /*
@@ -315,12 +321,12 @@ int validateGenerate(char* move[], Game* game) {
 * return value: 1 - validation passed, 0 - otherwise.
 */
 int isValidTwoParams(char* x, char* y, int minValue, int maxValue) {
-	if (!isNums(x) && isInRange(atoi(x), maxValue, minValue))
+	if (!isNums(x) || !isInRange(atoi(x), maxValue, minValue))
 	{
 		printlegalRange("first", "integer", minValue, maxValue);
 		return 0;
 	}
-	if (!isNums(y) && isInRange(atoi(y), maxValue, minValue))
+	if (!isNums(y) || !isInRange(atoi(y), maxValue, minValue))
 	{
 		printlegalRange("second", "integer", minValue, maxValue);
 		return 0;

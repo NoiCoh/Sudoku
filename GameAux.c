@@ -1,3 +1,7 @@
+/*
+ * GameAux:
+ * This module contains auxiliary functions for Game module.
+ */
 #include "GameAux.h"
 
 /**
@@ -28,7 +32,8 @@ int getRandValue(Game* game, index ind) {
 }
 
 /*
-* if the user' command is "edit" with no edditional parameter (path), the user gets an empty 9X9 board
+* if the user's command is "edit" with no edditional parameter (path), the user gets an empty 9X9 board.
+* return value: an empty board.
 */
 Board* createDefaultBoard() {
 	blocksize block;
@@ -91,7 +96,15 @@ int FindHowMuchEmptyCells(Game* game) {
 	return count;
 }
 
-/*weighted random selection from the scores array */
+/*
+* weighted random selection from the scores array that created by LP algorithmn .
+* return value: if there is only one legal return the first option.
+*				if all scores are equal to zero - choose one option randomly.
+*				else, make the scores to be a relative value of the total sum and choose random number in range [0-1].
+*				the function returns the first option that adding to the accumulative sum makes 
+*				the accumulative sum bigger than the random number.
+*
+*/
 int getRandIndex(int numOflegalValues, double* scores) {
 	int i;
 	double random;
@@ -113,7 +126,6 @@ int getRandIndex(int numOflegalValues, double* scores) {
 		scores[i] = scores[i] / sum;
 	}
 	random = ((double)rand()) / ((float)(RAND_MAX)+1); /* random must be in range [0,1] */
-
 	for (i = 0; i < numOflegalValues; i++) {
 		accumulative += scores[i];
 		if (random < accumulative) {
@@ -123,7 +135,10 @@ int getRandIndex(int numOflegalValues, double* scores) {
 	return 0;
 }
 
-/*creates a linked list with all of the board's changes after calling "generate" command.*/
+/*
+* creates a linked list with all of the board's changes after calling "generate" command.
+* return value: the linked list with the changes.
+*/
 linkedList* createGenerateMoveList(Board* newBoard, Board* orignalBoard) {
 	int i, j, row, col, newVal, prevVal, N;
 	linkedList* move;
