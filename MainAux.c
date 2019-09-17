@@ -191,7 +191,8 @@ void makeCopyBoard(Board* board, Board* copyBorad) {
 }
 
 /**
- *check if board has a cell that marked as erroneous.
+ * check if board has a cell that marked as erroneous and update the board erroneous value.
+ * return value: true if the board has at least one error, false otherwise.
  */
 bool isBoardErroneous(Board* board){
     int n,m,i,j,N;
@@ -201,23 +202,24 @@ bool isBoardErroneous(Board* board){
     for(i = 0; i < N; i++){
         for (j = 0; j < N ; j++) {
             if(board->cells[i][j].error==true){
+				board->erroneous = true;
                 return true;
             }
         }
     }
+	board->erroneous = false;
     return false;
 }
 
 
 /*marks cells which are errornous*/
 void markErroneousCells(Game* game) {
-	int i, j, n, m, val;
+	int i, j, N, val;
 	bool check;
 	index ind;
-	m = game->board->blocksize.m;
-	n = game->board->blocksize.n;
-	for (i = 0; i < m*n; i++) {
-		for (j = 0; j < m*n; j++) {
+	N = calculateNfromGame(game);
+	for (i = 0; i<N ; i++) {
+		for (j = 0; j<N; j++) {
 			val = game->board->cells[i][j].value;
 			if (val != 0) {
 				ind.row = i;

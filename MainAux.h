@@ -143,7 +143,8 @@ void printNTimes(int n);
 void makeCopyBoard(Board* borad, Board* copyBorad);
 
 /**
- *check if board has a cell that marked as erroneous.
+ * check if board has a cell that marked as erroneous and update the board erroneous value.
+ * return value: true if the board has at least one error, false otherwise.
  */
 bool isBoardErroneous(Board* board);
 

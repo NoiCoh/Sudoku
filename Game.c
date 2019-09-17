@@ -106,6 +106,7 @@ void setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
 
 	if (val == 0) {/*empty this cell*/
 		game->board->cells[row][col].userInput = false;
+		game->board->cells[row][col].error = false;
 	}
 	else {
 		game->board->cells[row][col].userInput = true;
@@ -133,6 +134,7 @@ void setCommand(Game* game, int col, int row, int val,bool addToMoveList) {
  */
 int validateCommand(Game* game,int isSave) {
 	LPsol* solve;
+	isBoardErroneous(game->board);
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 		return 0;
@@ -165,7 +167,8 @@ int guessCommand(Game* game, float threshold) {
 	linkedList* move;
 	LPsol* lpSol;
 	double* scores;
-	N = game->board->blocksize.m * game->board->blocksize.n;
+	N = calculateNfromGame(game);
+	isBoardErroneous(game->board);
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 		return 0;
@@ -375,6 +378,7 @@ void saveGame(Game* game, char* path) {
 	char* regCellFormat;
 	char* lastCellFormat;
 	if (game->mode == editMode) {
+		isBoardErroneous(game->board);
 		if (game->board->erroneous) {
 			printErroneousBoardError();
 			printf("File was not saved\n");
@@ -439,7 +443,8 @@ void hintCommand(Game* game, char* x, char* y) {
 	LPsol* lpSol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
-	N = game->board->blocksize.m * game->board->blocksize.n;
+	N = calculateNfromGame(game);
+	isBoardErroneous(game->board);
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 	}
@@ -474,12 +479,12 @@ void hintCommand(Game* game, char* x, char* y) {
  * hint is given according to the scores Matrix calculated with the LP Solver algorithm.
  */
 void guessHintCommand(Game* game, char* x, char* y) {
-	int row, col, val, m, n, ix;
+	int row, col, val, N, ix;
 	LPsol* lpSol;
 	col = atoi(x) - 1;
 	row = atoi(y) - 1;
-	m = game->board->blocksize.m;
-	n = game->board->blocksize.n;
+	N = calculateNfromGame(game);
+	isBoardErroneous(game->board);
 	if (game->board->erroneous == true) {
 		printErroneousBoardError();
 	}
@@ -495,7 +500,7 @@ void guessHintCommand(Game* game, char* x, char* y) {
 			printf("Error: board is unsolvable\n");
 		}
 		else {
-			for (val = 1; val <= n * m; val++) {
+			for (val = 1; val <= N; val++) {
 				ix = game->board->cells[row][col].ixMap[val - 1] - 1;
 				if (ix >= 0) {
 					if (lpSol->solBoard[ix] != 0) {

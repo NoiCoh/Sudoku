@@ -465,10 +465,10 @@ void printCommandSyntax(Command c, int maxVal) {
 	}
 	if (c == edit) {
 		printf("The correct syntax for edit command is: edit x.\nx should include a full or relative path to the file \
-		and this parameter is optional.\n If no parameter is supplied, the default board is an empty 9X9 board\n");
+		and this parameter is optional.\nIf no parameter is supplied, the default board is an empty 9X9 board\n");
 	}
 	if (c == mark_errors) {
-		printf("The correct syntax for mark_errors command is: mark_errors x.\n X should be either 0 or 1.\n");
+		printf("The correct syntax for mark_errors command is: mark_errors x.\nX should be either 0 or 1.\n");
 	}
 	if (c == print_board) {
 		printf("The correct syntax for print_board command: print_board (with no extra parameters).\n");
@@ -482,7 +482,7 @@ void printCommandSyntax(Command c, int maxVal) {
 		printf("The correct syntax for validate command:validate (with no extra parameters).\n");
 	}
 	if (c == guess) {
-		printf("The correct syntax for guess command:guess x.\n X should be a float in range [0-1].\n");
+		printf("The correct syntax for guess command:guess x.\nX should be a float in range [0-1].\n");
 	}
 	if (c == generate) {
 		printf("The correct syntax for generate command:generate x y.\n");
@@ -495,7 +495,7 @@ void printCommandSyntax(Command c, int maxVal) {
 		printf("The correct syntax for redo command:redo (with no extra parameters).\n");
 	}
 	if (c == save) {
-		printf("The correct syntax for save command is: save x.\n X includes a full or relative path to the file.\n");
+		printf("The correct syntax for save command is: save x.\nX includes a full or relative path to the file.\n");
 	}
 	if (c == hint) {
 		printf("The correct syntax for hint command is: hint x y\n");
