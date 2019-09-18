@@ -525,6 +525,12 @@ int numSolution(Game* game) {
 	copyBoard = initialize(game->board->blocksize);
 	makeCopyBoard(game->board, copyBoard);
 	N = game->board->blocksize.m * game->board->blocksize.n;
+	markErroneousCells(game);
+	game->board->erroneous = isBoardErroneous(game->board);
+	if (game->board->erroneous) {
+		printErroneousBoardError();
+		return 0;
+	}
 	count = exhaustiveBacktracking(game,N);
 	free(copyBoard);
 	printf("The number of solutions for the current board: %d\n",count);

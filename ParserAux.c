@@ -292,9 +292,6 @@ int validateGuess(char* move[], Game* game) {
 */
 int validateGenerate(char* move[], Game* game) {
 	int paramsNum, checkparamsnum, n, m, N;
-	m = game->board->blocksize.m;
-	n = game->board->blocksize.n;
-	N = m * n;
 	if (game->mode != editMode) {
 		if (game->mode == solveMode) {
 			printErrorMode("solve");
@@ -304,6 +301,9 @@ int validateGenerate(char* move[], Game* game) {
 		}
 		return 0;
 	}
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	N = m * n;
 	paramsNum = argsNum(move);
 	checkparamsnum = checkParamsNum(3, paramsNum, generate, N * N);
 	if (!checkparamsnum) {
@@ -380,9 +380,6 @@ int validateSave(char* move[], Game* game) {
 */
 int validateHintAndGuessHint(char* move[], Game* game, int isHint) {
 	int paramsNum, checkparamsnum, n, m, maxValue;
-	m = game->board->blocksize.m;
-	n = game->board->blocksize.n;
-	maxValue = m * n;
 	if (game->mode != solveMode) {
 		if (game->mode == editMode) {
 			printErrorMode("edit");
@@ -392,6 +389,9 @@ int validateHintAndGuessHint(char* move[], Game* game, int isHint) {
 		}
 		return 0;
 	}
+	m = game->board->blocksize.m;
+	n = game->board->blocksize.n;
+	maxValue = m * n;
 	paramsNum = argsNum(move);
 	if (isHint) {
 		checkparamsnum = checkParamsNum(3, paramsNum, hint, maxValue);
