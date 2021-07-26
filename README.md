@@ -10,4 +10,4 @@ Created By : [Inbal](https://github.com/Inbalavivi) & [Noi](https://github.com/N
 4.The random Sudoku generator.
 5.The backtracking solver for determining the number of different solutions.
 
-For the ILP solver we used the Gurobi Optimizer, an optimization solver for linear programming.
+*For the ILP solver we used the Gurobi Optimizer, an optimization solver for linear programming.
